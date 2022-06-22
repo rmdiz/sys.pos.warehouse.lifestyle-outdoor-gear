@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./images/favicon/favicon.ico">
+
+    
+    <!-- MATERIAL ICON CDN -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <!-- <link rel="stylesheet" href="https://fonts.sandbox.google.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" /> -->
+
+
+    <!-- GOGGLE FONTS (POPINS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>LIFESTYLE OUTDOORGEAR</title>
+
+    <!-- CUSTOME STYLES -->
+    <link rel="stylesheet" href="./css/style.css">
+
+</head>
+<body>
+    <div class="notification_messages"></div>
+    <section class="sign-in-container" id="sign-in-container">
+        <form action="index.html?pg=signin" method="post" id="sign-in-form"> 
+            <div class="logo">
+                
+                <img src="./images/box-logo.png">
+                <img src="./images/logo.png">
+            </div>
+            <h2>Sign in</h2>
+            <div class="input-field">
+                <span class="material-symbols-outlined">person</span>
+                <input type="text" name="username" id="signinUsername" required>
+                <small></small>
+                <label>Enter username</label>
+            </div>
+            <div class="input-field">
+                <span class="material-symbols-outlined">lock</span>
+                <input type="password" name="password" id="signinPassword" required>
+                <small></small>
+                <label>Enter password</label>
+                <span class="material-symbols-outlined" id="togglePass">visibility</span>
+            </div>
+            <input type="submit" name="signin" value="Sign In" id="signin-btn" class="btn btn-round">
+            <div class="details">
+                <h2>Lifestyle Outdoorgear POS</h2>
+                <p>
+                    An integrated platform for online shopping, Point Of Sale(POS), inventory management and business reports. 
+                </p>
+            </div>
+        </form>
+    </section>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- <script type="text/javascript" src="./js/jQuery.js"></script> -->
+    <script src="./js/starter.js"></script>
+</body>
+</html>

@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="./images/favicon/favicon.ico">
+
+    <!-- MATERIAL ICONS CDN -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
+
+    <!-- GOGGLE FONTS (POPINS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <title>POS LIFESTYLE</title>
+
+    <!-- CUSTOME STYLES -->
+    <link rel="stylesheet" href="./css/layout.css">
+
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <div class="logo">
+                <img src="./images/logo.png" alt="">
+            </div>
+            <form action="#" class="search-bar "> <!-- show -->
+                <span class="material-icons-outlined">search</span>
+                <input type="search" id="nav-search" placeholder="Search ...">
+            </form>
+            <div class="profile-area">
+                <div class="theme-btn">
+                    <span class="material-icons-outlined active">light_mode</span>
+                    <span class="material-icons-outlined">dark_mode</span>
+                </div>
+                <div class="search-btn">
+                    <span class="material-icons-outlined">search</span>
+                </div>
+                <div class="cart-btn nav-link "  data-pgno="5" data-pg="cart">
+                    <span class="material-icons-outlined">shopping_bag</span>
+                    <small>0</small>
+                </div>
+                <div class="profile-photo" id="user-account-information">                        
+                    <img src="./images/default.png" alt="">
+                </div>
+                <button id="menu-btn">
+                    <span class="material-icons-outlined">menu</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+    <!-- END OF NAVBAR -->
+    <div class="notification_messages"><span class="material-icons-outlined">close</span></div>
+
+    <main>
+        <div class="container "> <!-- expand -->
+            <aside> <!-- expand dateN -->
+                <!-- <button id="close-btn">
+                    <span class="material-icons-outlined">close</span>
+                </button> -->
+                <a href="#" class="profile" id="user-profile">
+                    <div class="profile-photo">
+                        <img src="./images/default.png" alt="">
+                    </div>
+                    <div class="handle">
+                        <h4></h4>
+                        <p class="text-muted"></p>
+                    </div>
+                </a>
+                <div class="side-bar">
+                    <a href="#" class="menu-item nav-link" data-pgno="0" data-pg="home">
+                        <span class="material-icons-outlined">home</span>
+                        <h3>Home</h3>
+                    </a>
+                    <a href="#" class="menu-item nav-link" data-pgno="1" data-pg="orders">
+                        <span class="material-icons-outlined">dashboard_customize</span>
+                        <h3>Orders</h3>
+                    </a>
+                    <a href="#" class="menu-item nav-link" data-pgno="2" data-pg="sales">
+                        <span class="material-icons-outlined">paid</span>
+                        
+                        <h3>Sales</h3>
+                    </a>
+                    <a href="#" class="menu-item nav-link " data-pgno="3" data-pg="return">
+                        <span class="material-icons-outlined">account_balance_wallet</span>
+                        <h3>Return</h3> 
+                    </a>
+                    <a href="#" class="menu-item" data-pg='#' id="categoriesBtn">
+                        <span class="material-icons-outlined">drive_file_move</span>
+                        <h3>Categories</h3> 
+                        <!-- NAVIGATION POPUPS -->
+                        <div class="notifications-popup nav-popup category-list">
+                            <ul id="home_categories"></ul>
+                        </div>
+                    </a>
+
+                    <a href="#" class="menu-item" data-pg='#' id="brandBtn">
+                        <span class="material-icons-outlined">branding_watermark</span>
+                        <h3>Brands</h3> 
+                        <!-- NAVIGATION POPUPS -->
+                        <div class="notifications-popup nav-popup brand-list">
+                            <ul id="home_brand"></ul>
+                        </div>
+                    </a>
+
+                    <a href="#" class="menu-item" data-pg='#' id="notifications">
+                        <span class="material-icons-outlined">notifications</span> <small class="notification-count">0</small> 
+                        <h3>Notifications</h3> 
+
+                        <!-- NOTIFICATION POPUPS -->
+                        <div class="notifications-popup">
+                            
+                            <div>
+                                <div class="profile-photo">
+                                    <img src="./images/default.png" alt="">
+                                </div>
+                                <div class="notification-body">
+                                    <b>Inventory Update </b> 5.11 Shorts have been increased by 5, they are 20 in total now
+                                    <small class="text-muted">12/05/2022</small>  
+                                </div>
+                            </div>
+                            <div>
+                                <div class="profile-photo">
+                                    <img src="./images/default.png" alt="">
+                                </div>
+                                <div class="notification-body">
+                                    <b>Inventory Update </b> 5.11 Shirts have been increased by 5, they are 20 in total now
+                                    <small class="text-muted">12/05/2022</small>  
+                                </div>
+                            </div>
+                            <div>
+                                <div class="profile-photo">
+                                    <img src="./images/default.png" alt="">
+                                </div>
+                                <div class="notification-body">
+                                    <b>Inventory Update </b> 5.11 Shirts have been increased by 5, they are 20 in total now
+                                    <small class="text-muted">12/05/2022</small>  
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                    <a href="#" class="menu-item nav-link " data-pgno="4" data-pg="profile">
+                        <span class="material-icons-outlined">person</span>
+                        <h3>profile</h3> 
+                    </a>
+                    <a href="#" class="menu-item" data-pg='#' id="siginout">
+                        <span class="material-icons-outlined">logout</span>
+                        <h3>logout</h3> 
+                    </a>
+                        
+                </div>
+
+                <div class="updates">
+                    <span class="material-icons-outlined">sync</span>
+                    <h4>Dollar Rate</h4>
+                    <input type="number" class="action_admin_only" placeholder="Change Dollar rate" id="dollar_rate_update">
+                    <a href="#" class="action_admin_only" id="updateDollarRate">Update Now</a>
+                </div>
+            </aside>
+            <!-- END ASIDE --> 
+            <section class="content">
+                <div class="page show" id="home">
+                    <header id="header">
+                        <div class="card">
+                            <h2>Our Collection</h2>
+                            <h2 class="dateN"></h2>
+                            <h2 class="outletV">Outlet: </h2>
+                            <h2>Available Products</h2>
+                        </div>
+                        <div class="card">
+                            <h2>Daily Sales</h2>
+                            <span id="todaySales">00</span>
+                        </div>
+                        <div class="card">
+                            <h2>Daily Orders</h2>
+                            <span>00</span>
+                        </div>
+                        <div class="header-footer">
+                            <!-- <h5> Showing <span class="previously-shown">217</span> of <span class="total">538</span></h5> -->
+                        </div>
+                    </header>
+                    <div class="listing" id="branchinventoryproducts_list">
+                    </div>
+                    <div class="pagination_link branchinventoryproduct-list_pagination">
+                    </div>
+                </div>
+                <!-- END OF HOME -->
+                <div id="orders" class="page wrapper report-section">
+                    <div class="section-title-nw">
+                        <span class="material-icons-outlined table-filter">bubble_chart </span>
+
+                        <div class="title-head">
+                            <span class="material-icons-outlined">monitoring</span>
+                            <h3>Sales List</h3>
+                        </div>
+                        <div class="title-modifications ">
+                            <a id="export_product">
+                                <h3>Export </h3>
+                                <span class="material-icons-outlined">cloud_sync</span>
+                            </a>
+                            <button class="btn bg-primary" id="newInventory">
+                                <span class="material-icons-outlined">add</span>
+                            </button>
+                            <button class="btn bg-success" id="editInventory">
+                                <span class="material-icons-outlined">edit</span>
+                            </button>
+                            <button class="btn bg-danger" id="deleteInventory">
+                                <span class="material-icons-outlined">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="report-statistics">
+                        <div class="cards">
+                            <div class="card">
+                                <span class="material-icons-outlined">shopping_bag</span>
+                                <div class="stat-details branch_income">
+                                    <h2>00</h2>
+                                    <label>Pulickal Hotel</label>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <span class="material-icons-outlined">inventory</span>
+                                <div class="stat-details branch_income">
+                                    <h2>00</h2>
+                                    <label>Arena Mall</label>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <span class="material-icons-outlined">verified_user</span>
+                                <div class="stat-details branch_income">
+                                    <h2>00</h2>
+                                    <label>Victoria Mall</label>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <span class="material-icons-outlined">attach_money</span>
+                                <div class="stat-details">
+                                    <h2 id="totalIncome">233,000,000 <small>/=</small></h2>
+                                    <label>Total Income</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filtration">
+                             <label>
+                                 <input type="date" id="startdate">
+                                 <span>To</span>
+                                 <input type="date" id="enddate">
+                             </label>
+                             <label>
+                                <select class="showlimit">
+                                    <option value="15" selected="">Showing 15 </option>
+                                    <option value="30">Showing 30 </option>
+                                    <option value="60">Showing 60 </option>
+                                    <option value="90">Showing 90 </option>
+                                    <option value="120">Showing 120 </option>
+                                    <option value="All">Showing all</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <table class="designed">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label class="counter">
+                                        <span>#</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class="">
+                                    <label>
+                                        <span>Branch</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label class="action">
+                                        <span>Action</span>
+                                    </label>
+                                </th>
+                                <th class="count">
+                                    <label class="short-fixed">
+                                        <span>Invoice</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th class="count">
+                                    <label class="short-fixed">
+                                        <span>Items</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label>
+                                        <span>Total Price</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class="">
+                                    <label>
+                                        <span>Attendant</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class=" ">
+                                    <label>
+                                        <span>Date</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class=" ">
+                                    <label>
+                                        <span>Type</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label >
+                                        <span>Customer</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoices_list">
+                        </tbody>
+                        
+                    </table>
+                    <div class="pagination_link invoice-list_pagination">
+                    </div>
+                </div>
+
+                <div id="sales" class="page wrapper">
+                    <div class="statistics">
+                        <div class="sale-box">
+                            <small>Victoria</small>
+                            <div class="percentage">
+                                <div class="total">
+                                    <h3>Total Sales</h3>
+                                    <h1 id="victoriaTotalSale">38,8475,0000 <small>/=</small></h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sale-box">
+                            <small>Arena Mall</small>
+                            <div class="percentage">
+                                <div class="total">
+                                    <h3>Total Sales</h3>
+                                    <h1 id="arenaTotalSale">38,8475,0000 <small>/=</small></h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sale-box">
+                            <small>Imperial Mall</small>
+                            <div class="percentage">
+                                <div class="total">
+                                    <h3>Total Sales</h3>
+                                    <h1 id="imperialTotalSale">38,8475,0000 <small>/=</small></h1>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sale-box">
+                            <small>Pulical Hotel</small>
+                            <div class="percentage">
+                                <div class="total">
+                                    <h3>Total Sales</h3>
+                                    <h1 id="puricalTotalSale">38,8475,0000 <small>/=</small></h1>
+                                </div>
+                            </div>                            </div>
+                        <div class="sale-box">
+                            <small>General</small>
+                            <div class="percentage">
+                                <div class="total">
+                                    <h3>Ovarall Total Sales</h3>
+                                    <h1 id="overallTotalSale">38,8475,0000 <small>/=</small></h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="statistics">
+                        <div class="two-item">
+                            <h3>Select date range</h3>
+                            <label>
+                                <input type="date" class="sort_by_start_date">
+                            </label>
+                            <span>To</span>
+                            <label>
+                                <input type="date" class="sort_by_end_date">
+                            </label>
+                        </div>
+                        <div class="line-item">
+                            <div class="seachable_dropdown action_admin_only">
+                                <h3>Currency</h3>
+                                <input list="dollar_rates" name="dollar_rate" placeholder="Currency" class="dollar_rate">
+                                <datalist class="dollar_rates"></datalist>
+                            </div>
+                        </div>
+                        <div class="line-item">
+                            <div class="seachable_dropdown action_admin_only">
+                                <h3>Dollar Rate</h3>
+                                <input list="dollar_rates" name="dollar_rate" placeholder="Rate" class="dollar_rate">
+                                <datalist class="dollar_rates"></datalist>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="title">
+                        <label class="heading">
+                            <span class="material-icons-outlined">paid</span>
+                            Sales
+                        </label>
+                        <div class="horizontal filter-box "> 
+                            <div class="line-item">
+                                <label class="line-title">
+                                    <span class="material-icons-outlined">sort</span>
+                                    <span>Filters</span>
+                                </label>
+                            </div>
+                            <div class="two-item">
+                                <label>
+                                    <input type="date" id="sort_by_start_date">
+                                </label>
+                                <span>To</span>
+                                <label>
+                                    <input type="date" id="sort_by_end_date">
+                                </label>
+                            </div>
+                            <label class="line-item">
+                                <span>Branch</span>
+                                <select id="show_sales_by_branch" class="branch action_admin_only">
+                                    <option selected>Search by branch </option>
+                                </select>
+                            </label>
+                            <label class="line-item">
+                                <span>Filtration</span>
+                                <select id="set_sales_limit">
+                                    <option value="15">Showing 15 </option>
+                                    <option value="30">Showing 30 </option>
+                                    <option value="90">Showing 90 </option>
+                                    <option value="All">Showing All </option>
+                                </select>
+                            </label>
+                            <label class="line-item">
+                                <span>Currency</span>
+                                <select id="currency" class="currency">
+                                    <option selected>Currency </option>
+                                </select>
+                            </label>
+                            <label class="line-item">
+                                <div class="seachable_dropdown action_admin_only">
+                                    <span>Dollar Rate</span>
+                                    <input list="dollar_rates" name="dollar_rate" placeholder="Rate" id="dollar_rate">
+                                    <datalist id="dollar_rates"></datalist>
+                                </div>
+                            </label>
+                            <label class="line-item">
+                                <span>Export</span>
+                                <a id="export_sales" class="action_admin_only">
+                                    <span>Export</span>
+                                    <span class="material-icons-outlined">cloud_download</span>
+                                </a>
+                            </label>
+                        </div>
+                        <button id="sort">
+                            <span class="material-icons-outlined">sort</span>
+                        </button>
+                    </div>
+                    <table class="designed">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label>
+                                        <span>#</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label>
+                                        <span>Code</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="name">
+                                    <label>
+                                        <span>Product</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label>
+                                        <span>Category</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label>
+                                        <span>Price</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th  class="disapear">
+                                    <label>
+                                        <span>Invoice No</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label class="center">
+                                        <span>Qty</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th  class="disapear">
+                                    <label>
+                                        <span>Branch</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="name disapear">
+                                    <label>
+                                        <span>Attendant</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th  class="disapear">
+                                    <label>
+                                        <span>Date</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label class="action center">
+                                        <span>Action</span>
+                                    </label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales_list">
+                        </tbody>
+                        
+                    </table>
+                    <table id="sale_export_tb"></table>
+                    <div class="pagination_link sale_pagination">
+                    </div>
+                    <div class="edit_details hide">
+                        <div class="card_boxes">
+                            <div class="title">
+                                <h3>Edit sale information</h3>
+                                <span class="material-icons-outlined">edit_note</span>
+                            </div>
+                            <div class="item_cards">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="return" class="page wrapper">
+                    <div class="title">
+                        <label class="heading">
+                            <span class="material-icons-outlined">paid</span>
+                            Posible Sale Returns
+                        </label>
+                        <div class="horizontal filter-box "> 
+                            <div class="line-item">
+                                <label class="line-title">
+                                    <span class="material-icons-outlined">sort</span>
+                                    <span>Filters</span>
+                                </label>
+                            </div>
+                            <div class="two-item">
+                                <label>
+                                    <input type="date" id="sort_by_start_date_return">
+                                </label>
+                                <span>To</span>
+                                <label>
+                                    <input type="date" id="sort_by_end_date_return">
+                                </label>
+                            </div>
+                            <label class="line-item">
+                                <span>Branch</span>
+                                <select id="show_sales_by_branch_return" class="branch action_admin_only">
+                                    <option selected>Search by branch </option>
+                                </select>
+                            </label>
+                            <label class="line-item">
+                                <span>Filtration</span>
+                                <select id="set_sales_limit_return">
+                                    <option value="15">Showing 15 </option>
+                                    <option value="30">Showing 30 </option>
+                                    <option value="90">Showing 90 </option>
+                                    <option value="All">Showing All </option>
+                                </select>
+                            </label>
+                            <label class="line-item">
+                                <span>Currency</span>
+                                <select id="currency_return" class="currency">
+                                    <option selected>Currency </option>
+                                </select>
+                            </label>
+                            <label class="line-item">
+                                <div class="seachable_dropdown action_admin_only">
+                                    <span>Dollar Rate</span>
+                                    <input list="dollar_rates_return" name="dollar_rate_return" placeholder="Rate" id="dollar_rate_return">
+                                    <datalist id="dollar_rates_return"></datalist>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    <table class="designed">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label>
+                                        <span>#</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label>
+                                        <span>Code</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="name">
+                                    <label>
+                                        <span>Product</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label>
+                                        <span>Category</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label>
+                                        <span>Price</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th  class="disapear">
+                                    <label>
+                                        <span>Invoice No</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="disapear">
+                                    <label class="center">
+                                        <span>Qty</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th  class="disapear">
+                                    <label>
+                                        <span>Branch</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th class="name disapear">
+                                    <label>
+                                        <span>Attendant</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th  class="disapear">
+                                    <label>
+                                        <span>Date</span>
+                                        <span class="material-icons-outlined">sort_by_alpha</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label class="action center">
+                                        <span>Action</span>
+                                    </label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="return_list">
+                        </tbody>
+                    </table>
+                    <div class="pagination_link return_pagination">
+                    </div>
+                </div>
+                <div class="page" id="profile">
+                    <div class="left">
+                        <div class="card">
+                            <div class="profile-photo" id="profile-user-image">
+                                <img src="./images/default.png">
+                            </div>
+                            <span id="profile-username">@Jackline</span>
+                            <h2 id="profile-name">Name: Naluyange Jackline</h2>
+                            <h2 id="profile-email">Email: tactical.ug@gmail.com</h2>
+                            <h2 id="profile-telephone">telephone: 0789684926</h2>
+                            <h2 id="profile-branch">Attendant</h2>
+                        </div>
+                    </div>
+                    <div class="right">
+                        <div class="title">
+                            <h3>Update your profile</h3>
+                            <span class="material-icons-outlined">person</span>
+                        </div>
+                        <form class="cart_billing">
+                            <div class="seachable_dropdown">
+                                <b for="add_customer_fname">First Name</b>
+                                <input type="text" name="update_user_fname" placeholder="User first name" id="update_user_fname">
+                            </div>
+                            <div class="seachable_dropdown">
+                                <b for="update_user_1name">Last Name</b>
+                                <input type="text" name="update_user_1name" placeholder="User last name" id="update_user_1name">
+                            </div>
+                            <div class="seachable_dropdown">
+                                <b for="update_user_email">Email</b>
+                                <input type="text" name="update_user_email" placeholder="User Email" id="update_user_email">
+                            </div>
+                            <div class="seachable_dropdown">
+                                <b for="update_user_telephone">Telephone</b>
+                                <input type="text" name="update_user_telephone" placeholder="User Telephone" id="update_user_telephone">
+                            </div>
+                            <div class="seachable_dropdown">
+                                <b for="update_user_username">username</b>
+                                <input type="text" name="update_user_username" placeholder="User username" id="update_user_username">
+                            </div>
+                            <div class="seachable_dropdown">
+                                <b for="update_user_type">user Type</b>
+                                <input type="text" name="update_user_type" placeholder="User password" id="update_user_type">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="page" id="cart">
+                    <div class="title">
+                        <label class="heading">
+                            <span class="material-icons-outlined">shopping_bag</span>
+                            Shopping Cart
+                        </label>
+                        <button id="show-client-detail-btn">
+                            <h3>Add Client Details</h3>
+                            <span class="material-icons-outlined">
+                                double_arrow
+                            </span>
+                        </button>
+                    </div>
+                    <div class="cart_details">
+                        <div class="cart_items">
+                        </div>
+                        <div class="cart_processing">
+                            <div class="cart_processing_title">
+                                <label>Enter Customer Details</label>
+                                <button id="clearCart">
+                                    <span class="material-icons-outlined">
+                                        delete
+                                    </span>
+                                    <i>Clear Cart</i>
+                                </button>
+                            </div>
+                            <form class="cart_billing" action="#" method="post" id="make-transaction">
+                                <div class="seachable_dropdown">
+                                    <b for="update_user_fname">First Name</b>
+                                    <input list="add_customer_fnames" name="add_customer_fname" placeholder="Client first name" id="add_customer_fname">
+                                    <datalist id="add_customer_fnames"></datalist>
+                                </div>
+                                <div class="seachable_dropdown">
+                                    <b for="add_customer_1name">Last Name</b>
+                                    <input list="add_customer_1names" name="add_customer_1name" placeholder="Client last name" id="add_customer_1name">
+                                    <datalist id="add_customer_1names"></datalist>
+                                </div>
+                                <div class="seachable_dropdown">
+                                    <b for="add_customer_email">Email</b>
+                                    <input list="add_customer_emails" name="add_customer_email" placeholder="Client Email" id="add_customer_email">
+                                    <datalist id="add_customer_emails"></datalist>
+                                </div>
+                                <div class="seachable_dropdown">
+                                    <b for="add_customer_telephone">Telephone</b>
+                                    <input list="add_customer_telephones" name="add_customer_telephone" placeholder="Client Telephone" id="add_customer_telephone">
+                                    <datalist id="add_customer_telephones"></datalist>
+                                </div>
+                                <div class="seachable_dropdown">
+                                    <b for="add_purchase_date">Purchase Date</b>
+                                    <input type="date" name="add_purchase_date" id="add_purchase_date">
+                                </div>
+                                <div class="seachable_dropdown_two">
+                                    <div class="payment_type">
+                                        <b for="add_payment_type">Payment Type</b>
+                                        <input list="add_payment_types" name="add_payment_type" value="Cash" placeholder="Payment type" id="add_payment_type">
+                                        <datalist id="add_payment_types"></datalist>
+                                    </div>
+                                    <div class="discount_type">
+                                        <b for="add_discount">Add Discount</b>
+                                        <input list="add_discounts" name="add_discount" value="Nil" placeholder="Discount" id="add_discount">
+                                        <datalist id="add_discounts"></datalist>
+                                    </div>
+                                </div>
+                                <div class="seachable_dropdown_two">
+                                    <div class="sale_curency">
+                                        <b for="sale_curency">Select Currecy</b>
+                                        <input list="sale_curencies" name="sale_curency" value="Shillings" placeholder="Search for sale_curency" id="sale_curency">
+                                        <datalist id="sale_curencies">
+                                        </datalist>
+                                    </div>
+                                    <div class="print_receipt">
+                                        <b for="prechecked_print_receipt">Print receipt</b>
+                                        <label for="prechecked_print_receipt" class="prechecked_print_receipt">
+                                            <input type="checkbox" name="prechecked_print_receipt" checked="checked" id="prechecked_print_receipt" value="print">
+                                            <span>Print receipt</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="surmmery">
+                                    <div class="sale_billing">
+                                        <span>Total Quantity: <b id="totalQuantity">1</b></span>
+                                        <span>Total Price: <b id="totalPrice_identifier">0 /=</b></span>
+                                        <span>Discount Price: <b id="DiscountPrice_identifier">0 /=</b></span>
+                                    </div>
+                                    <div class="billing_info">
+                                        <span>Discount: <b id="discount_identifier">0%</b></span>
+                                        <span>Payment: <b id="payment_type">Cash</b></span>
+                                        <span class="cart_btn">
+                                            <button id="checkout_btn">
+                                                Checkout 
+                                                <span class="material-icons-outlined">
+                                                    arrow_forward_ios
+                                                </span>
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                            </form>
+                
+                            <div class="cart_processing_title">
+                                <button id="preview-receipt-btn">Preview Receipt</button>
+                                <select id="admin_sale_at_specific_branch" disabled="true">
+                                </select>
+                            </div>
+                            <div class="receipting">
+                                <div class="receipt" id="receipt">
+                                    <div class="receipt_header">
+                                        <div class="logo">
+                                            <img src="./images/logo.png">
+                                        </div>
+                                        <div class="contact">
+                                            <span class="full_width"><b>Website:</b> www.lifestyleoutdoorgear.com</span>
+                                            <span class="full_width"><b>Email:</b>tactical.ug@gmail.com</span>
+                                            <span class="full_width"><b>Phone:</b>+256754244838</span>
+                                            <span class="full_width"><b id="outlet">Outlet: null</b></span>
+                                        </div>
+                                        <div class="receipt_number">
+                                            <span id="invoice_no"><b>No.</b>: #8226</span>
+                                            <span id="invoice_date"><b>Date</b>: </span>
+                                        </div>
+                                    </div>
+                                    <div class="receipt_body">
+                                        <table class="receipt_table">
+                                            <thead>
+                                                <tr>
+                                                    <th>PCode</th>
+                                                    <th>Name</th>
+                                                    <th><span class="item_quantity">Qty</span></th>
+                                                    <th>Price</th>
+                                                    <th>Total</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="receipt_items">
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="receipt_footer">
+                                        <span id="payType"><b>Payment:</b> null</span>
+                                        <span class="rTotal"><b>Total:</b> <b id="totalPrice">210,000</b><small id="currencySymbol"></small></span>
+                                        <span class="attendant">You have been served by <b id="receipt_attendant">Tom</b></span>
+                                        <span class="remarks">Thank you for shopping with us.</span>
+                                        <span class="close">POS SYSTEM DESIGNED BY RMDiz. <br>QUICK CONTACT NUMBER +256705314188 @ MWAMBALA ROGERS</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>   
+                    </div>
+
+                    <div class="pagination_link">
+                        <div class="pagination_box">
+                            <ul class="pagination">
+                        
+                                    <li class="page-item  home_inventory_item_l disable">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link startFromPrevious previousing disable" data-page="0" href="#">&lt;&lt;</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l active">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="1" href="#">1</a>
+                                    </li>
+                                
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="2" href="#">2</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="3" href="#">3</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="4" href="#">4</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="5" href="#">5</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="6" href="#">6</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="7" href="#">7</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l">
+                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="8" href="#">8</a>
+                                    </li>
+                                    
+                                    <li class="page-item  home_inventory_item_l disable"><a data-url="home" data-pgnname="pagination_link" class="page-link  disable home_inventory-link startFromPrevious nexting" data-page="2" href="#">&gt;&gt;</a></li>
+                                    
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- <script type="text/javascript" src="./js/jQuery.js"></script> -->
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
