@@ -224,7 +224,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
                     });
                 }else{
                     Object.keys(data).forEach((dataKey, index) =>{
-                        // console.log(data[dataKey]);
                         Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
                             branchInventoryProducts[innerDataKey] = data[dataKey][innerDataKey];
                             itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[innerDataKey], index));
@@ -246,7 +245,7 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         console.log(firstItemDetails.quantity)
         let tmp = `
             <div class="product" data-page="1">
-                <a class="list-item" data-details="item-identifier-${firstItemDetails.branch_inventory_id}" href="#" data-item-colors='${JSON.stringify(itemData.product_colors)}'>
+                <a class="list-item" data-details="item-identifier-${firstItemDetails.branch_inventory_id}" href="#header" data-item-colors='${JSON.stringify(itemData.product_colors)}'>
                     <div class="list-image">
                         <img src="./images/${firstItemDetails.image}">
                     </div>
@@ -257,7 +256,7 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
                 <div class="item-details" id="item-identifier-${firstItemDetails.branch_inventory_id}">
                     <div class="item-box">
                         <div class="title">
-                            <h3>Item Details</h3>
+                            <h3>${firstItemDetails.name}</h3>
                             <span data-pg="home" data-pgno="0" class="material-icons-outlined hide nav-link ">close</span>
                         </div>
                         <div class="list-item item-besic-info">
@@ -265,8 +264,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
                                 <img src="./images/${firstItemDetails.image}">
                             </div>
                             <h2>${firstItemDetails.sale_price} <small>/=</small></h2>
-                            <span>${firstItemDetails.name}</span>
-                            <small></small>
                         </div>
                         <div class="class-secondery-info">
                             <span>${firstItemDetails.code}</span>
@@ -347,6 +344,8 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
     function displayItemDetails(link) {
         // SHOW PRODUCT DETAILS
         link.children[0].addEventListener('click', (e) => {
+            // console.log(link.children[1])
+
             // e.preventDefault();
              // link.children[0].href = `#${link.children[0].dataset.details}`;
             (link.children[1].classList.contains('show')) ? link.children[1].classList.remove('show'):link.children[1].classList.add('show');
@@ -534,7 +533,7 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         document.querySelector('.cart-btn.nav-link small').textContent = Object.keys(site.cart).length;
     }
     const deliverNotification = (msg, msgtype) => {
-        document.querySelector('.notification_messages').innerHTML = `${msg} <span class="material-symbols-outlined">close</span>`;
+        document.querySelector('.notification_messages').innerHTML = `${msg} <span class="material-icons-outlined">close</span>`;
 
         document.querySelector('.notification_messages').classList.forEach((nclass) => {
             if(nclass !== 'notification_messages'){
@@ -618,12 +617,13 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         });
         history.pushState(null, null, url);
 
-        // TRANSFORM VALUE
-        const transformValue = site.page.pageIndex * 74;
+        // // TRANSFORM VALUE
+        // const transformValue = site.page.pageIndex * 74;notification_messages
 
-        // NAVIGATE TO THE PAGE CLICKED
-        document.querySelector('main .container .content').style.transform = `translateX(-${transformValue}vw)`;
+        // // NAVIGATE TO THE PAGE CLICKED
+        // document.querySelector('main .container .content').style.transform = `translateX(-${transformValue}vw)`;
         document.querySelectorAll('main .container .content  div').forEach(page => page.classList.remove('show'));
+        console.log(site.page.pg)
         document.querySelector(`main .container .content div#${site.page.pg}`).classList.add('show');
     }
 
@@ -993,9 +993,7 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         document.getElementById('update_user_type').value = site.session.user_type;
 
         document.querySelector('.profile-area .profile-photo').innerHTML = `<img src="./images/${site.session.image}">`;
-        document.querySelector('aside .profile .profile-photo').innerHTML = `<img src="./images/${site.session.image}">`;
-        document.querySelector('aside .profile .handle p').innerHTML = `@${site.session.username}`;
-        document.querySelector('aside .profile .handle h4').innerHTML = `${site.session.last_name} ${site.session.first_name}`;
+        document.querySelector('.profile-area .handle').innerHTML = `@${site.session.username}`;
 
     }
 /**
@@ -1023,15 +1021,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // SET ACCOUNT PROFILE IMAGE AND USERNAME
     let accountInfo = document.getElementById('user-account-information');
     accountInfo.children[0].setAttribute('src', `./images/${site.session.image}`);
-    let profile = document.getElementById('user-profile');
-    console.log(profile.children[1].children[1])
-    profile.children[0].children[0].setAttribute('src', `./images/${site.session.image}`);
-    profile.children[1].children[0].textContent = site.session.last_name + ' ' + site.session.first_name;
-    profile.children[1].children[1].innerHTML = `<i>@</i>${site.session.username}`;
-
     // SET BRANCH OUTLET AND DATE ON HOME PAGE
     document.querySelector('.dateN').textContent = today;
-    document.querySelector('.outletV').textContent = 'Outlet: ' +site.session.branch;
+    document.querySelector('.outletV').textContent = site.session.branch;
     
     // VALIABLE TO KEEP TRACK OF LOCAL DATA AVAILABILITY
     // IT CONTAINTS SITE DATA KEYS 
