@@ -258,51 +258,6 @@
                         </div>   
                     </div>
 
-                    <div class="pagination_link">
-                        <div class="pagination_box">
-                            <ul class="pagination">
-                        
-                                    <li class="page-item  home_inventory_item_l disable">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link startFromPrevious previousing disable" data-page="0" href="#">&lt;&lt;</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l active">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="1" href="#">1</a>
-                                    </li>
-                                
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="2" href="#">2</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="3" href="#">3</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="4" href="#">4</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="5" href="#">5</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="6" href="#">6</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="7" href="#">7</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l">
-                                        <a data-url="home" data-pgnname="pagination_link" class="page-link  home_inventory-link" data-page="8" href="#">8</a>
-                                    </li>
-                                    
-                                    <li class="page-item  home_inventory_item_l disable"><a data-url="home" data-pgnname="pagination_link" class="page-link  disable home_inventory-link startFromPrevious nexting" data-page="2" href="#">&gt;&gt;</a></li>
-                                    
-                            </ul>
-                        </div>
-                    </div>
                 </div>
                 <div class="page" id="profile">
                     <div class="left">
@@ -407,9 +362,9 @@
                         </div>
                         <div class="filtration">
                              <label>
-                                 <input type="date" id="startdate">
+                                 <input type="date" id="sdate">
                                  <span>To</span>
-                                 <input type="date" id="enddate">
+                                 <input type="date" id="ete">
                              </label>
                              <label>
                                 <select class="showlimit">
@@ -488,7 +443,7 @@
                                 </th>
                             </tr>
                         </thead>
-                        <tbody id="invoices_list">
+                        <tbody id="orders_list">
                         </tbody>
                         
                     </table>
@@ -503,7 +458,7 @@
                             <h3>Sales List</h3>
                         </div>
                         <div class="title-modifications ">
-                            <a id="export_product">
+                            <a id="export_sales">
                                 <h3>Export </h3>
                                 <span class="material-icons-outlined">cloud_sync</span>
                             </a>
@@ -566,17 +521,113 @@
                                 <option selected="">Type </option>
                             </select>
                             <select class="">
+                                <option selected="">Currency </option>
+                            </select>
+                            <select class="">
                                 <option selected="">Invoice/Sale </option>
                             </select>
                             <label>
                                 <input type="date" id="startdate">
                                 <span>To</span>
                                 <input type="date" id="enddate">
-                             </label>
+                            </label>
                         </div>
                     </div>
+                    <table class="design">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label class="counter">
+                                        <span>#</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class="">
+                                    <label>
+                                        <span>Product</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label class="action">
+                                        <span>Action</span>
+                                    </label>
+                                </th>
+                                <th  class="">
+                                    <label>
+                                        <span>Code</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class="">
+                                    <label>
+                                        <span>Branch</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th class="count">
+                                    <label class="short-fixed">
+                                        <span>Invoice</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th class="count">
+                                    <label class="short-fixed">
+                                        <span>Qty</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th class="count">
+                                    <label class="short-fixed">
+                                        <span>Price</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label>
+                                        <span>Total</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label>
+                                        <span>Category</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class="">
+                                    <label>
+                                        <span>Attendant</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class=" ">
+                                    <label>
+                                        <span>Date</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th  class=" ">
+                                    <label>
+                                        <span>Type</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                                <th>
+                                    <label >
+                                        <span>Customer</span>
+                                        <span class="material-icons-outlined">unfold_more</span>
+                                    </label>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales_list">
+                            <!-- <div class="preloader"></div> -->
+                        </tbody>
+                    </table>
+                    <div class="pagination_link sales_list-list_pagination">
 
-                    <table class="designed">
+                    <table class="design">
                         <thead>
                             <tr>
                                 <th>
@@ -641,8 +692,8 @@
                             </tr>
                         </thead>
                         <tbody id="invoices_list">
+                            <div class="preloader"></div>
                         </tbody>
-                        
                     </table>
                     <div class="pagination_link invoice-list_pagination">
                     </div>

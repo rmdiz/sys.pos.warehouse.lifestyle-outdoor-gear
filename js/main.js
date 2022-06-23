@@ -33,28 +33,41 @@ if(!localStorage.getItem('joinedlifestyleoutdoorgear')){
 // GET LOCAL DATA
 site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
 
+// VALIABLE TO KEEP TRACK OF LOCAL DATA AVAILABILITY
+// IT CONTAINTS SITE DATA KEYS 
+// EACH KEY WILL BE COMPARED WITH SITE DATA KEYS
+let expectedData = {
+    'allbranchesinventoryproducts': 'branchinventoryproduct',
+    'allbranchessaleinvoices': 'invoice',
+
+};
+/**
+ * CHECK IF DATA IS AVAILABLE EVERY AFTER 1 SECONDS
+ * IF AVAILABLE LOAD IT
+ **/
+setInterval(()=> {
+    // LOOP THROUGH EXPECTED DATA OBJECT
+    Object.keys(expectedData).forEach((expectedDataKey, index, expectedDataKeys) =>{
+        // IF EXPECTED DATA HAS DATA LOAD THROUGH SITE DATA
+        if(expectedDataKeys.length > 0){
+            // CHECK EACH KEY IN SITE DATA, IF KEY EXITS DELETE IT FROM EXPECTED DATA
+            Object.keys(site).forEach(siteDataKey => {
+                if(siteDataKey == expectedDataKey){
+                    delete expectedData[expectedDataKey];
+                    // LOAD DATA FOUND IN LOCAL SITE DATA
+                    setTimeout(()=> {
+                        renderPageData(site[siteDataKey], siteDataKey, 0);
+                    }, 0);
+                }
+            }); 
+        }
+    });
+    // console.log(expectedData)
+
+}, 1000);
 /**
  * SYSTEM FUNCTIONS A-Z
  **/
-    const allBranchesDataRequest = (dataKey, requestName, requestData, counter, reload = 'false') => {
-        // GET FIRST allbranchesinventoryproducts IS SET
-        // IF ITS NOT SET, SET IT TO AN EMPTY OBJECT
-        if(!site[requestName]){
-            site[requestName] = {}
-        }
-        $.ajax({
-            url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
-            type: "POST",
-            dataType  : 'json',
-            data: requestData,
-            success: function(data){
-                // USE BRANCH ID AS KEY TO SET EACH BRACH DATA  
-                site[requestName][dataKey] = convertToObject(data);
-                // UPDATE SITE DATA
-                updateSiteData(site);
-            }
-        });
-    }
     const generatePegination = (data, item, limit = 15, displayLinkNumber = 10) => {
         console.log(data)
         let pages = 1;  
@@ -210,12 +223,15 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
     }
     // RENDER DYNAMIC PAGE DATA
     const renderPageData = (data, identifier, count = 0) => {
-        let user_branch_id =  (site.session.branch == 'All') ? 0 : site.session.branch_id;
+        let dataArrayFormat = [];
+        let itemContainer = "";
+
+        let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
         switch(identifier){
             case 'allbranchesinventoryproducts':
-                let dataArrayFormat = [];
                 let branchInventoryProducts = {};
-                let itemContainer = document.getElementById('branchinventoryproducts_list');
+                dataArrayFormat = [];
+                itemContainer = document.getElementById('branchinventoryproducts_list');
                 itemContainer.innerHTML ="";
                 if(user_branch_id != 0){
                     branchInventoryProducts = data[user_branch_id];
@@ -236,13 +252,46 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
 
                 // console.log(branchInventoryProducts);
             break;
+            case 'allbranchessaleinvoices':
+
+                // CALCULATE TOTAL SALES IN EACH BRACH AND OVERALL TOTAL
+                setTimeout(calculateTotalSales(data), 0);
+                // POPULATE BRANCH INVOICE TABLE ROWS
+                let branchInvoices = {};
+                dataArrayFormat = [];
+                itemContainer = document.getElementById('invoices_list');
+                itemContainer.innerHTML =``;
+                removeElement('div.preloader');
+                if(user_branch_id != 0){
+                    branchInvoices = data[user_branch_id];
+                    Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
+                        itemContainer.insertAdjacentHTML('beforeend', invoiceTmp(branchInvoices[infoKey], index, count));
+                        count++;
+                    });
+                }else{
+                    Object.keys(data).forEach((dataKey, index) =>{
+                        Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
+                            branchInvoices[innerDataKey] = data[dataKey][innerDataKey];
+                            itemContainer.insertAdjacentHTML('beforeend', invoiceTmp(branchInvoices[innerDataKey], index, count));
+                            count++;
+                        });
+                    });
+                }
+
+                // MAKE INVOICE ACTION BUTTONS CLICKABLE
+                tRowAction();
+                // generatePegination(site[localStorageNm], lowerCaseRqtNm);
+
+                console.log(branchInvoices);
+            break;
         }
+        reveal('invoice');
 
     }
     const productTmp = (itemData, index)=>{
         let firstItemDetails = itemData.product_sizes[0]
-        console.log(itemData);
-        console.log(firstItemDetails.quantity)
+        // console.log(itemData);
+        // console.log(firstItemDetails.quantity) navigateT
         let tmp = `
             <div class="product" data-page="1">
                 <a class="list-item" data-details="item-identifier-${firstItemDetails.branch_inventory_id}" href="#header" data-item-colors='${JSON.stringify(itemData.product_colors)}'>
@@ -303,7 +352,141 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
 
         return tmp;
     }
+    const invoiceTmp = (itemData, index, count)=>{
+        // console.log(itemData);
+        let tmp = `
+            <tr class="unrevealed invoicerevealer">
+                <td><label class="counter">${count+1}</label></td>
+                <td class="user-data"><label>${itemData.branch}</label></td>
+                <td>
+                    <label class="action">
+                        <span class="material-icons-outlined primary inline-edit" data-id="31" data-tb="invoice" data-index="0">edit</span>
+                        <span class="material-icons-outlined warning inline-return" data-id="31" data-tb="invoice" data-index="0">sync</span>
+                        <span class="material-icons-outlined success showinvoicedetails-btn" data-id="31" data-tb="invoice" data-index="0">add</span>
+                    </label>
+                </td>
 
+                <td class="user-data count"><label class="short-fixed">${itemData.invoice_no}</label></td>
+                <td class="user-data count"><label class="short-fixed">${itemData.totalItems}</label></td>
+                <td class="user-data"><label>${addComma(itemData.totalPrice.toString())}</label></td>
+                <td class="inventory-data select-data"><label>${itemData.attendant}</label></td>
+                <td class="user-data"><label class="success">${itemData.purchase_date}</label></td>
+                <td class="user-data"><label class="">${itemData.payment_type_name}</label></td>
+                <td class="user-data  "><label class="">${itemData.customer_name}</label></td>
+                <td class="det">
+                </td>
+            </tr>
+        `;
+        return tmp;
+    }
+    const tRowAction =() => {
+        let actionBtnsParent = document.querySelectorAll("td label.action");
+        console.log(actionBtnsParent);
+        actionBtnsParent.forEach(actionBtn => {
+            for (var i = actionBtn.children.length - 1; i >= 0; i--) {
+                // console.log(actionBtn.children[i]);
+                let btn = actionBtn.children[i];
+                btn.addEventListener('click', (e) => {
+                    let tr = actionBtn.parentElement.parentElement.parentElement.children;
+                    let clickedTr = actionBtn.parentElement.parentElement;
+                    // REMOVE ACTIVE CLASS FROM ALL THE TABLE ROWS
+                    for (var x = tr.length - 1; x >= 0; x--) {
+                        tr[x].classList.remove('active');
+                        tr[x].style.top = `0px`
+                        // MOVE THE NEXT/PREVIOUS TABLE ROW BY THE HEIGHT OF THE EXPANDED ROW
+                       if(tr[x] == clickedTr){
+                            clickedTr.style.top = `-${x * Number(clickedTr.offsetHeight)}px`
+                            console.log(clickedTr.offsetHeight);
+                       }else{
+                            tr[x].children[2].children[0].children[2].textContent = 'add';
+                       }
+                    }
+                    if(btn.textContent == 'add'){
+                        btn.textContent = "remove";
+                        // ADD ACTIVE CLOSE TO THE PARENT OF THE CLICK ELEMENT
+                        clickedTr.classList.add('active');
+
+                        // MOVE ELEMENT TO THE TOP
+                        scrollToTop();
+                    }else{
+                        btn.textContent = "add";
+                        clickedTr.style.top = `0px`
+                    }
+                })
+            }
+
+        })
+    }
+    const reveal = (identifier) => {
+        let number = 0;
+        const trp = document.querySelectorAll(`.${identifier}revealer`);
+        trp.forEach((tr, index)=> {
+            tr.classList.remove('unrevealed');
+            let duration = ((index+1)/trp.length);
+            tr.style.animationDuration = `${duration}s`;
+        });
+    }
+    const calculateTotalSales = (data) => {
+        let totalSum = 0;
+        // USE BRANCH IDS AS KEYS
+        // OBJECT TO HOLD BRANCH IDS AND THEIR TOTAL SALES
+        let branchTotal = {};
+        let branchInvoices = {};
+
+        site.branchList.forEach(branch => {
+            // IF BRANCH DOESN'T EQUAL TO ALL
+            if(branch.id != 5){
+                branchTotal[branch.id] = 0; // EXAMPLE OF EXPECTED OUT PUT{'1' : 0,'2' : 0,'3':0}
+                branchInvoices = data[branch.id];
+                console.log(data[branch.id])
+                Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
+                    let totalPrice = Number(branchInvoices[infoKey].totalPrice);
+                    totalSum += totalPrice;
+                    // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
+                    branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
+                        branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
+                    })
+                });
+            }
+        });
+        // SET TOTALS TO ELEMENT DISPLAYS
+        document.querySelector('#sales .cards').innerHTML = "";
+        let cards = "";
+        let branchInfo = [];
+        let branch_id = 0;
+        for (var i = Object.keys(branchTotal).length - 1; i >= 0; i--) {
+            branch_id = (i+1);
+            branchInfo = site.branchList.filter(branch => Number(branch.id) == branch_id);
+            if(branchInfo.length > 0){
+                cards +=`
+                <div class="card ${branch_id == site.session.branch_id ? 'active' : ''} ">
+                    <span class="material-icons-outlined">shopping_bag</span>
+                    <div class="stat-details branch_income">
+                        <h2>${addComma(branchTotal[branch_id].toString())}/=</h2>
+                        <label>${branchInfo[0].name}</label>
+                    </div>
+                </div>
+                `;
+            }
+        }
+        // ADD ALL BRANCH TOTAL SUM SALE CARD
+        cards +=`
+                <div class="card">
+                    <span class="material-icons-outlined">attach_money</span>
+                    <div class="stat-details">
+                        <h2 id="totalIncome">${addComma(totalSum.toString())} <small>/=</small></h2>
+                        <label>Total Income</label>
+                    </div>
+                </div>
+                `;
+        document.querySelector('#sales .cards').innerHTML = cards;
+
+        // console.log(branchInfo)
+        // console.log(cards)
+        // Object.keys(branchTotal).length
+        // console.log(totalSum)
+        console.log(branchTotal)
+    }
     const generateProductColor = (data, colour_name) => {
         let templateString = '';
         if(data.length > 0){
@@ -315,7 +498,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         }
         return templateString;
     }
-
     const generateProductColorSizes = (productColors, colour_name, size_innitual) => {
         let data = productColors.filter(productColor => (productColor.colour_name == colour_name));
         
@@ -357,7 +539,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
             (link.children[1].classList.contains('show')) ? link.children[1].classList.remove('show'):link.children[1].classList.add('show');
         });
     }
-    
     const addComma = (num) => {
         let numArr = num.split('');
         let commadNumber = '', count = 0;
@@ -404,7 +585,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         });
         return nomalNumber;
     }
-
     const addClickToColor = (link) => {
         let colorBtns = document.querySelectorAll(`#${link.parentElement.children[0].dataset.details} .item-box .class-secondery-info .color_list label`);
         colorBtns.forEach(colorBtn => colorBtn.addEventListener('click', (e) => {
@@ -528,7 +708,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
             updateSiteData(site);
         })
     }
-
     const updateTotalCartQuantity =(cart)=> {    
         document.querySelector('.cart-btn.nav-link small').textContent = Object.keys(site.cart).length;
     }
@@ -583,16 +762,25 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
     const run = (data) => {
         if((data.reload == true) || (!site[data.name])){
             let ajaxRequest = $.ajax({
-                url: "http://localhost/sys.pos/api/route.php",
+                url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
                 type: "POST",
                 dataType  : 'json',
                 data: data,
                 success: function(details){
-                    console.log(details)
+                    // console.log(details)
                 }
             });
             return ajaxRequest;
         }
+    }
+    const scrollToTop =()=>{
+
+        // SCROLL TO THE TOP OF THE DOCUMENT
+        window.scroll({
+            top: 0, 
+            left: 0, 
+            behavior: 'smooth' 
+        });
     }
 
     /* 
@@ -617,13 +805,8 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         });
         history.pushState(null, null, url);
 
-        // // TRANSFORM VALUE
-        // const transformValue = site.page.pageIndex * 74;notification_messages
-
-        // // NAVIGATE TO THE PAGE CLICKED
-        // document.querySelector('main .container .content').style.transform = `translateX(-${transformValue}vw)`;
+        // NAVIGATE TO THE PAGE CLICKED
         document.querySelectorAll('main .container .content  div').forEach(page => page.classList.remove('show'));
-        console.log(site.page.pg)
         document.querySelector(`main .container .content div#${site.page.pg}`).classList.add('show');
     }
 
@@ -648,14 +831,21 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         let totalQty=0; 
         let totalPrS=0; 
         let totalPrD=0;
-        let discount = 0;
-        let paymentType = "Cash";
+        let discount = 1;
+        let paymentType = document.getElementById('add_payment_type').value;
         let count = 1;
 
         let cart = site.cart;
         let cartItemsKeys = Object.keys(cart);
         let td = "";
         let cartItem;
+        // CALCULATE DISCOUNT
+        site.discountList.forEach((discount_item) => {
+            if(discount_item.name == document.getElementById('add_discount').value){
+                document.getElementById('discount_identifier').textContent = discount_item.discount_percentage + '%';
+                let discount = (Number(discount_item.discount_percentage)/100);    
+            }
+        });
 
 
         if(cartItemsKeys.length > 0){
@@ -741,7 +931,7 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
 
             document.querySelector('.cart_items').innerHTML = td;
             document.getElementById('totalPrice_identifier').textContent = totalPrS + ' ' + cart[cartItemsKeys[0]].currency;
-            document.getElementById('DiscountPrice_identifier').textContent = totalPrS + ' ' + cart[cartItemsKeys[0]].currency;
+            document.getElementById('DiscountPrice_identifier').textContent = (totalPrS - (Number(totalPrS) * discount)) + ' ' + cart[cartItemsKeys[0]].currency;
             const saleCurrencyInput = document.getElementById('sale_curency');
             saleCurrencyInput.value = (cart[cartItemsKeys[0]].currency.trim() == '/=') ? 'Shillings' : 'Dollars';
         }else{
@@ -766,13 +956,11 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
 
         document.querySelectorAll('.cart_item .cart_quantity_adjuster label span').forEach((adjustBtn) => {
             let unique = adjustBtn.dataset.id;
-            // console.log(document.getElementById(unique+ "price"))
-            // console.log(document.getElementById(`cartQuantity-${unique}`)) make_sale
             adjustBtn.addEventListener('click', () => {
                 let currentQuantity, availableQuantity, qtyInput;
+                if(document.getElementById('sale_curency').value.toLowerCase() != "dollars"){
                     switch(adjustBtn.textContent.trim()){
                         case 'add':
-
                             currentQuantity = Number(document.getElementById(`cartQuantity-${unique}`).value);
                             availableQuantity = Number(document.getElementById(`cartQuantity-${unique}`).dataset.quantity);
                             qtyInput = document.getElementById(`cartQuantity-${unique}`);
@@ -808,6 +996,7 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
                                 deliverNotification('Quantity cant\'t be less or equeal to Zero(0)', 'danger');
                             }
                     }
+                }
             });
         });
 
@@ -932,15 +1121,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         // console.log(options)
         return options;
     }
-
-    const loadCurrency =()=> {
-        document.getElementById('dollar_rate_update').value = Number(site.currencyList.filter(currency => (currency.symbol == '$'))[0].rate);
-        document.getElementById('currency').innerHTML = generateDropdown(site.currencyList, 'name', 'rate', 'Currency');
-        document.getElementById('currency_return').innerHTML = generateDropdown(site.currencyList, 'name', 'rate', 'Currency');
-        document.getElementById('sale_curencies').innerHTML = generateDataList(site.currencyList, 'name');//generateDropdown(site.currencyList, 'name', 'rate', 'Currency');
-        document.getElementById('dollar_rates').innerHTML = generateDataList(site.currencyList, 'rate');
-        document.getElementById('dollar_rates_return').innerHTML = generateDataList(site.currencyList, 'rate');
-    }
     const generateDataList =(data, key) =>{
         let options = ``;
         if(typeof(data) =='object'){
@@ -953,7 +1133,6 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         }
         return options;
     }
-
     const print = ()=>{
         // PRINT RECEIT
         var restore = document.body.innerHTML;
@@ -975,8 +1154,21 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
         // SET HOME AS THE ACTIVE PAGE
         site.page = {'pageIndex': 0, 'pg': 'home'};
         updateSiteData(site)
-                        
     }
+    const  updateSoldProductDetails = (data, branch_id)=>{
+        console.log(site.allbranchesinventoryproducts[branch_id]);
+        console.log(data);
+        data.forEach(product => {
+            // console.log(site.allbranchesinventoryproducts[product.branch_id][product.id])
+            site.allbranchesinventoryproducts[product.branch_id][product.id] = product;
+            // console.log(site.allbranchesinventoryproducts[product.branch_id][product.id])
+            // console.log(product)
+        });
+    }
+    const clearFields = (elements) => {
+        elements.forEach(element => element.value = '');
+    }
+
     const loadProfile =()=>{
         document.getElementById('profile-user-image').innerHTML = `<img src="./images/${site.session.image}">`;
         document.getElementById('profile-username').textContent = `@${site.session.username}`;
@@ -994,7 +1186,97 @@ site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
 
         document.querySelector('.profile-area .profile-photo').innerHTML = `<img src="./images/${site.session.image}">`;
         document.querySelector('.profile-area .handle').innerHTML = `@${site.session.username}`;
+    }
+    const getInvoiceByDate = () => {
+        document.getElementById(`invoices_list`).after(preloader());
+        let startdate = document.getElementById('startdate').value;
+        let enddate = document.getElementById('enddate').value;
+        let identifier = 'invoice';
+        let limitShow = document.querySelector('#sales .showlimit').value;            
+        let data ={'reload': true, 'sdate': startdate, 'edate': enddate, 'action':'getBranchesInvoices', 'name': 'allbranchessaleinvoices'};
+        // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
+        if(site.session.user_type_id == 2){
+            data.branch_id = site.session.branch_id;
+        }
+        // console.log(data) calculate
+        res = run(data);
+        res.always(details => {
+            // removeElement('div.preloader');
+            if(site.session.user_type_id == 2){
+                // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
+                site.allbranchessaleinvoices[site.session.branch_id] = convertToObject(details);
+            }else{
+                console.log(details)
+                site.branchList.forEach(branch => {
+                    site.allbranchessaleinvoices[branch.id] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
+                });
+            }
+            updateSiteData(site);
+            // UPDATE DATA CHECKER VARIABLE
+            expectedData.allbranchessaleinvoices = 'invoice';
+        });
+        // site.branchList.forEach(branch => {
+        //         console.log(branch)
+        //         setTimeout(()=>{
+        //             allBranchesDataRequest(branch.id, 'allbranchesinventoryproducts', {'limit': 500, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInventoryProducts'}, 1);
+        //         }, 0);
+        //         setTimeout(()=>{
+        //             allBranchesDataRequest(branch.id, 'allbranchessaleinvoices', {'limit': 100, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInvoices'}, 1);
+        //         }, 0);
 
+        //     });
+        // let ajaxRequest = $.ajax({
+        //     url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+        //     type: "POST",
+        //     dataType  : 'json',
+        //     data: data,
+        //     success: function(details){
+        //         removeElement('div.preloader');
+        //         console.log(details);
+        //         // console.log(data)
+        //         if(details.length > 0){
+        //             deliverNotification(details.length + ' Invoices found', 'success');
+        //             site.invoiceList = details;
+        //             limit = (Number(limitShow)) ? Number(limit) : details.length;
+        //             document.getElementById(`invoices_list`).innerHTML = "";
+        //             renderPageData(details.slice(0, (0 + limit)), 0, identifier.toLowerCase());
+        //             generatePegination(details, identifier.toLowerCase(), limit);
+
+        //         }else{
+        //             deliverNotification('Nothing found', 'warning');
+
+        //         }
+
+        //     }
+        // });
+    }
+    const allBranchesDataRequest = (dataKey, requestName, requestData, counter, reload = 'false') => {
+        // GET FIRST allbranchesinventoryproducts IS SET
+        // IF ITS NOT SET, SET IT TO AN EMPTY OBJECT
+        if(!site[requestName]){
+            site[requestName] = {}
+        }
+        $.ajax({
+            url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+            type: "POST",
+            dataType  : 'json',
+            data: requestData,
+            success: function(data){
+                // USE BRANCH ID AS KEY TO SET EACH BRACH DATA  
+                site[requestName][dataKey] = convertToObject(data);
+                // UPDATE SITE DATA
+                updateSiteData(site);
+            }
+        });
+    }
+    const convertToObject = (data) => {
+        let obj = {};
+        data.forEach(info => {
+            // USE INVENTORY ID AS KEY FOR EACH PRODUCT ID
+            obj[info.id] = info;
+        })
+        // console.log(obj);
+        return obj;
     }
 /**
  * END OF SYSTEM FUNCTIONS
@@ -1024,35 +1306,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // SET BRANCH OUTLET AND DATE ON HOME PAGE
     document.querySelector('.dateN').textContent = today;
     document.querySelector('.outletV').textContent = site.session.branch;
-    
-    // VALIABLE TO KEEP TRACK OF LOCAL DATA AVAILABILITY
-    // IT CONTAINTS SITE DATA KEYS 
-    // EACH KEY WILL BE COMPARED WITH SITE DATA KEYS
-    const expectedData = {
-        'allbranchesinventoryproducts': 'branchinventoryproduct',
-    };
-    /**
-     * CHECK IF DATA IS AVAILABLE EVERY AFTER 1 SECONDS
-     * IF AVAILABLE LOAD IT
-     **/
-    setInterval(()=> {
-        // LOOP THROUGH EXPECTED DATA OBJECT
-        Object.keys(expectedData).forEach((expectedDataKey, index, expectedDataKeys) =>{
-            // IF EXPECTED DATA HAS DATA LOAD THROUGH SITE DATA
-            if(expectedDataKeys.length > 0){
-                // CHECK EACH KEY IN SITE DATA, IF KEY EXITS DELETE IT FROM EXPECTED DATA
-                Object.keys(site).forEach(siteDataKey => {
-                    if(siteDataKey == expectedDataKey){
-                        delete expectedData[expectedDataKey];
-                        // LOAD DATA FOUND IN LOCAL SITE DATA
-                        renderPageData(site[siteDataKey], siteDataKey);
-                    }
-                }); 
-            }
-        });
-        // console.log(Object.keys(site))
 
-    }, 1000);
 
     /* 
     ------------------------------------------------------------------------------------
@@ -1085,50 +1339,64 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('clearCart').addEventListener('click', () => {
         clearCart();
     });
-    setTimeout(function () {
-        document.getElementById('add_purchase_date').value = today;
-        document.getElementById('add_purchase_date').addEventListener('change', () => {
-            generateReceipt();
-        })
-        // GET BRANCHES generateCart
-        document.getElementById("admin_sale_at_specific_branch").innerHTML = generateDropdown(site.branch_list, 'name', 'id', 'Admin select Branch  ');
-        // GET PAYMENT DISCOUNTS
-        document.getElementById('add_discounts').innerHTML = generateDataList(site.discount_list, 'name');
-        // // GET PAYMENT TYPES
-        document.getElementById('add_payment_types').innerHTML = generateDataList(site.payment_types_list, 'name');
-        // // GET CURSTOMER NAMES
-        document.getElementById('add_customer_fnames').innerHTML = generateDataList(site.customerList, 'fname');
-        document.getElementById('add_customer_1names').innerHTML = generateDataList(site.customerList, 'lname');
-        document.getElementById('add_customer_telephones').innerHTML = generateDataList(site.customerList, 'telephone');
-        document.getElementById('add_customer_emails').innerHTML = generateDataList(site.customerList, 'email');
-   
-        if(typeof(site.customerList) == 'object'){
-            document.getElementById('add_customer_fname').addEventListener('input', () => {
-                let customer = site.customerList.filter(client => client.fname == document.getElementById('add_customer_fname').value)
-                document.getElementById('add_customer_1name').value = (customer.length > 0) ? customer[0].lname: '';
-                document.getElementById('add_customer_telephone').value = (customer.length > 0) ? customer[0].telephone: '';
-                document.getElementById('add_customer_email').value = (customer.length > 0) ? customer[0].email: '';
-                
-            });
-            document.getElementById('add_customer_1name').addEventListener('input', () => {
-                let customer = site.customerList.filter(client => client.lname == document.getElementById('add_customer_1name').value)
-                document.getElementById('add_customer_telephone').value = (customer.length > 0) ? customer[0].telephone: '';
-                document.getElementById('add_customer_email').value = (customer.length > 0) ? customer[0].email: '';
-                
-            });
-            document.getElementById('add_customer_email').addEventListener('input', () => {
-                let customer = site.customerList.filter(client => client.email == document.getElementById('add_customer_email').value)
-                document.getElementById('add_customer_telephone').value = (customer.length > 0) ? customer[0].telephone: '';
-            });
-        }
-    },1);
+    document.getElementById('add_purchase_date').value = today;
+    document.getElementById('add_purchase_date').addEventListener('change', () => {
+        generateReceipt();
+    })
+    // GET BRANCHES 
+    document.getElementById("admin_sale_at_specific_branch").innerHTML = generateDropdown(site.branchList, 'name', 'id', 'Admin select Branch  ');
+    // GET PAYMENT DISCOUNTS
+    document.getElementById('add_discounts').innerHTML = generateDataList(site.discountList, 'name');
+    // // GET PAYMENT TYPES
+    document.getElementById('add_payment_types').innerHTML = generateDataList(site.paymentTypeList, 'name');
+    // // GET CURSTOMER NAMES
+    document.getElementById('add_customer_fnames').innerHTML = generateDataList(site.customerList, 'fname');
+    document.getElementById('add_customer_1names').innerHTML = generateDataList(site.customerList, 'lname');
+    document.getElementById('add_customer_telephones').innerHTML = generateDataList(site.customerList, 'telephone');
+    document.getElementById('add_customer_emails').innerHTML = generateDataList(site.customerList, 'email');
+    // BILLING INPUT EVENTS
 
-    function clearFields(elements) {
-        elements.forEach(element => element.value = '');
+    document.getElementById('add_payment_type').addEventListener('change', () => {
+        generateReceipt();
+    });
+
+    document.getElementById('add_discount').addEventListener('change', () => {
+        site.discountList.forEach((discount_item) => {
+            if(discount_item.name == document.getElementById('add_discount').value){
+                document.getElementById('discount_identifier').textContent = discount_item.discount_percentage + '%';
+                let discountPercentage = (Number(discount_item.discount_percentage)/100);                
+                let currentPrice = removeComma(document.getElementById('totalPrice_identifier').textContent).split(' ')[0];
+                let discounted = (currentPrice * discountPercentage);
+                let newPrice = currentPrice - discounted;
+                if(Object.keys(site.cart).length != 0){
+                    let cartItemsKeys = Object.keys(site.cart);
+                    document.getElementById('DiscountPrice_identifier').textContent = addComma(newPrice.toString()) + ' ' + site.cart[cartItemsKeys[0]].currency ;
+                }
+            }
+        });
+    });
+    if(typeof(site.customerList) == 'object'){
+        document.getElementById('add_customer_fname').addEventListener('input', () => {
+            let customer = site.customerList.filter(client => client.fname == document.getElementById('add_customer_fname').value)
+            document.getElementById('add_customer_1name').value = (customer.length > 0) ? customer[0].lname: '';
+            document.getElementById('add_customer_telephone').value = (customer.length > 0) ? customer[0].telephone: '';
+            document.getElementById('add_customer_email').value = (customer.length > 0) ? customer[0].email: '';
+            
+        });
+        document.getElementById('add_customer_1name').addEventListener('input', () => {
+            let customer = site.customerList.filter(client => client.lname == document.getElementById('add_customer_1name').value)
+            document.getElementById('add_customer_telephone').value = (customer.length > 0) ? customer[0].telephone: '';
+            document.getElementById('add_customer_email').value = (customer.length > 0) ? customer[0].email: '';
+            
+        });
+        document.getElementById('add_customer_email').addEventListener('input', () => {
+            let customer = site.customerList.filter(client => client.email == document.getElementById('add_customer_email').value)
+            document.getElementById('add_customer_telephone').value = (customer.length > 0) ? customer[0].telephone: '';
+        });
     }
+
     document.getElementById('make-transaction').addEventListener('submit', (e) => {
         e.preventDefault();
-        generateReceipt();
         if(Object.keys(site.cart).length != 0){
             if(
                 document.getElementById('add_customer_fname').value != "" && 
@@ -1162,37 +1430,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         let dollarRate = dollarC[0].rate;
 
                         let convertedPrice = Number(site.cart[cart_item].sale_price);
-                        // console.log(convertedPrice,site.cart[cart_item].currency.trim(), Number(site.cart[cart_item].sale_price))
                         if(site.cart[cart_item].currency.trim() == '$'){
                             convertedPrice =  (convertedPrice * dollarRate);//(site.cart[cart_item].currency.trim() != '$') ? (Math.round((convertedPrice + Number.EPSILON) * 100) / 100 ) : ((Math.round((convertedPrice/rate) + Number.EPSILON) * 100) / 100 );
-                            // console.log(convertedPrice, site.cart[cart_item].currency.trim() )
                         }
 
                         site.cart[cart_item].sale_price = convertedPrice;
                         saleItems.push(site.cart[cart_item]);
                     });
                     purchaseDetails.cart = saleItems;
-                    // console.log(purchaseDetails) loadSal
-
+                    scrollToTop();
                     document.querySelector('div.page.show .cart_details').append(preloader());
 
                     let view = performOperation("make_sale", purchaseDetails);
-                    // console.log(view)
                     view.always(function(data){
-                        console.log(data)
+                        removeElement('div.preloader');
 
                         if(data.response == 'success'){
-                            if (document.getElementById('prechecked_print_receipt').checked == true){
-                                document.getElementById('invoice_date').innerHTML = `<b>Date</b> ${data.message.date}`
-                                document.getElementById('invoice_no').innerHTML = `<b>No.</b> ${data.message.invoiceNo}`
-                                print();
-                            }
-                            deliverNotification("Transaction completed successfully", 'success');
-                            // CLEAR FIELDS
-                            clearCart();
                             // UPDATE SITE DATA WITH THE UPDATED LIST OF SALES
                             // UPDATE PRODUCT QUANTITY IN THE BRANCH INVENTORY PRODUCT
                             // UPDATE SITE DATA
+                            updateSoldProductDetails(data.updatedData, branch_id);
+
                             resetAdminToNoBranch();
                             
                             // UPDATE SITE PAGE(SAVE CURRENT PAGE)
@@ -1203,16 +1461,30 @@ document.addEventListener('DOMContentLoaded', () => {
                             // ADD ALL LOCAL DATA KEYS THAT HAVE NEW DATA DUE TO THE TRANSACTION
                             // THE CHECKER WILL UPDATE DATA DURING THE RENDER PROCES
                             // IT WILL LOOP THROUGH THE KEYS IN SITE CORRESPONDING TO THEM
-                            const expectedData = {
+                            expectedData = {
                                 'allbranchesinventoryproducts': 'branchinventoryproduct',
                             };
+
+                            if (document.getElementById('prechecked_print_receipt').checked == true){
+                                document.getElementById('invoice_date').innerHTML = `<b>Date</b> ${data.message.date}`
+                                document.getElementById('invoice_no').innerHTML = `<b>No.</b> ${data.message.invoiceNo}`
+                                print();
+                                // RELOAD PAGE IF PRINT IS SELECTED COZ ALL JS EVENTS WILL NOT WORK
+                                window.location.href = 'pos.html';
+                            }
+                            deliverNotification("Transaction completed successfully", 'success');
+                            
+                            // CLEAR FIELDS
+                            let fields = [document.getElementById('add_customer_fname'), document.getElementById('add_customer_1name'), document.getElementById('add_customer_email'), document.getElementById('add_customer_telephone')];
+                            clearFields(fields);
+                            // CLEAR FIELDS
+                            clearCart();
                         }else{
                             deliverNotification(data.message, 'danger');
                         }
 
                         // NAVIGATE TO HOME PAGE
                         navigateTo(`./pos.html?pg=${site.page.pg}`);
-                        // window.location.href = 'pos.html';
                     });
                 }
             }else{ 
@@ -1221,7 +1493,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }else{
             deliverNotification("Cart is Empty", 'warning');
-
         }
     } );
     
@@ -1242,22 +1513,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    document.getElementById('add_discount').addEventListener('change', () => {
-        site.discount_list.forEach((discount_item) => {
-            if(discount_item.name == document.getElementById('add_discount').value){
-                document.getElementById('discount_identifier').textContent = discount_item.discount_percentage + '%';
-                let discountPercentage = (Number(discount_item.discount_percentage)/100);                
-                let currentPrice = removeComma(document.getElementById('totalPrice_identifier').textContent).split(' ')[0];
-                let discounted = (currentPrice * discountPercentage);
-                let newPrice = currentPrice - discounted;
-                if(Object.keys(site.cart).length != 0){
-                    let cartItemsKeys = Object.keys(site.cart);
-                    document.getElementById('DiscountPrice_identifier').textContent = addComma(newPrice.toString()) + ' ' + site.cart[cartItemsKeys[0]].currency ;
-                }
-            }
-        });
-    }) 
        
     // EXPORT SELD PRODUCT LIST OT EXCEL FILE generateC
     if(site.session.user_type_id == 1){
@@ -1284,9 +1539,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ------------------------------------------------------------------------------------
     */
     const saleCurrencyInput = document.getElementById('sale_curency');
-    const totalPriceSting = document.getElementById('totalPrice_identifier').textContent.split(' ')[0];
-    const totalPriceDiscountedSting = document.getElementById('DiscountPrice_identifier').textContent.split(' ')[0];
     saleCurrencyInput.addEventListener('change', () => {
+        const totalPriceSting = document.getElementById('totalPrice_identifier').textContent.split(' ')[0];
+        const totalPriceDiscountedSting = document.getElementById('DiscountPrice_identifier').textContent.split(' ')[0];
         let dollarC = site.currencyList.filter(currency => currency.symbol == '$');
         let dollarRate = dollarC[0].rate;
 
@@ -1304,6 +1559,19 @@ document.addEventListener('DOMContentLoaded', () => {
         updateSiteData(site)
         generateCart();
     });
+    /* 
+    ------------------------------------------------------------------------------------
+    ----------------------------- GET SALES BY SPECIFIC DATE ------------------------------
+    ------------------------------------------------------------------------------------
+    */
+    document.getElementById('startdate').value = today;  
+    document.getElementById('enddate').value = today;  
+    document.getElementById('startdate').addEventListener('change', () => {
+        getInvoiceByDate();
+    });
+    document.getElementById('enddate').addEventListener('change', () => {
+        getInvoiceByDate();
+    });   
 
     // SIGNOUT
     document.querySelector('#siginout').addEventListener('click', () => {

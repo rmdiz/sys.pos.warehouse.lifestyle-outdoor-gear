@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-/* ****************************** VARIABLES image ********************** */
+/* ****************************** VARIABLES .cards ********************** */
 :root{
     --grey: #eee;
     --dark-grey: #aaaaaa;
@@ -1341,170 +1341,6 @@ input[type="checkbox"] {
     filter: brightness(120%);
 }
 
-/* table
-
-------------------------------------------------------------------------------------
-------------------------------------- RECEIPT------------- -------------------------
-------------------------------------------------------------------------------------
-*/
-.receipt{
-    position: relative;
-    background: var(--white);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 0rem;
-    min-height: 0;
-    overflow: hidden;
-}
-.receipt.show{
-    height: auto;
-    min-height: 10rem;
-}
-label.printReceipt{
-    padding-top: .8rem;
-    padding: .5rem .8rem;
-    display: flex;
-}
-.receipt_overlay.active{
-    left: 0;
-    right: 0;
-}
-.receipt_header{
-    display: flex;
-    flex-direction: column;
-    font-size: 1rem;
-    justify-content: center;
-    margin-bottom: 1rem;
-    color: #000000;
-    width: 100%;
-    
-}
-.receipt_header .logo{
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    border-bottom: 1px solid #ccc;
-}
-.receipt_header .logo img{
-    height: 6rem;
-    object-fit: contain;
-}
-.receipt_header .contact{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    width: 100%;
-    padding: 1rem;
-}
-.receipt_header .contact span{
-    display: flex;
-    width: 12.5rem;
-    padding: .2rem 0;
-}
-.receipt_header .contact span b{
-    padding-right: .5rem;
-}
-.receipt_header .contact span.full_width{
-    grid-column: 1/-1;
-    display: flex;
-    width: 87%;
-    justify-content: center;
-    font-weight: 600;
-    font-weight: 300;
-
-}
-.receipt_header .contact span:last-child{
-    text-transform: uppercase;
-}
-.receipt_number{
-    padding: .5rem;
-    display: flex;
-    justify-content: space-between;
-    font-size: inherit;
-}
-.receipt_body{
-    display: flex;
-    flex-direction: column;
-    font-size: 1.2rem;
-    position: relative;
-    width: 350px !important;
-    overflow: hidden;
-}
-.receipt_table{
-    position: relative;
-    border-collapse: collapse;
-    margin: 0 .2rem;
-    font-size: 1rem;
-    width: 350px !important;
-    max-width: 350px !important;
-}
-.receipt_table thead tr th{
-    text-align: left;
-    border: 1px solid;
-    border-color: #ccc transparent #ccc transparent;
-    padding: .3rem;
-    color: #000000;
-}
-.receipt_table tbody tr td{
-    text-align: left;
-    padding-left: .2rem;
-    color: #000000;
-}
-.receipt_table thead tr th .item_quantity,
-.receipt_table tbody tr td .item_quantity{
-    display: flex;
-    width: 1.5rem;
-    overflow: hidden;
-    background: transparent;
-}
-.receipt_footer{
-    display: grid;
-    align-self: flex-start;
-    font-size: 1rem;
-    padding: 0 1rem;
-    grid-template-columns: repeat(2, 1fr);
-    color: #000000;
-    width: 100%;
-    margin-bottom: 1rem;
-}
-.receipt_footer span{
-    padding: .3rem;
-
-}
-.rTotal{
-    border: 2px solid;
-    border-color: #ccc transparent #ccc transparent;
-    text-transform: uppercase;
-    display: flex;
-    display: flex;
-    align-items: center;
-}
-.rTotal b{
-    padding-right: .2rem;
-}
-.receipt_footer .attendant{
-    padding-top: 1rem;
-    grid-column: 1/-1;
-    text-align: center;
-    width: 100%;
-
-}
-.receipt_footer .remarks{
-    border-bottom: 1px solid #ccc;
-    grid-column: 1/-1;
-    text-align: center;
-    width: 100%;
-}
-.receipt_footer .close{
-    font-style: italic;
-    font-size: .8rem;
-    grid-column: 1/-1;
-    text-align: center;
-    width: 100%;
-    text-transform: uppercase;
-}
-
 /* 
 ------------------------------------------------------------------------------------
 ------------------------------------- PROFILE -----------------------------------
@@ -1863,10 +1699,18 @@ label.printReceipt{
     transform: scale(0);
     transition: transform .8s ease 0s;
 }
+.cards .card.active span{
+    color: var(--white);
+}
+.cards .card.active::before{
+    transform: scale(1);
+    background: var(--warning);
+}
 .cards .card:hover::before{
     color: var(--white);
     transform: scale(3);
 }
+
 .cards .card:hover{
     color: var(--white);
 }
@@ -1907,9 +1751,9 @@ label.printReceipt{
 .filtration{
     display: flex;
     flex-direction: row;
-    gap: 1.8rem;
+    gap: .5rem;
     flex-wrap: wrap;
-    width: 100vw;
+    width: 100%;
     margin-bottom: .5rem;
     padding: 0 .5rem;
 }
@@ -1917,8 +1761,8 @@ label.printReceipt{
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 200px;
-    max-width: 350px;
+    min-width: 350px;
+    flex: 4;
 }
 .filtration label span{
     padding: 0 .5rem;
@@ -1929,8 +1773,9 @@ label.printReceipt{
     border: 1px solid var(--grey);
     background: transparent;
     color: var(--primary);
-    min-width: 200px;
+    width: 130px;
     border-radius: .5rem;
+    flex: 1;
 }
 .filtration label input{
     min-width: 150px;
@@ -1942,7 +1787,7 @@ label.printReceipt{
     border-radius: .5rem;
 }
 /* ************************************* TABLE ****************************************** */
-table{
+table.design{
     width: 100%;
     border-collapse: collapse;
     overflow: hidden;
@@ -1952,25 +1797,25 @@ table{
     z-index: 1;
     background: var(--white);
 }
-table thead, 
-table tbody{
+table.design tbody,
+table.design thead{
+    display: table;
+    width: 100% !important;
     position: relative;
-    /*display: table;*/
-    width: 100%;
 }
-table tr td, 
-table tr th {
+table.design tr td, 
+table.design tr th {
     padding: 0;
     margin: 0;
     gap: 0;
     position: relative;
 }
-table thead{
+table.design thead{
     background: var(--blue);
     color: var(--white);
 }
-table tr td label,
-table tr th label{
+table.design tr td label,
+table.design tr th label{
     min-width: 7rem;
     display: flex;
     flex-direction: row;
@@ -1979,43 +1824,43 @@ table tr th label{
     overflow: hidden !important;
     padding: .5rem;
 }
-table tr td label.password,
-table tr th label.password{
+table.design tr td label.password,
+table.design tr th label.password{
     width: 6rem;
 }
-table td.disapear,
-table th.disapear{
+table.design td.disapear,
+table.design th.disapear{
     display: none;
 }
-table tr th label.counter,
-table tr td label.counter{
+table.design tr th label.counter,
+table.design tr td label.counter{
     min-width: 3.5rem !important;
     max-width: 3.5rem !important;
     justify-content: center;
     align-items: center;
 }
-table tr td label.fixed-width,
-table tr th label.fixed-width{
+table.design tr td label.fixed-width,
+table.design tr th label.fixed-width{
     width: 20rem !important;
 }
-table tr td label.short-fixed,
-table tr th label.short-fixed{
+table.design tr td label.short-fixed,
+table.design tr th label.short-fixed{
     width: 6rem !important;
 }
-table tr td label.status{
+table.design tr td label.status{
     width: 3.5rem;
     font-size: .89rem;
     font-weight: 300;
 }
-table tr td label.action,
-table tr th label.action{
+table.design tr td label.action,
+table.design tr th label.action{
     width: 7rem;
     justify-content: center;
     align-items: center;
     gap: .05rem;
 }
-table tr th label.image,
-table tr td div.image{
+table.design tr th label.image,
+table.design tr td div.image{
     min-width:4.5rem;
     max-width:4.5rem;
     height: 3.5rem;
@@ -2025,7 +1870,7 @@ table tr td div.image{
     position: relative;
     cursor: pointer;
 }
-table tr td img.preview-image{
+table.design tr td img.preview-image{
     height: 10rem;
     position: absolute;
     left: 98%;
@@ -2033,17 +1878,17 @@ table tr td img.preview-image{
     z-index: -1;
     opacity: 0;
 }
-table tr td:hover img.preview-image{
+table.design tr td:hover img.preview-image{
     z-index: 3;
     opacity: 1;
 }
-table tr td div.image img{
+table.design tr td div.image img{
     height: 3.4rem;
     object-fit: contain;
     border-radius: 50%;
 }
-table tr td div.image input{display: none;}
-table tr td div.image span{
+table.design tr td div.image input{display: none;}
+table.design tr td div.image span{
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -2055,11 +1900,11 @@ table tr td div.image span{
     border-radius: 50%;
     font-size: 1rem;
 }
-table tr td div.image span:hover{
+table.design tr td div.image span:hover{
     background: var(--blue);
     color: var(--white);
 }
-table tr td label.action span{
+table.design tr td label.action span{
     font-size: 1.3rem;
     display: flex;
     justify-content: center;
@@ -2071,10 +1916,10 @@ table tr td label.action span{
     height: 2rem;
     width: 2rem;
 }
-table tr td label.action span:hover{
+table.design tr td label.action span:hover{
     color: var(--black);
 }
-table tr{
+table.design tr{
     border-bottom: 1px solid var(--white);
     z-index: 2;
     position: relative;
@@ -2082,21 +1927,18 @@ table tr{
     top: 0;
     animation-name: trReveal;
     height: 3rem !important;
-    min-height: 3rem !important;
-    max-height: 3rem !important;
     transition: all .5s var(--transition-cubic);
-    /*animation-duration: 1s; */
 }
 @keyframes trReveal {
   0%   {left:100%; opacity: 0; }
   100% {left:0%; opacity: 1;}
 }
-table tr.revealed{
+table.design tr.revealed{
     
     /*opacity: 1;report-statistics*/
     /*left: 0;*/
 }
-table tr.active{
+table.design tr.active{
     position: relative;
     left: 0;
     right: 0;
@@ -2106,10 +1948,10 @@ table tr.active{
     z-index: 3;
 }
 
-table tr.active td label{
+table.design tr.active td label{
     color: var(--white) !important;
 }
-table tr::before{
+table.design tr::before{
     content: "";
     position: absolute;
     left: 0;
@@ -2119,17 +1961,16 @@ table tr::before{
     background-color: var(--white);
     border-radius: .5rem;
 }
-table tbody{
+table.design tbody{
     position: relative;
     overflow: hidden;
-    min-height: 40rem;
     padding-bottom: 5rem;
     /*display: flex;
     flex-direction: column;
     align-self: flex-start;*/
 }
 
-table tbody tr::after{
+table.design tbody tr::after{
     content: "";
     position: absolute;
     right: 0;
@@ -2140,28 +1981,29 @@ table tbody tr::after{
     border-radius: .5rem;
     background: var(--white);
 }
-table tbody tr:hover{
+table.design tbody tr.active,
+table.design tbody tr:hover{
     background: var(--primary);
     color: var(--white);
     cursor: pointer;
     border-bottom: 1px solid var(--white);
     z-index: 3;
 }
-table tr:hover td label.action span,
-table tr:hover td label,
-table tr.active td label.action span,
-table tr.active td label{
+table.design tr:hover td label.action span,
+table.design tr:hover td label,
+table.design tr.active td label.action span,
+table.design tr.active td label{
     color: var(--white) !important;
 }
-table tr.active::after,
-table tr.active::before,
-table tbody tr:hover::after,
-table tbody tr:hover::before{
+table.design tr.active::after,
+table.design tr.active::before,
+table.design tbody tr:hover::after,
+table.design tbody tr:hover::before{
     background: var(--white) !important;
 }
-table tbody tr td  label input,
-table tbody tr td  label select,
-table tbody tr td  label input[type='text']{
+table.design tbody tr td  label input,
+table.design tbody tr td  label select,
+table.design tbody tr td  label input[type='text']{
     width: 100% !important;
     padding: inherit;
     background: var(--white);
@@ -2169,12 +2011,12 @@ table tbody tr td  label input[type='text']{
     color: var(--primary);
     font-size: inherit;
 }
-table tr.unrevealed{
+table.design tr.unrevealed{
     left: 100%;
     transition: all 1s linear;
 }
 
-table tr td.det{
+table.design tr td.det{
     position: absolute;
     left: 0;
     right: 0;
@@ -2182,12 +2024,25 @@ table tr td.det{
     height: 0 !important;
     overflow: hidden;
     transition: height .5s linear;
+    background: var(--grey);
 }
-table tr.active td.det{
+table.design tr.active td.det{
     transition: height .5s linear;
-    height: 38rem !important;
+    height: 30rem !important;
 }
-table tr td.det .moreinvoicedetails{
+table.design tr.hide{
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+    top: -35rem;
+}
+
+table.design tr.hide td.det{
+    transition: height .5s linear;
+    height: 30rem !important;
+    display: none;
+}
+table.design tr td.det .moreinvoicedetails{
     border: 2px solid var(--primary);
     display: flex;
     flex-direction: column;
@@ -2201,7 +2056,7 @@ table tr td.det .moreinvoicedetails{
     border-bottom-left-radius: .5rem;
     border-bottom-right-radius: .5rem;
 }
-table tr td.det .moreinvoicedetails .invoice_header{
+table.design tr td.det .moreinvoicedetails .invoice_header{
     padding: .3rem;
     display: flex;
     align-items: flex-start;
@@ -2212,17 +2067,17 @@ table tr td.det .moreinvoicedetails .invoice_header{
     min-width: 100%;
     border-radius: .5rem;
 }
-table tr td.det .moreinvoicedetails .invoice_header .attendant_info{
+table.design tr td.det .moreinvoicedetails .invoice_header .attendant_info{
     width: 12rem;
     overflow: hidden;
     display: flex;
     align-items: center;
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header .head{
+table.design tr td.det .moreinvoicedetails .invoice_header .head{
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag{
+table.design tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag{
     display: flex;
     width: 3rem;
     height: 3rem;
@@ -2230,39 +2085,39 @@ table tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag{
     border-radius: 50%;
     border: 2px solid var(--warning);
 }
-table tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag img{
+table.design tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag img{
     height: inherit;
     aspect-ratio: 1/1;
     object-fit: contain;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box{
     display: flex;
     flex-direction: column;
     height: 4rem;
     color: var(--dark);
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box *{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box *{
     display: block;
     font-size: .9rem;
     font-weight: 400;
     color: var(--dark) !important;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box label{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box label{
     font-weight: 500;
 }
-table tr td.det .moreinvoicedetails .invoice_header .invoice_pricing{
+table.design tr td.det .moreinvoicedetails .invoice_header .invoice_pricing{
     display: flex;
     align-items: center;
     height: 4rem;
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header .customer,
-table tr td.det .moreinvoicedetails .invoice_header .price-and-currency{
+table.design tr td.det .moreinvoicedetails .invoice_header .customer,
+table.design tr td.det .moreinvoicedetails .invoice_header .price-and-currency{
     display: flex;
     align-items: center;
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header h3{
+table.design tr td.det .moreinvoicedetails .invoice_header h3{
     position: absolute;
     left: 0;
     right: 0;
@@ -2271,8 +2126,8 @@ table tr td.det .moreinvoicedetails .invoice_header h3{
     color: var(--blue);
     font-size: 1rem;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type='date'],
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box select{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type='date'],
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box select{
     border: 1px solid transparent;
     padding: .5rem 0 !important;
     border-radius: 55px;
@@ -2280,19 +2135,26 @@ table tr td.det .moreinvoicedetails .invoice_header .det-edit-box select{
     width: 7rem !important;
     margin-left: .0rem !important;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type="text"]{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type="text"]{
     border: 1px solid var(--gray);
     padding: .5rem;
     width: 10rem;
     margin-left: .4rem;
     border-radius: 55px;
 }
-table tr td.det .moreinvoicedetails .invoice_header .price-and-currency select{
+table.design tr td.det .moreinvoicedetails .invoice_header .price-and-currency select{
     width: 3rem !important;
 }
-table tr:nth-child(even){
+table.design tr:nth-child(even){
     background: ghostwhite;
 }
+
+/* table
+
+------------------------------------------------------------------------------------
+------------------------------------- RECEIPT------------- -------------------------
+------------------------------------------------------------------------------------
+*/
 table.receipt_table thead{
     background: transparent;
 
@@ -2300,6 +2162,221 @@ table.receipt_table thead{
 table.receipt_table thead tr:hover,
 table.receipt_table tbody tr:hover{
     background: transparent;
+}
+.receipting{
+    display: flex;
+    justify-content: center;
+}
+.receipt{
+    position: relative;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 0rem;
+    min-height: 0;
+    overflow: hidden;
+    font-size: .9rem;
+    width: 280px !important;
+}
+.receipt.show{
+    height: auto;
+    min-height: 10rem;
+}
+label.printReceipt{
+    padding-top: .8rem;
+    padding: .5rem .8rem;
+    display: flex;
+}
+.receipt_overlay.active{
+    left: 0;
+    right: 0;
+}
+.receipt_header{
+    display: flex;
+    flex-direction: column;
+    font-size: .9rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: #000000;
+    padding: 0 .5rem;
+    width: 280px !important;
+}
+.receipt_header .logo{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    border-bottom: 1px solid #ccc;
+}
+.receipt_header .logo img{
+    height: 5rem;
+    object-fit: contain;
+}
+.receipt_header .contact{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding: .5rem;
+    font-size: .7rem !important;
+}
+.receipt_header .contact span{
+    display: flex;
+    width: 12.5rem;
+    padding: .2rem 0;
+}
+.receipt_header .contact span b{
+    padding-right: .5rem;
+}
+.receipt_header .contact span.full_width{
+    grid-column: 1/-1;
+    display: flex;
+    width: 87%;
+    justify-content: center;
+    font-weight: 600;
+    font-weight: 300;
+
+}
+.receipt_header .contact span:last-child{
+    text-transform: uppercase;
+}
+.receipt_number{
+    padding: .5rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: inherit;
+}
+.receipt_body{
+    display: flex;
+    flex-direction: column;
+    font-size: .8rem;
+    /*font-size: 1.2rem;*/
+    position: relative;
+    width: 280px !important;
+    overflow: hidden;
+}
+.receipt_table{
+    position: relative;
+    border-collapse: collapse;
+    margin: 0 .2rem;
+    font-size: .7rem !important;
+    /*width: 350px !important;*/
+    /*max-width: 350px !important;*/
+}
+.receipt_table thead tr th{
+    text-align: left;
+    border: 1px solid;
+    border-color: #ccc transparent #ccc transparent;
+    padding: .3rem;
+    color: #000000;
+    font-size: .5rem !important;
+}
+.receipt_table tbody tr td{
+    text-align: left;
+    padding-left: .2rem;
+    color: #000000;
+    font-size: .7rem !important;
+}
+.receipt_table thead tr th .item_quantity,
+.receipt_table tbody tr td .item_quantity{
+    display: flex;
+    width: 1.5rem;
+    overflow: hidden;
+    background: transparent;
+    font-size: .7rem !important;
+}
+.receipt_footer{
+    display: grid;
+    align-self: flex-start;
+    font-size: .7rem !important;
+    grid-template-columns: repeat(2, 1fr);
+    color: #000000;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.receipt_footer span{
+    padding: .3rem;
+
+}
+.rTotal{
+    border: 2px solid;
+    border-color: #ccc transparent #ccc transparent;
+    text-transform: uppercase;
+    display: flex;
+    display: flex;
+    align-items: center;
+}
+.rTotal b{
+    padding-right: .2rem;
+}
+.receipt_footer .attendant{
+    padding-top: 1rem;
+    grid-column: 1/-1;
+    text-align: center;
+    width: 100%;
+
+}
+.receipt_footer .remarks{
+    border-bottom: 1px solid #ccc;
+    grid-column: 1/-1;
+    text-align: center;
+    width: 100%;
+}
+.receipt_footer .close{
+    font-style: italic;
+    font-size: .8rem;
+    grid-column: 1/-1;
+    text-align: center;
+    width: 100%;
+    text-transform: uppercase;
+}
+    
+/* 
+------------------------------------------------------------------------------------
+------------------------------------- PRELOADER/LOADING ----------------------------
+------------------------------------------------------------------------------------
+*/
+.preloader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200000;
+  overflow: hidden;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(2px);
+  background: rgba(225, 225, 225, .4);
+}
+
+.preloader:before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 30px);
+  left: calc(50% - 30px);
+  border: 6px solid #1977cc;
+  border-top-color: #d1e6f9;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  -webkit-animation: animate-preloader 1s linear infinite;
+  animation: animate-preloader 1s linear infinite;
+}
+@-webkit-keyframes animate-preloader {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes animate-preloader {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 /* ****************************** LARGE TABLETS & LAPTOPS ********************** */
 @media screen and (min-width: 960px) {
