@@ -1,4 +1,4 @@
-/*pag*/
+/**/
 /* COLOR VARIABLE */
 :root{
     --white: #ffffff;
@@ -52,7 +52,7 @@
 html{
     font-size: 12px;
     scroll-behavior: smooth;
-    /* overflow-x: listing; */
+    /* overflow-x: .cards; */
 }
 
 body{

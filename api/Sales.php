@@ -758,6 +758,7 @@ class Sales{
 				'remarks' => $remarks,
 				'branch_id' => $branch_id,
 				'colour_name' => $colour_name,
+				'currency' => $currency,
 				'size_innitual' => $size_innitual,
 				// 'product_colors' => $this->get_inventory_product_color($product_id, $branch_id),
 			);

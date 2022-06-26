@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-/* ****************************** VARIABLES image ********************** */
+/* ****************************** VARIABLES filtration ********************** */
 :root{
     --grey: #eee;
     --dark-grey: #aaaaaa;
@@ -311,7 +311,7 @@ p,a,li{
 }
 
 /* **************************************** SECTION TITLE *********************************** */
-.section-title{
+/*.section-title{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -422,12 +422,15 @@ p,a,li{
 .title-modifications button#deleteProduct{
     background: #f00;
     margin-right: .5rem;
-}
+}*/
 .branchInventory-section{
     position: relative;
 }
 /* ************************************* TABLE ****************************************** */
-table{
+
+/* ************************************* TABLE ****************************************** */
+table.hide{display: none;}
+table.design{
     width: 100%;
     border-collapse: collapse;
     overflow: hidden;
@@ -436,26 +439,34 @@ table{
     white-space: nowrap;
     z-index: 1;
     background: var(--white);
-}
-table thead, 
-table tbody{
     position: relative;
-    display: table;
-    width: 100%;
+    min-height: 40rem;
+    overflow-y: unset;
 }
-table tr td, 
-table tr th {
+table.design.hide{
+    height: 0;
+    min-height: 0;
+    overflow-x: hidden;
+}
+table.design tbody,
+table.design thead{
+    display: table;
+    width: 100% !important;
+    position: relative;
+}
+table.design tr td, 
+table.design tr th {
     padding: 0;
     margin: 0;
     gap: 0;
     position: relative;
 }
-table thead{
+table.design thead{
     background: var(--blue);
     color: var(--white);
 }
-table tr td label,
-table tr th label{
+table.design tr td label,
+table.design tr th label{
     min-width: 7rem;
     display: flex;
     flex-direction: row;
@@ -464,43 +475,47 @@ table tr th label{
     overflow: hidden !important;
     padding: .5rem;
 }
-table tr td label.password,
-table tr th label.password{
+table.design tr td label.sale-remarks,
+table.design tr th label.sale-remarks{
+    min-width: 500px;
+}
+table.design tr td label.password,
+table.design tr th label.password{
     width: 6rem;
 }
-table td.disapear,
-table th.disapear{
+table.design td.disapear,
+table.design th.disapear{
     display: none;
 }
-table tr th label.counter,
-table tr td label.counter{
+table.design tr th label.counter,
+table.design tr td label.counter{
     min-width: 3.5rem !important;
     max-width: 3.5rem !important;
     justify-content: center;
     align-items: center;
 }
-table tr td label.fixed-width,
-table tr th label.fixed-width{
+table.design tr td label.fixed-width,
+table.design tr th label.fixed-width{
     width: 20rem !important;
 }
-table tr td label.short-fixed,
-table tr th label.short-fixed{
+table.design tr td label.short-fixed,
+table.design tr th label.short-fixed{
     width: 6rem !important;
 }
-table tr td label.status{
+table.design tr td label.status{
     width: 3.5rem;
     font-size: .89rem;
     font-weight: 300;
 }
-table tr td label.action,
-table tr th label.action{
+table.design tr td label.action,
+table.design tr th label.action{
     width: 7rem;
     justify-content: center;
     align-items: center;
     gap: .05rem;
 }
-table tr th label.image,
-table tr td div.image{
+table.design tr th label.image,
+table.design tr td div.image{
     min-width:4.5rem;
     max-width:4.5rem;
     height: 3.5rem;
@@ -510,7 +525,7 @@ table tr td div.image{
     position: relative;
     cursor: pointer;
 }
-table tr td img.preview-image{
+table.design tr td img.preview-image{
     height: 10rem;
     position: absolute;
     left: 98%;
@@ -518,17 +533,17 @@ table tr td img.preview-image{
     z-index: -1;
     opacity: 0;
 }
-table tr td:hover img.preview-image{
+table.design tr td:hover img.preview-image{
     z-index: 3;
     opacity: 1;
 }
-table tr td div.image img{
+table.design tr td div.image img{
     height: 3.4rem;
     object-fit: contain;
     border-radius: 50%;
 }
-table tr td div.image input{display: none;}
-table tr td div.image span{
+table.design tr td div.image input{display: none;}
+table.design tr td div.image span{
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -540,11 +555,11 @@ table tr td div.image span{
     border-radius: 50%;
     font-size: 1rem;
 }
-table tr td div.image span:hover{
+table.design tr td div.image span:hover{
     background: var(--blue);
     color: var(--white);
 }
-table tr td label.action span{
+table.design tr td label.action span{
     font-size: 1.3rem;
     display: flex;
     justify-content: center;
@@ -556,10 +571,10 @@ table tr td label.action span{
     height: 2rem;
     width: 2rem;
 }
-table tr td label.action span:hover{
+table.design tr td label.action span:hover{
     color: var(--black);
 }
-table tr{
+table.design tr{
     border-bottom: 1px solid var(--white);
     z-index: 2;
     position: relative;
@@ -568,18 +583,17 @@ table tr{
     animation-name: trReveal;
     height: 3rem !important;
     transition: all .5s var(--transition-cubic);
-    /*animation-duration: 1s; */
 }
 @keyframes trReveal {
   0%   {left:100%; opacity: 0; }
   100% {left:0%; opacity: 1;}
 }
-table tr.revealed{
+table.design tr.revealed{
     
     /*opacity: 1;report-statistics*/
     /*left: 0;*/
 }
-table tr.active{
+table.design tr.active{
     position: relative;
     left: 0;
     right: 0;
@@ -589,10 +603,10 @@ table tr.active{
     z-index: 3;
 }
 
-table tr.active td label{
+table.design tr.active td label{
     color: var(--white) !important;
 }
-table tr::before{
+table.design tr::before{
     content: "";
     position: absolute;
     left: 0;
@@ -602,17 +616,17 @@ table tr::before{
     background-color: var(--white);
     border-radius: .5rem;
 }
-table tbody{
+table.design tbody{
     position: relative;
     overflow: hidden;
-    min-height: 40rem;
     padding-bottom: 5rem;
     /*display: flex;
     flex-direction: column;
     align-self: flex-start;*/
+    overflow-y: visible;
 }
 
-table tbody tr::after{
+table.design tbody tr::after{
     content: "";
     position: absolute;
     right: 0;
@@ -623,28 +637,29 @@ table tbody tr::after{
     border-radius: .5rem;
     background: var(--white);
 }
-table tbody tr:hover{
+table.design tbody tr.active,
+table.design tbody tr:hover{
     background: var(--primary);
     color: var(--white);
     cursor: pointer;
     border-bottom: 1px solid var(--white);
     z-index: 3;
 }
-table tr:hover td label.action span,
-table tr:hover td label,
-table tr.active td label.action span,
-table tr.active td label{
+table.design tr:hover td label.action span,
+table.design tr:hover td label,
+table.design tr.active td label.action span,
+table.design tr.active td label{
     color: var(--white) !important;
 }
-table tr.active::after,
-table tr.active::before,
-table tbody tr:hover::after,
-table tbody tr:hover::before{
+table.design tr.active::after,
+table.design tr.active::before,
+table.design tbody tr:hover::after,
+table.design tbody tr:hover::before{
     background: var(--white) !important;
 }
-table tbody tr td  label input,
-table tbody tr td  label select,
-table tbody tr td  label input[type='text']{
+table.design tbody tr td  label input,
+table.design tbody tr td  label select,
+table.design tbody tr td  label input[type='text']{
     width: 100% !important;
     padding: inherit;
     background: var(--white);
@@ -652,12 +667,12 @@ table tbody tr td  label input[type='text']{
     color: var(--primary);
     font-size: inherit;
 }
-table tr.unrevealed{
+table.design tr.unrevealed{
     left: 100%;
     transition: all 1s linear;
 }
 
-table tr td.det{
+table.design tr td.det{
     position: absolute;
     left: 0;
     right: 0;
@@ -665,12 +680,25 @@ table tr td.det{
     height: 0 !important;
     overflow: hidden;
     transition: height .5s linear;
+    background: var(--grey);
 }
-table tr.active td.det{
+table.design tr.active td.det{
     transition: height .5s linear;
-    height: 38rem !important;
+    height: 30rem !important;
 }
-table tr td.det .moreinvoicedetails{
+table.design tr.hide{
+    visibility: hidden;
+    pointer-events: none;
+    position: absolute;
+    top: -35rem;
+}
+
+table.design tr.hide td.det{
+    transition: height .5s linear;
+    height: 30rem !important;
+    display: none;
+}
+table.design tr td.det .moreinvoicedetails{
     border: 2px solid var(--primary);
     display: flex;
     flex-direction: column;
@@ -684,7 +712,7 @@ table tr td.det .moreinvoicedetails{
     border-bottom-left-radius: .5rem;
     border-bottom-right-radius: .5rem;
 }
-table tr td.det .moreinvoicedetails .invoice_header{
+table.design tr td.det .moreinvoicedetails .invoice_header{
     padding: .3rem;
     display: flex;
     align-items: flex-start;
@@ -695,17 +723,17 @@ table tr td.det .moreinvoicedetails .invoice_header{
     min-width: 100%;
     border-radius: .5rem;
 }
-table tr td.det .moreinvoicedetails .invoice_header .attendant_info{
+table.design tr td.det .moreinvoicedetails .invoice_header .attendant_info{
     width: 12rem;
     overflow: hidden;
     display: flex;
     align-items: center;
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header .head{
+table.design tr td.det .moreinvoicedetails .invoice_header .head{
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag{
+table.design tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag{
     display: flex;
     width: 3rem;
     height: 3rem;
@@ -713,39 +741,39 @@ table tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag{
     border-radius: 50%;
     border: 2px solid var(--warning);
 }
-table tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag img{
+table.design tr td.det .moreinvoicedetails .invoice_header .attendant_info .small-imag img{
     height: inherit;
     aspect-ratio: 1/1;
     object-fit: contain;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box{
     display: flex;
     flex-direction: column;
     height: 4rem;
     color: var(--dark);
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box *{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box *{
     display: block;
     font-size: .9rem;
     font-weight: 400;
     color: var(--dark) !important;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box label{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box label{
     font-weight: 500;
 }
-table tr td.det .moreinvoicedetails .invoice_header .invoice_pricing{
+table.design tr td.det .moreinvoicedetails .invoice_header .invoice_pricing{
     display: flex;
     align-items: center;
     height: 4rem;
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header .customer,
-table tr td.det .moreinvoicedetails .invoice_header .price-and-currency{
+table.design tr td.det .moreinvoicedetails .invoice_header .customer,
+table.design tr td.det .moreinvoicedetails .invoice_header .price-and-currency{
     display: flex;
     align-items: center;
     position: relative;
 }
-table tr td.det .moreinvoicedetails .invoice_header h3{
+table.design tr td.det .moreinvoicedetails .invoice_header h3{
     position: absolute;
     left: 0;
     right: 0;
@@ -754,8 +782,8 @@ table tr td.det .moreinvoicedetails .invoice_header h3{
     color: var(--blue);
     font-size: 1rem;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type='date'],
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box select{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type='date'],
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box select{
     border: 1px solid transparent;
     padding: .5rem 0 !important;
     border-radius: 55px;
@@ -763,263 +791,18 @@ table tr td.det .moreinvoicedetails .invoice_header .det-edit-box select{
     width: 7rem !important;
     margin-left: .0rem !important;
 }
-table tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type="text"]{
+table.design tr td.det .moreinvoicedetails .invoice_header .det-edit-box input[type="text"]{
     border: 1px solid var(--gray);
     padding: .5rem;
     width: 10rem;
     margin-left: .4rem;
     border-radius: 55px;
 }
-table tr td.det .moreinvoicedetails .invoice_header .price-and-currency select{
+table.design tr td.det .moreinvoicedetails .invoice_header .price-and-currency select{
     width: 3rem !important;
 }
-table tr:nth-child(even){
+table.design tr:nth-child(even){
     background: ghostwhite;
-}
-.invoice_items{
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    padding-top: 2rem;
-}
-.invoice_items h4{
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: -4rem;
-    color: var(--white);
-    text-align: center;
-    /*background: var(--main-color-blue); :nth-child(even)*/
-    background: transparent;
-    z-index: 2;
-    font-size: 1.5rem;
-    padding: .1rem;
-}
-.invoice_size_list,
-.invoice_color_list{
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 100%;
-}
-.invoice_item::before{
-    content: "";
-    position: absolute;
-    left: 0;
-    right: -3rem;
-    top: -2.5rem;
-    padding: 1.1rem;
-    background: var(--main-color-blue);
-    z-index: 1;
-}
-.invoice_items :nth-child(2)::before{
-    min-width: calc(100vw - 20rem);
-}
-.invoice_item{
-    display: grid;
-    grid-template-columns: 50% 50%;
-    /*grid-template-columns: 25% 40% 30%; notification*/
-    margin: .5rem;
-    padding: .5rem;
-    border: 1px solid var(--gray);
-    border-radius: .5rem;
-    width: 40rem;
-    min-width: 40rem;
-    position: relative;
-}
-.invoice_item .besic_det{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0;
-    column-gap: .2rem;
-    align-self: flex-start;
-    padding: .2rem;
-}
-.invoice_item label.desc,
-.invoice_item .besic_det label{
-    display: flex;
-    flex-direction: column;
-    margin: 0 .5rem;
-    overflow: hidden;
-    padding: 0 .2rem;
-    padding: 0;
-    color: var(--dark);
-    width: 100%;
-    font-size: .9rem;
-}
-.invoice_item .besic_det :nth-child(1),
-.invoice_item .besic_det :nth-child(2){
-    grid-column: 1/-1;
-}
-.invoice_item .besic_det :last-child{
-    grid-column: 1/-1;
-}
-.invoice_item label.desc b,
-.invoice_item .besic_det label b{
-    color: var(--dark);
-    font-weight: 400;
-    margin: 0;
-    padding: 0 .2rem;
-    font-size: .9rem;
-}
-.invoice_item .besic_det label span{
-    color: var(--dark);
-    padding: 0 .2rem;
-}
-.invoice_item .besic_det label select,
-.invoice_item .besic_det label input{
-    margin: 0;
-    padding: .5rem .25rem;
-    border-radius: 55px;
-    border: 1px solid var(--gray);
-    font-size: .9rem;
-}
-.invoice_item label.desc textarea{
-    margin: 0;
-    padding: .5rem .25rem;
-    border-radius: .5rem;
-    border: 1px solid var(--gray);
-    font-size: .9rem;
-    max-height: 6rem;
-    min-height: 6rem;
-}
-
-.invoice_item .invoice_item_image{
-    height: 12rem;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    overflow: hidden;
-    border-radius: .5rem;
-}
-.invoice_item .invoice_item_image img{
-    aspect-ratio: 1/1;
-    height: 12rem;
-    object-fit: contain;
-}
-.color-n-sizes{
-    display: flex;
-    flex-direction: column;
-    padding: .5rem;
-}
-.invoice_size_list i{
-    border-radius: 50%;
-    margin: .1rem;
-    margin-right: 1rem;
-    margin-top: .5rem;
-    border: 1px solid var(--gray);
-    cursor: pointer;
-    position: relative;
-    height: 2.5rem;
-    width: 2.5rem;
-    min-height: 2.5rem;
-    min-width: 2.5rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--dark);
-    font-size: .8rem !important;
-    width: auto;
-    font-style: normal;
-    overflow: unset;
-    font-weight: 400;
-}
-.color-n-sizes h3{
-    font-size: 1rem;
-    padding: .5rem 0;
-
-    position: relative;
-    color: var(--dark);
-}
-.invoice_color_list i{
-    padding: .2rem .4rem;
-    border-radius: .5rem;
-    margin: .1rem;
-    margin-right: 1rem;
-    margin-top: 1rem;
-    border: 1px solid var(--gray);
-    cursor: pointer;
-    position: relative;
-    color: var(--dark);
-    font-size: .8rem !important;
-    width: auto;
-    font-style: normal;
-    overflow: unset;
-    font-weight: 400;
-}
-.invoice_size_list i small,
-.invoice_color_list i small{
-    position: absolute;
-    right: -1rem;
-    top: -.8rem;
-    padding: .3rem;
-    border: 1px solid var(--primary);
-    border-radius: 50%;
-    width: 1.8rem;
-    height: 1.8rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--white);
-    font-weight: 500;
-    font-size: .7rem !important;
-}
-.invoice_size_list i.active,
-.invoice_color_list i.active{
-    border: 1px solid var(--white);
-    background: var(--success);
-    color: var(--white);
-}
-.invoice_size_list i.active small,
-.invoice_color_list i.active small{
-    background: var(--success);
-    border: 1px solid var(--white);
-    color: var(--white);
-}
-.cart_quantity_adjuster {
-    padding: .4rem;
-    display: flex;
-    flex-direction: row;
-    grid-column: 1/-1;
-    color: var(--dark);
-    align-items: center;
-}
-.cart_quantity_adjuster b{
-    font-weight: 300;
-}
-.cart_quantity_adjuster label.adjust{
-    display: flex;
-    flex-direction: row !important;
-    margin: 0 .3rem;
-    width: 10rem !important;
-    background: var(--gray);
-    border-radius: 50%;
-}
-.cart_quantity_adjuster label.adjust span {
-    height: 3rem !important;
-    width: 3rem !important;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: var(--white) !important;
-    background: var(--warning);
-    border: 1px solid var(--light);
-    cursor: pointer;
-    border-radius: 50%;
-}
-.cart_quantity_adjuster label.adjust span:last-child{
-    background: var(--success);
-}
-.cart_quantity_adjuster label.adjust input {
-    max-width: 2.65rem;
-    outline: none;
-    border: none !important;
-    background: transparent !important;
-    color: var(--white) !important;
-    text-align: center;
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-    pointer-events: none;
 }
 ::-webkit-scrollbar {
     width: .6em;
@@ -1520,15 +1303,15 @@ table tr:nth-child(even){
     flex-wrap: wrap;
     gap: .5rem;
     background: var(--white);
-    padding: 3% 2% 0 1%;
 }
 /* ************************************ CARDS  ************************** */
 .cards{
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: .5rem;
     padding: 10px;
+    width: 100vw;
 }
 .cards .card{
     min-width: 230px;
@@ -1562,10 +1345,18 @@ table tr:nth-child(even){
     transform: scale(0);
     transition: transform .8s ease 0s;
 }
+.cards .card.active span{
+    color: var(--white);
+}
+.cards .card.active::before{
+    transform: scale(1);
+    background: var(--warning);
+}
 .cards .card:hover::before{
     color: var(--white);
     transform: scale(3);
 }
+
 .cards .card:hover{
     color: var(--white);
 }
@@ -1605,39 +1396,32 @@ table tr:nth-child(even){
 }
 .filtration{
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1.8rem;
+    flex-direction: row;
+    gap: .5rem;
     flex-wrap: wrap;
-    flex: 1;
+    width: 100%;
+    margin-bottom: .5rem;
+    padding: 0 .5rem;
 }
 .filtration label{
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 200px;
-    width: 100%;
+    min-width: 350px;
+    flex: 4;
 }
 .filtration label span{
     padding: 0 .5rem;
 }
-.filtration :nth-child(1){
-    /* flex: 2;
-    display: flex;
-    justify-content: space-between; preview-image*/
-}
-.filtration :nth-child(2){
-    display: flex;
-    gap: 2rem;
-}
-.filtration :nth-child(2) select{
+.filtration select{
     padding: .5rem;
     outline: none;
     border: 1px solid var(--grey);
     background: transparent;
     color: var(--primary);
-    width: 100%;
+    width: 130px;
     border-radius: .5rem;
+    flex: 1;
 }
 .filtration label input{
     min-width: 150px;
@@ -2346,6 +2130,33 @@ html,body{overflow: hidden;}
 }
 /* ****************************** LARGE TABLETS & LAPTOPS ********************** */
 @media screen and (min-width: 960px) {
+    .title-modifications{
+        position: unset;
+        width: auto;
+        display:flex;
+        flex-direction: row;
+        overflow: hidden;
+        border-color: transparent;
+    }
+    .title-modifications select{
+        width: 8.6rem !important;
+        height: 2.53rem;
+        margin: 0 .3rem;
+    }
+
+    .section-title span.table-filter{
+        display: none;
+    }
+    table td.disapear.tablet label{
+        height: inherit;
+        display: flex;
+        align-items: center;
+    }
+    table tr td label.status{
+        width: 6rem;
+        font-size: 1.1rem;
+        font-weight: 300;
+    }
 
     .sign-in-container{
         background: var(--blue);
@@ -2562,4 +2373,137 @@ html,body{overflow: hidden;}
 @media screen and (min-width: 1200px) {
 
 }
-report-statistics
+
+/* **************************************** SECTION TITLE *********************************** */
+.section-title{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 3rem;
+    background: var(--white);
+    position: relative;
+    width: 100%;
+    overflow-x: unset;
+    overflow-y: hidden;
+    z-index: 5;
+}
+.section-title span.table-filter{
+    position: absolute;
+    top: .2rem;
+    cursor: pointer;
+    color: var(--txt-white);
+    right: .5rem;
+    background: var(--main-color-blue);
+    padding: .5rem;
+    z-index: 500;
+}
+.section-title .title-head{
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    color: var(--dark);
+}
+.section-title .title-head span{
+    padding: 0 .5rem;
+    font-size: 1.6rem;
+}
+.section-title .title-head h3{
+    font-size: 1.1rem;
+    font-weight: 400;
+}
+.title-modifications select{
+    width: 100%;
+}
+.title-modifications{
+    /*position: fixed;
+    right: 0rem;
+    top: 6rem; 
+    width: 250px;
+    display:flex;
+    flex-wrap: wrap;
+    background: var(--white);
+    border: 1px solid var(--dark);*/
+    padding: .2rem .5rem;
+    border-radius: .5rem;
+    overflow-x: hidden;
+    transition: all .3s var(--transition-cubic);
+
+    
+        position: unset;
+        width: auto;
+        display:flex;
+        flex-direction: row;
+        overflow: hidden;
+        border-color: transparent;
+}
+.title-modifications.hide{
+    right: -300px;
+}
+.title-modifications select{
+    padding: .5rem .4rem;
+    height: 2.53rem;
+    background: var(--white);
+    color: var(--dark);
+    font-size: .85rem;
+    border-radius: var(--card-radius);
+    outline: none;
+}
+.title-modifications a{
+    padding: .2rem;
+    cursor: pointer;
+    border: 1px solid var(--white);
+    background: var(--primary);
+    width: 6rem;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--card-radius);
+}
+.title-modifications a h3{
+    font-size: .9rem;
+    font-weight: 400;
+}
+.title-modifications a span{
+    font-size: 1.6rem;
+    margin-left: .5rem;
+}
+.title-modifications button{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--white);
+    border-radius: var(--card-radius);
+    width: 2.5rem;
+    border-radius: 50%;
+    height: 2.5rem;
+}
+.title-modifications button span{
+    font-size: 1.5rem;
+    pointer-events: none;
+}
+.title-modifications button h3{
+    font-size: .9rem;
+    margin-right: 1rem;
+    pointer-events: none;
+}
+.title-modifications button#deleteProduct{
+    background: #f00;
+    margin-right: .5rem;
+}
+.branchInventory-section{
+    position: relative;
+}
+
+.report-statistics{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: .5rem;
+    background: var(--white);
+    /*padding: 3% 2% 0 1%;filtration*/
+}

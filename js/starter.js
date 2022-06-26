@@ -3,10 +3,10 @@ let res = null;
 let site = {};
 var today = new Date();
 var dd = String(today.getDate()).padStart(2, '0');
-var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0! navigation searchable
+var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0! navigation 
 var yyyy = today.getFullYear();
 
-today = mm + '/' + dd + '/' + yyyy;
+today = yyyy + '-' + mm + '-' + dd;
 
 const deliverNotification = (msg, msgtype) => {
     document.querySelector('.notification_messages').innerHTML = `${msg} <span class="material-symbols-outlined">close</span>`;
@@ -47,8 +47,8 @@ const removeElement =(element) => {
     }
 }
 
-if(localStorage.getItem('joinedlifestyleoutdoorgear')){
-    if(JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear')).session){
+if(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
+    if(JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')).session){
         window.location.href = './index.html';
     }else{
         deliverNotification('Thank you, signin please', 'success');
@@ -56,10 +56,10 @@ if(localStorage.getItem('joinedlifestyleoutdoorgear')){
 }
 
 // ------------------ GET/SET SITE BESIC DATA --------------------
-if(!localStorage.getItem('joinedlifestyleoutdoorgear')){
-    localStorage.setItem('joinedlifestyleoutdoorgear', JSON.stringify(site));
+if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
+    localStorage.setItem('sys.pos.warehouse.lifestyle-outdoor-gear', JSON.stringify(site));
 }
-site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
+site = JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear'));
 
 let page = 1;
 let start = true;
@@ -67,8 +67,8 @@ let start = true;
 const updateSiteData = (data) => {
     // localStorage.clear();
 
-    localStorage.setItem('joinedlifestyleoutdoorgear', JSON.stringify(data));
-    site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
+    localStorage.setItem('sys.pos.warehouse.lifestyle-outdoor-gear', JSON.stringify(data));
+    site = JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear'));
 }
 
 const dataRequest = (requestName, requestData, counter, reload = 'false') => {
@@ -76,7 +76,7 @@ const dataRequest = (requestName, requestData, counter, reload = 'false') => {
     let localStorageNm = `${lowerCaseRqtNm}List`; //eg invoiceList
     let action = `getAll${requestName}s`; // eg. getAllInvoice Note:: first letter of requestName must be capital
     $.ajax({
-        url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+        url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
         type: "POST",
         dataType  : 'json',
         data: requestData,
@@ -104,7 +104,7 @@ const dataRequest = (requestName, requestData, counter, reload = 'false') => {
 const autorun = (data) => {
     if((data.reload == true) || (!site[data.name])){
         let ajaxRequest = $.ajax({
-            url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+            url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
             type: "POST",
             dataType  : 'json',
             data: data,
@@ -115,7 +115,7 @@ const autorun = (data) => {
         });
     }
 }
-// LOAD PRODUCT LIST
+// LOAD PRODUCT LIST  convert
 setTimeout(dataRequest('Product', {'limit': 15,'action':'getLimitedProducts', 'page': page}, 1), 0);
 
 // LOAD WAREHOUSE INVENTORY PRODUCT LIST
@@ -155,12 +155,16 @@ let c = setInterval(() => {
         // clearInterval();
         if(action == 1){
             site.branchList.forEach(branch => {
-                console.log(branch)
+                // console.log(branch)
                 setTimeout(()=>{
                     allBranchesDataRequest(branch.id, 'allbranchesinventoryproducts', {'limit': 500, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInventoryProducts'}, 1);
                 }, 0);
                 setTimeout(()=>{
-                    allBranchesDataRequest(branch.id, 'allbranchessaleinvoices', {'limit': 100, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInvoices'}, 1);
+                    if(!site.allbranchessaleinvoices){
+                        site.allbranchessaleinvoices = {};
+                    }
+                    site.allbranchessaleinvoices[branch.id] ={};
+                    // allBranchesDataRequest(branch.id, 'allbranchessaleinvoices', {'limit': 500, 'sdate': today, 'edate': today, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInvoices'}, 1);
                 }, 0);
 
             });
@@ -175,7 +179,7 @@ const allBranchesDataRequest = (dataKey, requestName, requestData, counter, relo
         site[requestName] = {}
     }
     $.ajax({
-        url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+        url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
         type: "POST",
         dataType  : 'json',
         data: requestData,
@@ -193,7 +197,7 @@ const convertToObject = (data) => {
         // USE INVENTORY ID AS KEY FOR EACH PRODUCT ID
         obj[info.id] = info;
     })
-    console.log(obj);
+    // console.log(obj);
     return obj;
 }
 // AUTO REFRESH SITE AFTER 5 Secounds IF THEIR ARE CHANGES IN DATA
@@ -206,7 +210,7 @@ setInterval( () => {
 const getTotals = (requestData) => {
     setTimeout(() => {
         $.ajax({
-            url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+            url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
             type: "POST",
             dataType  : 'json',
             data: requestData,
@@ -297,7 +301,7 @@ const signin = (username, password) => {
 }
 const run = (data) => {
 	let ajaxRequest = $.ajax({
-	    url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+	    url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
 	    type: "POST",
 	    dataType  : 'json',
 	    data: data

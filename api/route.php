@@ -173,7 +173,7 @@
 			$saleController->makeTransaction($_POST['data']);
 		break;
 		case 'search_products':
-		$productController->search_products((int)$_POST['data']['branch_id'], $_POST['data']);
+			$productController->search_products($_POST);
 		break;
     }
 

@@ -7,6 +7,7 @@ let start = true;
 
 let navLinks = document.querySelectorAll('.nav-link');
 const searchBar = document.getElementById('nav-search');
+let searchForm = document.querySelector('.search-bar');
 
 // GET TODAY'S DATE
 var today = new Date();
@@ -18,20 +19,20 @@ today = yyyy + '-' + mm + '-' + dd;
 
 // CHECK IF USER IS LOGGED IN EVERAY AFTER 5 SECOUNDS
 setInterval( () => {
-    if(!localStorage.getItem('joinedlifestyleoutdoorgear')){
+    if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
         window.location.href = './signin.html';
     }
 }, 5000); 
 // CHECK IF USER IS LOGED IN
-if(!localStorage.getItem('joinedlifestyleoutdoorgear')){
+if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
     window.location.href = './signin.html';
-}else if(!JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear')).session){
+}else if(!JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')).session){
     window.location.href = './signin.html';
-}else if(Number(JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear')).session.user_type_id) > 2){
+}else if(Number(JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')).session.user_type_id) > 2){
     window.location.href = './signin.html';
 }
 // GET LOCAL DATA
-site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
+site = JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear'));
 
 // VALIABLE TO KEEP TRACK OF LOCAL DATA AVAILABILITY
 // IT CONTAINTS SITE DATA KEYS 
@@ -56,29 +57,54 @@ setInterval(()=> {
                     delete expectedData[expectedDataKey];
                     // LOAD DATA FOUND IN LOCAL SITE DATA
                     setTimeout(()=> {
-                        renderPageData(site[siteDataKey], siteDataKey, 0);
+                        renderPageData(site[siteDataKey], siteDataKey, );
                     }, 0);
                 }
             }); 
         }
     });
-    // console.log(expectedData)
+    // console.log(expectedData) 
 
-}, 1000);
+
+    /**
+     * CHECK FOR NEW SALE EVERY AFTER 0.00 MILLI SECONDS
+     **/
+    let totalDialySale = "00";
+    if(site.allbranchessaleinvoices){
+        let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
+        let data = site.allbranchessaleinvoices;
+        let branchSales = {};
+        if(user_branch_id != 0){
+            branchSales = data[user_branch_id];
+        }else{
+            Object.keys(data).forEach((dataKey, index) =>{
+                Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
+                    branchSales[innerDataKey] = data[dataKey][innerDataKey];
+                });
+            });
+        }
+        // console.log(branchSales)
+        totalDialySale = Object.keys(branchSales).length;
+    }
+    document.getElementById('todaySales').textContent = totalDialySale;
+ }, 0);
+
 /**
  * SYSTEM FUNCTIONS A-Z
  **/
-    const generatePegination = (data, item, limit = 15, displayLinkNumber = 10) => {
+    const generatePegination = (data, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
         console.log(data)
         let pages = 1;  
         let range = []; 
-        let total = data.length;
+        let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
         let peginationLink = document.querySelector(`.pagination_link.${item}-list_pagination`);
+        // console.log(Object.keys(data).length)
         if(total > limit){
             let page = Math.ceil(total/limit);
             // let page = Math.floor(total/limit);
             pages = total & limit === 0 ? page : page + 1;
             range = [...Array(pages).keys()];
+            console.log(total, range, peginationLink)
 
             let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
             let itemLink = '<span><<</span> ';
@@ -99,37 +125,22 @@ setInterval(()=> {
             itemLink += '<span class="next">></span><span>>></span>';
             peginationLink.innerHTML = itemLink;
 
-            paginationManipulation(displayLinkNumber, range, data, item, limit);
-            if(item == 'invoice'){
-                let totalSum = 0;
-                // USE BRANCH IDS AS KEYS
-                let branchTotal = {'1' : 0,'2' : 0,'3':0}
-                setTimeout(() => {
-                    console.log(data);
-                    t = [];
-                    data.forEach(sale => {
-                        console.log(sale)
-                        console.log(sale.invoiceDetails[0])
-                        console.log(sale.invoiceDetails[0].sale_price)
-                        console.log(sale.invoiceDetails[0].purchase_quantity)
-                        console.log(sale.invoiceDetails[0].branch_id);
-                        totalSum += (Number(sale.invoiceDetails[0].sale_price) * Number(sale.invoiceDetails[0].purchase_quantity));
+            paginationManipulation(dataType, displayLinkNumber, range, data, item, limit);
 
-                        branchTotal[sale.invoiceDetails[0].branch_id] = Number(branchTotal[sale.invoiceDetails[0].branch_id]) + ((Number(sale.invoiceDetails[0].sale_price) * Number(sale.invoiceDetails[0].purchase_quantity)));
-                    })
-                    console.log(document.querySelectorAll('.branch_income')[0].children[0]);
-                    console.log(branchTotal);
-                    document.querySelectorAll('.branch_income')[0].children[0].innerHTML =`${addComma(branchTotal[1].toString())} <small>/=</small>`;
-                    document.querySelectorAll('.branch_income')[1].children[0].innerHTML =`${addComma(branchTotal[2].toString())} <small>/=</small>`;
-                    document.querySelectorAll('.branch_income')[2].children[0].innerHTML =`${addComma(branchTotal[3].toString())} <small>/=</small>`;
-                    document.getElementById('totalIncome').innerHTML= `${addComma(totalSum.toString()) } <small>/=</small>`;
-                }, 1);
+
+            if(range.length < displayLinkNumber){
+                document.querySelectorAll(`.pagination_link.${item}-list_pagination span`).forEach((pLink, index) => {
+                    if(pLink.textContent == '<<' || pLink.textContent == '<' || pLink.textContent == '>>' || pLink.textContent == '>' ){
+                        pLink.classList.add('hide');
+                    }
+                });
             }
         }else{
             peginationLink.innerHTML = '';
         }
     }
-    const paginationManipulation = (displayLinkNumber, range, data, item, limit) => {
+    const paginationManipulation = (dataType, displayLinkNumber, range, data, item, limit) => {
+        console.log(item)
         let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
         // console.log(limit)
         itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
@@ -156,17 +167,27 @@ setInterval(()=> {
                 break;
                 case '>>':
                     let values = [];
-                    for (var i = 11; i >= 0; i--) {
-                        values.push(Number(range[range.length - 1]) - i);
-                    }
-
-                    itemLinks.forEach((itemLink, index) => {
-                        itemLink.classList.remove('hide');
-                        if(itemLink.textContent !== '<<' && itemLink.textContent !== '<' && itemLink.textContent !== '>>' && itemLink.textContent !== '>' ){
-                           itemLink.textContent = values[index];
+                    // let totalData = (typeof(data) == 'object') ? Object.keys(data).length : data.length;
+                    if(range.length > displayLinkNumber){
+                        for (var i = 11; i >= 0; i--) {
+                            values.push(Number(range[range.length - 1]) - i);
                         }
-                    });
-                    document.querySelector(`.pagination_link.${item}-list_pagination span.next`).classList.add('hide');
+
+                        itemLinks.forEach((itemLink, index) => {
+                            itemLink.classList.remove('hide');
+                            if(itemLink.textContent !== '<<' && itemLink.textContent !== '<' && itemLink.textContent !== '>>' && itemLink.textContent !== '>' ){
+                               itemLink.textContent = values[index];
+                            }
+                        });
+                        document.querySelector(`.pagination_link.${item}-list_pagination span.next`).classList.add('hide');
+
+                    }else{
+                        itemLinks.forEach((itemLink, index) => {
+                            if(itemLink.textContent !== '<<' || itemLink.textContent !== '<' || itemLink.textContent !== '>>' || itemLink.textContent !== '>' ){
+                                itemLink.classList.add('hide');
+                            }
+                        });
+                    }
                 break;
                 case '<':
                     itemLinks.forEach(itemLink => itemLink.classList.remove('hide'));
@@ -203,89 +224,209 @@ setInterval(()=> {
                     document.querySelector(`.pagination_link.${item}-list_pagination span.prev`).classList.add('hide');
                 break;
                 default:
+                    console.log(typeof(data))
                     let start = ((Number(paginationLink.textContent) - 1) * limit);
                     document.getElementById(`${item}s_list`).innerHTML = '';
                     let identifier = item;
-                    renderPageData(data.slice(start, (start + limit)), start, identifier);
                     paginationLink.classList.add('active');
+                    // renderPageData(data, paginationLink.parentElement.dataset.id, start);
+                    renderPageData(data, document.querySelector(`.pagination_link.${item}-list_pagination`).dataset.id, start);
+                    // CONVERT OBJECT DATA FORMAT TO ARRAY FORMAT
+                    // let arrayDataFormat = [];
+                    // if(typeof(data) == "object"){
+                    //     Object.keys(data).forEach(dataRowKey => {
+                    //         arrayDataFormat.push(data[dataRowKey])
+                    //     })
+                    // }else{
+                    //     arrayDataFormat = data;
+                    // }
+                    // console.log(arrayDataFormat.slice(start, (start + limit)));
+                    // console.log(paginationLink.parentElement.dataset.id)
+                    // for (var i = paginationLink.parentElement.parentElement.children.length - 1; i >= 0; i--) {
+                    //     let child = paginationLink.parentElement.parentElement.children[i]
+                    //     // console.log(child.classList.contains('design').children[1].id)
+                    // }
 
             }
 
-            // CALL ON EACH PAGINATION DATA
-            // pageTbModifications();
 
         }));
     }
     // UPDATE SITE DATA
     const updateSiteData = (data) => {
-        localStorage.setItem('joinedlifestyleoutdoorgear', JSON.stringify(data));
-        site = JSON.parse(localStorage.getItem('joinedlifestyleoutdoorgear'));
+        localStorage.setItem('sys.pos.warehouse.lifestyle-outdoor-gear', JSON.stringify(data));
+        site = JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear'));
     }
     // RENDER DYNAMIC PAGE DATA
-    const renderPageData = (data, identifier, count = 0) => {
+    const renderPageData = (data, identifier, start = 0) => {
         let dataArrayFormat = [];
         let itemContainer = "";
+        let dataKeys = [];
+        let counter = 0;
 
         let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
         switch(identifier){
             case 'allbranchesinventoryproducts':
+                data = site.allbranchesinventoryproducts;
                 let branchInventoryProducts = {};
                 dataArrayFormat = [];
                 itemContainer = document.getElementById('branchinventoryproducts_list');
                 itemContainer.innerHTML ="";
+                // LIMIT
+                let homelimit = document.querySelector('.homelimit').value;
+                limit = Number(homelimit);
                 if(user_branch_id != 0){
                     branchInventoryProducts = data[user_branch_id];
-                    Object.keys(branchInventoryProducts).forEach((infoKey, index, infoKeys) => {
+                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+                    // ENFORCE DISPLAY LIMIT
+                    if(homelimit != 'All') {
+                        dataKeys = Object.keys(branchInventoryProducts).slice(start, (limit + start));
+                    }else{
+                        dataKeys = Object.keys(branchInventoryProducts).slice(start);
+                    }
+                    dataKeys.forEach((infoKey, index, infoKeys) => {
                         itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[infoKey], index));
                     });
                 }else{
                     Object.keys(data).forEach((dataKey, index) =>{
                         Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
                             branchInventoryProducts[innerDataKey] = data[dataKey][innerDataKey];
-                            itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[innerDataKey], index));
+                            // itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[innerDataKey], index));
                         });
+                    });
+                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+                    // ENFORCE DISPLAY LIMIT
+                    if(homelimit != 'All') {
+                        dataKeys = Object.keys(branchInventoryProducts).slice(start, (limit + start));
+                    }else{
+                        dataKeys = Object.keys(branchInventoryProducts).slice(start);
+                    }
+                    dataKeys.forEach((infoKey, index, infoKeys) => {
+                        itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[infoKey], index));
                     });
                 }
                 // MAKE PRODUCT ITEMS CLICKABLE
                 showItemDetails();
-                // generatePegination(site[localStorageNm], lowerCaseRqtNm);
+                if(start == 0){
+                    generatePegination(branchInventoryProducts, 'branchinventoryproduct', limit);
+                }
 
                 // console.log(branchInventoryProducts);
             break;
             case 'allbranchessaleinvoices':
+                // TRACK IF REQUEST IS FROM PAGINATION
+                // IF T IS ZERO (0) THEN THE REQUEST IS FROM DATABASE
+                // IF NOT ITS FROM PEGINATION
+                let t = start;
+                // CHECK IF DATA IS FROM THE DATABASE
+                data = site.allbranchessaleinvoices;
 
                 // CALCULATE TOTAL SALES IN EACH BRACH AND OVERALL TOTAL
-                setTimeout(calculateTotalSales(data), 0);
+                setTimeout(calculateTotalSales(data, start), 0);
+                // GET INVOICE POPULATION TYPE (EITHER PURCHASE DETAILS OR INVOICE)
+                let listingType = document.querySelector('.listing_type').value;
+                // INVOICE/SALE FILTERS
+                let branch_list_filter = document.querySelector(".branch_list").value;
+                let payment_type_list_filter = document.querySelector('.payment_type_list').value;
+                let currency_list_filter = document.querySelector(".currency_list").value;
+                let salelimit_filter = document.querySelector(".salelimit").value;
+                // console.log(branch_list_filter, payment_type_list_filter, currency_list_filter, salelimit_filter)
                 // POPULATE BRANCH INVOICE TABLE ROWS
                 let branchInvoices = {};
                 dataArrayFormat = [];
-                itemContainer = document.getElementById('invoices_list');
+                itemContainer = (listingType == "invoice") ? document.getElementById('invoices_list') : document.getElementById('sales_list');
                 itemContainer.innerHTML =``;
+                if(listingType == "invoice"){
+                    document.getElementById('sales_list').parentElement.classList.add("hide")
+                    document.getElementById('invoices_list').parentElement.classList.remove('hide'); 
+                }else{
+                    document.getElementById('invoices_list').parentElement.classList.add("hide")
+                    document.getElementById('sales_list').parentElement.classList.remove('hide'); 
+                }
                 removeElement('div.preloader');
+                // ENFORCE DISPLAY LIMIT
+                // console.log(salelimit_filter)
+                limit = Number(salelimit_filter);
                 if(user_branch_id != 0){
+                    // MAKE BRANCH DROPDOWN UNCLICKABLE BY ATTENDANTS
+                    document.querySelector(".branch_list").setAttribute('readonly',  'readonly');
+                    document.querySelector(".branch_list").style.pointerEvents = 'none';
+                    // GET BRANCH DATA
                     branchInvoices = data[user_branch_id];
-                    Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
-                        itemContainer.insertAdjacentHTML('beforeend', invoiceTmp(branchInvoices[infoKey], index, count));
-                        count++;
-                    });
+                    if(Object.keys(branchInvoices).length > 0){
+                        // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+                        // ENFORCE DISPLAY LIMIT
+                        if(salelimit_filter != 'All') {
+                            dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
+                        }else{
+                            dataKeys = Object.keys(branchInvoices).slice(start);
+                        }
+                        // LOOP THROUGH THE DATAKEYS TO RENDER DATA ASSOCIATED WITH THEM
+                        dataKeys.forEach((infoKey, index, infoKeys) => {
+                            if(
+                                (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
+                                (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
+                                ){
+                                itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
+                                counter++;
+                            }
+                            start++;
+                        });
+                    }else{
+                        itemContainer.innerHTML = "<tr><td colspan='10'><label class'warning'><center>Nothing found.</center></label></td></tr>";
+                    }
                 }else{
                     Object.keys(data).forEach((dataKey, index) =>{
                         Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
                             branchInvoices[innerDataKey] = data[dataKey][innerDataKey];
-                            itemContainer.insertAdjacentHTML('beforeend', invoiceTmp(branchInvoices[innerDataKey], index, count));
-                            count++;
                         });
                     });
+                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+                    // ENFORCE DISPLAY LIMIT
+                    if(salelimit_filter != 'All') {
+                        dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
+                    }else{
+                        dataKeys = Object.keys(branchInvoices).slice(start);
+                    }
+                    dataKeys.forEach((infoKey, index, infoKeys) => {
+                        setTimeout(generateSaleExportTb(branchInvoices[infoKey]), 0);
+                        if(
+                            (Number(branchInvoices[infoKey].invoiceDetails[0].branch_id) == Number(branch_list_filter)) || 
+                            (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('Branch')) ||
+                            (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('All'))  
+                            ){
+                            if(
+                                (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
+                                (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
+                                ){
+
+                                itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
+                                console.log(start+1, start + Number(branchInvoices[infoKey].totalItems));
+                                counter++;
+                            }
+                        }
+                        // CHECK IF TABLE IS POPULATED IN ACODANCE WITH THE INVOICE
+                        // IF ITS BY INVOICE INCREAMENT START BY ONE EACH REPEATITION
+                        // IF ITS BY SALE/PURCHASE THEN INCREAMENT START BY THE NUMBER OF ITEMS ON THE INVOICE
+                        console.log(branchInvoices[infoKey].totalItems);
+                        start = (listingType == "invoice") ? start+1 : start + Number(branchInvoices[infoKey].totalItems);
+                        // console.log(branchInvoices[innerDataKey].invoiceDetails[0].payment_type_id)
+                        // console.log(branchInvoices[innerDataKey].invoiceDetails[0].currency)
+                        // console.log(branchInvoices[innerDataKey].invoiceDetails[0])
+                        // itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[innerDataKey], index, count) : saleTmp(branchInvoices[innerDataKey], index, count)));
+                    })
                 }
 
                 // MAKE INVOICE ACTION BUTTONS CLICKABLE
                 tRowAction();
-                // generatePegination(site[localStorageNm], lowerCaseRqtNm);
+                if(t == 0){
+                    generatePegination(branchInvoices, 'invoice', limit);
+                }
 
-                console.log(branchInvoices);
+                // console.log(branchInvoices);
+                reveal('invoice');
             break;
         }
-        reveal('invoice');
 
     }
     const productTmp = (itemData, index)=>{
@@ -353,11 +494,20 @@ setInterval(()=> {
         return tmp;
     }
     const invoiceTmp = (itemData, index, count)=>{
+        let currency_list_filter = document.querySelector(".currency_list").value;
+        let rate = 1;
+        let currencyArray = []; 
+        if(currency_list_filter == '$'){
+            currencyArray = site.currencyList.filter(currency => currency.symbol == currency_list_filter);
+            rate = Number(currencyArray[0].rate);
+        }
+
+        // console.log(rate);
         // console.log(itemData);
         let tmp = `
             <tr class="unrevealed invoicerevealer">
                 <td><label class="counter">${count+1}</label></td>
-                <td class="user-data"><label>${itemData.branch}</label></td>
+                <td class="invoice-data"><label>${itemData.branch}</label></td>
                 <td>
                     <label class="action">
                         <span class="material-icons-outlined primary inline-edit" data-id="31" data-tb="invoice" data-index="0">edit</span>
@@ -366,22 +516,97 @@ setInterval(()=> {
                     </label>
                 </td>
 
-                <td class="user-data count"><label class="short-fixed">${itemData.invoice_no}</label></td>
-                <td class="user-data count"><label class="short-fixed">${itemData.totalItems}</label></td>
-                <td class="user-data"><label>${addComma(itemData.totalPrice.toString())}</label></td>
-                <td class="inventory-data select-data"><label>${itemData.attendant}</label></td>
-                <td class="user-data"><label class="success">${itemData.purchase_date}</label></td>
-                <td class="user-data"><label class="">${itemData.payment_type_name}</label></td>
-                <td class="user-data  "><label class="">${itemData.customer_name}</label></td>
+                <td class="invoice-data count"><label class="short-fixed">${itemData.invoice_no}</label></td>
+                <td class="invoice-data count"><label class="short-fixed">${itemData.totalItems}</label></td>
+                <td class="invoice-data"><label>${addComma((currency_list_filter == '$') ? convertToDallar(Number(itemData.totalPrice), Number(rate)).toString() : itemData.totalPrice.toString())}</label></td>
+                <td class="invoice-data select-data"><label>${itemData.attendant}</label></td>
+                <td class="invoice-data"><label class="success">${itemData.purchase_date}</label></td>
+                <td class="invoice-data"><label class="">${itemData.payment_type_name}</label></td>
+                <td class="invoice-data  "><label class="">${itemData.customer_name}</label></td>
                 <td class="det">
                 </td>
             </tr>
         `;
         return tmp;
     }
+    const saleTmp = (itemData, index, count)=>{
+        let currency_list_filter = document.querySelector(".currency_list").value;
+        let rate = 1;
+        let currencyArray = []; 
+        if(currency_list_filter == '$'){
+            currencyArray = site.currencyList.filter(currency => currency.symbol == currency_list_filter);
+            rate = Number(currencyArray[0].rate);
+        }
+
+        console.log(rate);
+
+        let tmp = ``;
+        itemData.invoiceDetails.forEach((invoiceProduct, index) => {
+            count ++;
+            tmp += `
+            <tr class="unrevealed invoicerevealer">
+                <td><label class="counter">${count}</label></td>
+                <td class="invoice-data"><label class="sale-remarks">${invoiceProduct.remarks}</label></td>
+                <td>
+                    <label class="action">
+                        <span class="material-icons-outlined primary inline-edit" data-id="31" data-tb="invoice" data-index="0">edit</span>
+                        <span class="material-icons-outlined warning inline-return" data-id="31" data-tb="invoice" data-index="0">sync</span>
+                        <span class="material-icons-outlined success showinvoicedetails-btn" data-id="31" data-tb="invoice" data-index="0">add</span>
+                    </label>
+                </td>
+                <td class="invoice-data"><label>${invoiceProduct.product_code}</label></td>
+                <td class="invoice-data"><label>${invoiceProduct.branch_location}</label></td>
+                <td class="invoice-data count"><label class="short-fixed">${itemData.invoice_no}</label></td>
+                <td class="invoice-data count"><label class="short-fixed">${invoiceProduct.purchase_quantity}</label></td>
+                <td class="invoice-data count"><label class="short-fixed">${addComma((currency_list_filter == '$') ? convertToDallar(Number(invoiceProduct.sale_price), Number(rate)).toString() : invoiceProduct.sale_price.toString())}</label></td>
+                <td class="invoice-data"><label>${addComma((currency_list_filter == '$') ? convertToDallar((Number(invoiceProduct.purchase_quantity) * Number(invoiceProduct.sale_price)), Number(rate)).toString() : (Number(invoiceProduct.purchase_quantity) * Number(invoiceProduct.sale_price)).toString())}</label></td>
+                <td class="inventory-data select-data"><label>${itemData.attendant}</label></td>
+                <td class="invoice-data"><label class="success">${itemData.purchase_date}</label></td>
+                <td class="invoice-data"><label class="">${itemData.payment_type_name}</label></td>
+                <td class="invoice-data  "><label class="">${itemData.customer_name}</label></td>
+
+                <td class="det">
+                </td>
+            </tr>
+        `;
+        });
+        return tmp;
+    }
+    const generateSaleExportTb = (itemData) => {
+        let tmp = ``;
+        let currency_list_filter = document.querySelector(".currency_list").value;
+        let rate = 1;
+        let currencyArray = []; 
+        if(currency_list_filter == '$'){
+            currencyArray = site.currencyList.filter(currency => currency.symbol == currency_list_filter);
+            rate = Number(currencyArray[0].rate);
+        }
+
+        itemData.invoiceDetails.forEach((invoiceProduct, index) => {
+            tmp = `
+            <tr>
+                <td>${invoiceProduct.remarks}</td>
+                <td>${invoiceProduct.product_code}</td>
+                <td>${invoiceProduct.branch_location}</td>
+                <td>${itemData.invoice_no}</td>
+                <td>${invoiceProduct.purchase_quantity}</td>
+                <td>${(currency_list_filter == '$') ? convertToDallar(Number(itemData.totalPrice), Number(rate)) : itemData.totalPrice}</td>
+                <td>${((currency_list_filter == '$') ? convertToDallar((Number(invoiceProduct.purchase_quantity) * Number(invoiceProduct.sale_price)), Number(rate)) : (Number(invoiceProduct.purchase_quantity) * Number(invoiceProduct.sale_price)))}</td>
+                <td>${itemData.attendant}</td>
+                <td>${itemData.purchase_date}</td>
+                <td>${itemData.payment_type_name}</td>
+                <td>${itemData.customer_name}</td>
+            </tr>
+            `;
+        });
+        document.getElementById('sale_export_tb').insertAdjacentHTML('beforeend', tmp);
+    }
+    const convertToDallar = (price, rate) => {
+        return  (((Math.round(((Number(price)/rate) + Number.EPSILON)) * 100) / 100 ));
+    }
     const tRowAction =() => {
         let actionBtnsParent = document.querySelectorAll("td label.action");
-        console.log(actionBtnsParent);
+        // console.log(actionBtnsParent);
         actionBtnsParent.forEach(actionBtn => {
             for (var i = actionBtn.children.length - 1; i >= 0; i--) {
                 // console.log(actionBtn.children[i]);
@@ -426,29 +651,52 @@ setInterval(()=> {
             tr.style.animationDuration = `${duration}s`;
         });
     }
-    const calculateTotalSales = (data) => {
+    const calculateTotalSales = (data, start) => {
+        let payment_type_list_filter = document.querySelector('.payment_type_list').value;
+
         let totalSum = 0;
         // USE BRANCH IDS AS KEYS
         // OBJECT TO HOLD BRANCH IDS AND THEIR TOTAL SALES
         let branchTotal = {};
         let branchInvoices = {};
-
+        console.log(data)
+        data = (start == 0) ? data : site.allbranchessaleinvoices;
         site.branchList.forEach(branch => {
             // IF BRANCH DOESN'T EQUAL TO ALL
             if(branch.id != 5){
                 branchTotal[branch.id] = 0; // EXAMPLE OF EXPECTED OUT PUT{'1' : 0,'2' : 0,'3':0}
                 branchInvoices = data[branch.id];
-                console.log(data[branch.id])
+                // console.log(data[branch.id])
                 Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
-                    let totalPrice = Number(branchInvoices[infoKey].totalPrice);
-                    totalSum += totalPrice;
-                    // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
-                    branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
-                        branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
-                    })
+                    if(!payment_type_list_filter.includes('Method')){
+                        if(Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)){
+                            let totalPrice = Number(branchInvoices[infoKey].totalPrice);
+                            totalSum += totalPrice;
+                            // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
+                            branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
+                                branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
+                            })
+                        }
+                    }else{
+                        let totalPrice = Number(branchInvoices[infoKey].totalPrice);
+                        totalSum += totalPrice;
+                        // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
+                        branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
+                            branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
+                        })
+
+                    }
                 });
             }
         });
+        // GET CURRENCY RATE(DOLAR)
+        let currency_list_filter = document.querySelector(".currency_list").value;
+        let rate = 1;
+        let currencyArray = []; 
+        if(currency_list_filter == '$'){
+            currencyArray = site.currencyList.filter(currency => currency.symbol == currency_list_filter);
+            rate = Number(currencyArray[0].rate);
+        }
         // SET TOTALS TO ELEMENT DISPLAYS
         document.querySelector('#sales .cards').innerHTML = "";
         let cards = "";
@@ -462,7 +710,7 @@ setInterval(()=> {
                 <div class="card ${branch_id == site.session.branch_id ? 'active' : ''} ">
                     <span class="material-icons-outlined">shopping_bag</span>
                     <div class="stat-details branch_income">
-                        <h2>${addComma(branchTotal[branch_id].toString())}/=</h2>
+                        <h2>${(currency_list_filter == '$') ? addComma(convertToDallar(Number(branchTotal[branch_id]), Number(rate)).toString()) + "$" : addComma(branchTotal[branch_id].toString()) + '/='}</h2>
                         <label>${branchInfo[0].name}</label>
                     </div>
                 </div>
@@ -474,7 +722,7 @@ setInterval(()=> {
                 <div class="card">
                     <span class="material-icons-outlined">attach_money</span>
                     <div class="stat-details">
-                        <h2 id="totalIncome">${addComma(totalSum.toString())} <small>/=</small></h2>
+                        <h2 id="totalIncome">${(currency_list_filter == '$') ? addComma(convertToDallar(Number(totalSum), Number(rate)).toString()) + "$" : addComma(totalSum.toString())+'/='} <small></small></h2>
                         <label>Total Income</label>
                     </div>
                 </div>
@@ -485,7 +733,7 @@ setInterval(()=> {
         // console.log(cards)
         // Object.keys(branchTotal).length
         // console.log(totalSum)
-        console.log(branchTotal)
+        // console.log(branchTotal)
     }
     const generateProductColor = (data, colour_name) => {
         let templateString = '';
@@ -663,7 +911,7 @@ setInterval(()=> {
     }
     function addToCart(link) {
         let dRate = (Number(site.currencyList.filter(sale => sale.name == 'Dollars')[0].rate));
-        // console.log(dRate); joinedlifestyleoutdoorgear
+        // console.log(dRate); sys.pos.warehouse.lifestyle-outdoor-gear
         const addToCartBtn = document.querySelector(`#${link.parentElement.children[0].dataset.details} .item-box .class-secondery-info button`);
         addToCartBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1192,7 +1440,7 @@ setInterval(()=> {
         let startdate = document.getElementById('startdate').value;
         let enddate = document.getElementById('enddate').value;
         let identifier = 'invoice';
-        let limitShow = document.querySelector('#sales .showlimit').value;            
+        let limitShow = document.querySelector('#sales .salelimit').value;            
         let data ={'reload': true, 'sdate': startdate, 'edate': enddate, 'action':'getBranchesInvoices', 'name': 'allbranchessaleinvoices'};
         // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
         if(site.session.user_type_id == 2){
@@ -1201,6 +1449,10 @@ setInterval(()=> {
         // console.log(data) calculate
         res = run(data);
         res.always(details => {
+            // console.log(details)
+            if(!site.allbranchessaleinvoices){
+                site.allbranchessaleinvoices = {};
+            }
             // removeElement('div.preloader');
             if(site.session.user_type_id == 2){
                 // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
@@ -1215,40 +1467,6 @@ setInterval(()=> {
             // UPDATE DATA CHECKER VARIABLE
             expectedData.allbranchessaleinvoices = 'invoice';
         });
-        // site.branchList.forEach(branch => {
-        //         console.log(branch)
-        //         setTimeout(()=>{
-        //             allBranchesDataRequest(branch.id, 'allbranchesinventoryproducts', {'limit': 500, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInventoryProducts'}, 1);
-        //         }, 0);
-        //         setTimeout(()=>{
-        //             allBranchesDataRequest(branch.id, 'allbranchessaleinvoices', {'limit': 100, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInvoices'}, 1);
-        //         }, 0);
-
-        //     });
-        // let ajaxRequest = $.ajax({
-        //     url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
-        //     type: "POST",
-        //     dataType  : 'json',
-        //     data: data,
-        //     success: function(details){
-        //         removeElement('div.preloader');
-        //         console.log(details);
-        //         // console.log(data)
-        //         if(details.length > 0){
-        //             deliverNotification(details.length + ' Invoices found', 'success');
-        //             site.invoiceList = details;
-        //             limit = (Number(limitShow)) ? Number(limit) : details.length;
-        //             document.getElementById(`invoices_list`).innerHTML = "";
-        //             renderPageData(details.slice(0, (0 + limit)), 0, identifier.toLowerCase());
-        //             generatePegination(details, identifier.toLowerCase(), limit);
-
-        //         }else{
-        //             deliverNotification('Nothing found', 'warning');
-
-        //         }
-
-        //     }
-        // });
     }
     const allBranchesDataRequest = (dataKey, requestName, requestData, counter, reload = 'false') => {
         // GET FIRST allbranchesinventoryproducts IS SET
@@ -1257,7 +1475,7 @@ setInterval(()=> {
             site[requestName] = {}
         }
         $.ajax({
-            url: "http://localhost/joinedlifestyleoutdoorgear/api/route.php",
+            url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
             type: "POST",
             dataType  : 'json',
             data: requestData,
@@ -1278,6 +1496,27 @@ setInterval(()=> {
         // console.log(obj);
         return obj;
     }
+    const export_table_to_csv = (table, csv_name, download_link) =>{
+        var csv = [];
+        var rows = table.querySelectorAll("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var row = [], cols = rows[i].querySelectorAll("td, th");
+            
+            for (var j = 0; j < cols.length; j++) {
+                row.push(cols[j].innerText);
+            }
+            
+            csv.push(row.join(","));        
+        }
+
+        var csv_string = csv.join("\n");
+        var csv_blob = new Blob([csv_string], {type: "text/csv"});
+        var csv_href = window.URL.createObjectURL(csv_blob);
+
+        download_link.href = csv_href;
+        download_link.download = csv_name + '.csv';
+    } 
 /**
  * END OF SYSTEM FUNCTIONS
  **/
@@ -1287,6 +1526,9 @@ setInterval(()=> {
  **/
 document.addEventListener('DOMContentLoaded', () => {
 
+    document.getElementById('startdate').value = today;  
+    document.getElementById('enddate').value = today;  
+    getInvoiceByDate(); 
 
     /* 
     ------------------------------------------------------------------------------------
@@ -1446,6 +1688,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         removeElement('div.preloader');
 
                         if(data.response == 'success'){
+                            // LOAD TODAYS SALE
+                            getInvoiceByDate();
+
                             // UPDATE SITE DATA WITH THE UPDATED LIST OF SALES
                             // UPDATE PRODUCT QUANTITY IN THE BRANCH INVENTORY PRODUCT
                             // UPDATE SITE DATA
@@ -1516,7 +1761,8 @@ document.addEventListener('DOMContentLoaded', () => {
        
     // EXPORT SELD PRODUCT LIST OT EXCEL FILE generateC
     if(site.session.user_type_id == 1){
-        document.getElementById('export_sales').addEventListener('click', () => {
+        document.getElementById('export_sales').addEventListener('click', (e) => {
+            console.log('we here')
             let table = document.getElementById('sale_export_tb');
             let csv_name = "lifestyle Sales as of " + today;
             let download_link = document.getElementById('export_sales');
@@ -1564,14 +1810,43 @@ document.addEventListener('DOMContentLoaded', () => {
     ----------------------------- GET SALES BY SPECIFIC DATE ------------------------------
     ------------------------------------------------------------------------------------
     */
-    document.getElementById('startdate').value = today;  
-    document.getElementById('enddate').value = today;  
     document.getElementById('startdate').addEventListener('change', () => {
         getInvoiceByDate();
     });
     document.getElementById('enddate').addEventListener('change', () => {
         getInvoiceByDate();
     });   
+    // SALE SPECIFICATION DROPDOWNS
+    document.querySelector('.listing_type').addEventListener('change', () => {
+        document.getElementById(`sales_list`).parentElement.after(preloader());
+        expectedData.allbranchessaleinvoices = 'invoice';
+    });
+    document.querySelector(".branch_list").innerHTML = generateDropdown(site.branchList, 'name', 'id', 'Branch  ');
+    document.querySelector('.payment_type_list').innerHTML = generateDropdown(site.paymentTypeList, 'name', 'id', 'Method  ');
+    document.querySelector(".currency_list").innerHTML = generateDropdown(site.currencyList, 'name', 'symbol', 'Currency  ');
+    document.querySelector(".branch_list").addEventListener('change', ()=>{
+        expectedData.allbranchessaleinvoices = 'invoice';
+        document.getElementById(`sales_list`).parentElement.after(preloader());
+    });
+    document.querySelector('.payment_type_list').addEventListener('change', ()=>{
+        expectedData.allbranchessaleinvoices = 'invoice';
+        document.getElementById(`sales_list`).parentElement.after(preloader());
+    });
+    document.querySelector(".currency_list").addEventListener('change', ()=>{
+        expectedData.allbranchessaleinvoices = 'invoice';
+        document.getElementById(`sales_list`).parentElement.after(preloader());
+    });
+    document.querySelector(".salelimit").addEventListener('change', () => {
+        expectedData.allbranchessaleinvoices = 'invoice';
+        document.getElementById(`sales_list`).parentElement.after(preloader());
+    });
+
+    // HOME SPECIFICATION DROPDOWNS pagination
+    document.querySelector('.homelimit').addEventListener('change', () => {
+        document.getElementById(`branchinventoryproducts_list`).innerHTML = "";
+        document.getElementById(`branchinventoryproducts_list`).prepend(preloader());
+        expectedData.allbranchesinventoryproducts = 'branchinventoryproduct';
+    });
 
     // SIGNOUT
     document.querySelector('#siginout').addEventListener('click', () => {
@@ -1580,5 +1855,74 @@ document.addEventListener('DOMContentLoaded', () => {
         window.location ='./signin.html';
     });
 
+    /* 
+    ------------------------------------------------------------------------------------
+    ---------------------------------- GENERAL SEARCH ----------------------------
+    ------------------------------------------------------------------------------------
+    */
+    searchBar.addEventListener('change', (e) => {
+        e.preventDefault();
+        // search();
+    });
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        search();
+    });
+    function search() {
+        let searchValue = searchBar.value.toLowerCase();
+        let page = document.querySelector('div.page.show');
+        let count = 0;
+        let limitField;
+        let limit;
+        let found=0;
+        let searchResultsTotal = 0;
+        switch(page.id){
+            case 'home':
+                console.log(searchValue, page)
+                if(!document.querySelector('.listing .preloader')){
+                    document.querySelector('.listing').append(preloader());
+                }
+                let limitShow = document.querySelector('.homelimit').value;  
+
+                let data ={'reload': true, 'search': searchValue, 'action':'search_products', 'name': 'allbranchesinventoryproducts'};
+                // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
+                if(site.session.user_type_id == 2){
+                    data.branch_id = site.session.branch_id;
+                }
+                res = performOperation("search_products", data);
+                console.log(data) 
+                // res = run(data);
+                res.always(details => {
+                    removeElement('div.preloader');
+                    // console.log(details)
+                    if(details.length > 0){
+                        if(!site.allbranchesinventoryproducts){
+                            site.allbranchesinventoryproducts = {};
+                        }
+                        if(site.session.user_type_id == 2){
+                            // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
+                            site.allbranchesinventoryproducts[site.session.branch_id] = convertToObject(details);
+                        }else{
+                            site.allbranchesinventoryproducts[5] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
+                        }
+                        updateSiteData(site);
+                        // UPDATE DATA CHECKER VARIABLE
+                        expectedData.allbranchesinventoryproducts = 'branchinventoryproduct';
+                        deliverNotification(`Total of ${details.length} found`, 'success');
+
+                    }else{
+                        deliverNotification(`Total of ${searchResultsTotal} found`, 'warning');
+                    }
+                });
+                break;
+
+            default:
+                deliverNotification('Query not clear for search process', 'warning');
+        }
+    }
+
 
 });
+
+// DONT UPDATE DAILY SALES TO SITE DATA JUST DISPLAY THE SEARCH DATA
+// RENDER THE SEARCH DATA DON'T STORE IN LOCAL STORAGE export_sales

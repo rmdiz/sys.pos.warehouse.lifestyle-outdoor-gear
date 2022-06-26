@@ -77,7 +77,6 @@
     </nav>
     <!-- END OF NAVBAR -->
     <div class="notification_messages">
-        Some thing went wrong
         <span class="material-icons-outlined">close</span>
     </div>
 
@@ -100,12 +99,21 @@
                             <span>00</span>
                         </div>
                         <div class="header-footer">
-                            <h5> Showing <span class="previously-shown"> 217 </span> of <span class="total">538</span></h5>
+                            <select class="homelimit">
+                                <option value="15" selected="">Showing 15 inventory products</option>
+                                <option value="30">Showing 30 inventory products</option>
+                                <option value="60">Showing 60 inventory products</option>
+                                <option value="90">Showing 90 inventory products</option>
+                                <option value="120">Showing 120 inventory products</option>
+                                <option value="All">Showing all inventory products</option>
+                            </select>
+                            <!-- <h5> Showing <span class="previously-shown"> 217 </span> of <span class="total">538</span></h5> -->
                         </div>
                     </header>
                     <div class="listing" id="branchinventoryproducts_list">
+                        <div class="preloader"></div>
                     </div>
-                    <div class="pagination_link branchinventoryproduct-list_pagination">
+                    <div class="pagination_link branchinventoryproduct-list_pagination" data-id="allbranchesinventoryproducts">
                     </div>
                 </div>
                 <!-- END OF HOME -->
@@ -257,7 +265,6 @@
                             </div>
                         </div>   
                     </div>
-
                 </div>
                 <div class="page" id="profile">
                     <div class="left">
@@ -447,12 +454,11 @@
                         </tbody>
                         
                     </table>
-                    <div class="pagination_link invoice-list_pagination">
+                    <div class="pagination_link order-list_pagination">
                     </div>
                 </div>
                 <div id="sales" class="page wrapper report-section">
                     <div class="section-title">
-
                         <div class="title-head">
                             <span class="material-icons-outlined">bubble_chart </span>
                             <h3>Sales List</h3>
@@ -462,15 +468,6 @@
                                 <h3>Export </h3>
                                 <span class="material-icons-outlined">cloud_sync</span>
                             </a>
-                            <button class="btn bg-primary" id="newInventory">
-                                <span class="material-icons-outlined">add</span>
-                            </button>
-                            <button class="btn bg-success" id="editInventory">
-                                <span class="material-icons-outlined">edit</span>
-                            </button>
-                            <button class="btn bg-danger" id="deleteInventory">
-                                <span class="material-icons-outlined">delete</span>
-                            </button>
                         </div>
                     </div>
                     <div class="report-statistics">
@@ -505,7 +502,7 @@
                             </div>
                         </div>
                         <div class="filtration">
-                            <select class="showlimit">
+                            <select class="salelimit">
                                 <option value="15" selected="">Showing 15 </option>
                                 <option value="30">Showing 30 </option>
                                 <option value="60">Showing 60 </option>
@@ -513,18 +510,18 @@
                                 <option value="120">Showing 120 </option>
                                 <option value="All">Showing all</option>
                             </select>
-
-                            <select class="">
+                            <select class="listing_type">
+                                <option value="invoice">Invoice Based </option>
+                                <option value="sale">Purchase Based </option>
+                            </select>
+                            <select class="branch_list">
                                 <option selected="">Branch </option>
                             </select>
-                            <select class="">
+                            <select class="payment_type_list">
                                 <option selected="">Type </option>
                             </select>
-                            <select class="">
+                            <select class="currency_list">
                                 <option selected="">Currency </option>
-                            </select>
-                            <select class="">
-                                <option selected="">Invoice/Sale </option>
                             </select>
                             <label>
                                 <input type="date" id="startdate">
@@ -543,8 +540,8 @@
                                     </label>
                                 </th>
                                 <th  class="">
-                                    <label>
-                                        <span>Product</span>
+                                    <label class="sale-remarks">
+                                        <span>Sale remarks</span>
                                         <span class="material-icons-outlined">unfold_more</span>
                                     </label>
                                 </th>
@@ -589,12 +586,6 @@
                                         <span class="material-icons-outlined">unfold_more</span>
                                     </label>
                                 </th>
-                                <th>
-                                    <label>
-                                        <span>Category</span>
-                                        <span class="material-icons-outlined">unfold_more</span>
-                                    </label>
-                                </th>
                                 <th  class="">
                                     <label>
                                         <span>Attendant</span>
@@ -625,8 +616,6 @@
                             <!-- <div class="preloader"></div> -->
                         </tbody>
                     </table>
-                    <div class="pagination_link sales_list-list_pagination">
-
                     <table class="design">
                         <thead>
                             <tr>
@@ -692,11 +681,25 @@
                             </tr>
                         </thead>
                         <tbody id="invoices_list">
-                            <div class="preloader"></div>
                         </tbody>
                     </table>
-                    <div class="pagination_link invoice-list_pagination">
-                    </div>
+                    <div class="pagination_link invoice-list_pagination" data-id="allbranchessaleinvoices"></div>
+
+                    <table id="sale_export_tb" class="hide">
+                        <tr>
+                            <th><span>Sale remarks</span></th>
+                            <th><span>Code</span></th>
+                            <th><span>Branch</span></th>
+                            <th><span>Invoice</span></th>
+                            <th><span>Qty</span></th>
+                            <th><span>Price</span></th>
+                            <th><span>Total</span></th>
+                            <th><span>Attendant</span></th>
+                            <th><span>Date</span></th>
+                            <th><span>Type</span></th>
+                            <th><span>Customer</span></th>
+                        </tr>
+                    </table>
                 </div>
             </section>
         </div>

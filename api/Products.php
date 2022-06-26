@@ -649,7 +649,6 @@ class Products{
 				'color' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['colour_name'], 
 				'desc' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['desc'], 
 				'code' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['code'], 
-				'size_innitual' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_innitual'], 
 				'size' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_label'], 
 				'size_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_id'], 
 				'quantity' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['quantity'], 
@@ -678,7 +677,7 @@ class Products{
 			$colour_sizes =$this->get_inventoryproduct_sizes((int) $colour_id,  (int)$product_id, (int)$branch_id);
 			$dataArr[] = array(
 				'product_id' => (int)$product_id,
-				'branch_id' => (int)$branch_id, 
+				'brand_id' => (count($colour_sizes) == 0) ? 0 : $colour_sizes[0]['brand_id'], 
 				'product_image' => ($image_name != null) ? $image_name: "default.png", 
 				'colour_name' => $colour_name,
 				'colour_id' => $colour_id,
@@ -736,7 +735,6 @@ class Products{
 				'color' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['colour_name'], 
 				'desc' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['desc'], 
 				'code' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['code'], 
-				'size_innitual'=> (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_innitual'],
 				'size' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_label'], 
 				'size_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_id'], 
 				'quantity' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['quantity'], 
@@ -791,7 +789,7 @@ class Products{
 				'desc' => $description, 
 				'code' => $code, 
 				'size_label' => $size_label, 
-				'size_innitual' => $innitual,
+				'innitual' => $innitual,
 				'size_id' => $size_id, 
 				'supplier' => $supplier, 
 				'scheme_name' => $scheme_name, 
@@ -811,68 +809,25 @@ class Products{
 	}
 
 	
-	public function search_products($branch_id, $data){
-		// $dataArr = array();
-		// // aLLL DATA
-		// if((int)$branch_id == 0){
-		// 	$sql = "SELECT DISTINCT(iv.product_id ), im.image_name, pt.*, iv.branch_id, cy.category_name, bd.brand_name, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM inventory_detail_tb iv LEFT OUTER JOIN product_detail_tb pt ON pt.product_id = iv.product_id LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id LEFT OUTER JOIN inventory_product_images_tb im ON iv.inventory_id = im.inventory_id WHERE (iv.quantity > 0)";
-
-		// 	$sql = (isset($data['search'])) ? $sql . " AND (pt.product_name LIKE '%".$data['search']."%' 
-		// 		OR bd.brand_name LIKE '%".$data['search']."%') 
-		// 		 ORDER BY pt.product_name DESC;" : $sql . " ORDER BY pt.product_name DESC;";
-			
-		// 	$result = $this->p_instance->getDetails($sql, array());
-		// }else{
-
-		// 	$sql = "SELECT DISTINCT(iv.product_id ), im.image_name, pt.*, iv.branch_id, cy.category_name, bd.brand_name, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM inventory_detail_tb iv LEFT OUTER JOIN product_detail_tb pt ON pt.product_id = iv.product_id LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id LEFT OUTER JOIN inventory_product_images_tb im ON iv.inventory_id = im.inventory_id 
-		// 		WHERE (iv.branch_id = ? AND iv.quantity > 0)";
-		// 	$sql = (isset($data['search'])) ? $sql . " AND (pt.product_name LIKE '%".$data['search']."%' 
-		// 		OR bd.brand_name LIKE '%".$data['search']."%') 
-		// 		ORDER BY pt.product_name DESC;" : $sql . " ORDER BY pt.product_name DESC;";
-		// 	$result = $this->p_instance->getDetails($sql, array('branch_id' => (int)$branch_id));
-		// }
-
-		// while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		// 	extract($row);
-
-		// 	$dataArr[] = array(
-		// 		'id' => $product_id,
-		// 		'name' => $product_name,
-		// 		'category_id' => $category_id, 
-		// 		'sale_price' => $sale_price, 
-		// 		'buy_price' => $buy_price, 
-		// 		'brand_id' => $brand_id, 
-		// 		'brand_name' => $brand_name, 
-		// 		'category_name' => $category_name, 
-		// 		'supplier' => $supplier, 
-		// 		'supplier_id' => $supplier_id, 
-		// 		'scheme_name' => $scheme_name, 
-		// 		'branch_id' => $branch_id, 
-		// 		'product_colors' => $this->get_inventory_product_color($branch_id, $product_id),
-		// 		'image' => ($image_name == null) ? 'default.png' : $image_name,
-		// 	);
-
-		// }
-		// echo json_encode($dataArr);
-
-
-
+	public function search_products($post){
 		$dataArr = array();
+
 		$sql = "
 		SELECT DISTINCT(biv.product_id) FROM branch_inventory_tb biv
 			LEFT OUTER JOIN warehouseInventory_tb wiv ON biv.warehouse_inventory_id = wiv.inventory_id
 			LEFT OUTER JOIN product_detail_tb pt ON wiv.product_id = pt.product_id 
 			LEFT OUTER JOIN brand_tb bd ON bd.brand_id = pt.brand_id
-            WHERE (wiv.status_id != 0  AND biv.quantity != 0  AND pt.status_id != 0 AND biv.branch_id = ?) ";
+			LEFT OUTER JOIN category_tb ct ON ct.category_id = pt.category_id
+            WHERE (wiv.status_id != 0  AND biv.quantity != 0  AND pt.status_id != 0 ";
+        $sql .= (isset($post['data']['branch_id'])) ? " AND biv.branch_id = ".(int)$post['data']['branch_id'].")" : ")";
 
-		$sql = (isset($data['search'])) ? $sql . " AND (pt.product_name LIKE '%".$data['search']."%' 
-				OR bd.brand_name LIKE '%".$data['search']."%') 
-				ORDER BY pt.product_name DESC" : $sql . " ORDER BY pt.product_name DESC";
-			$result = $this->p_instance->getDetails($sql, array('branch_id' => (int)$branch_id));
-
-		$filter_query = $sql;
-		$result = $this->p_instance->getDetails($filter_query, array('biv.branch_id' => $branch_id));
-		
+		$sql .= (isset($post['data']['search'])) ? " AND (pt.product_name LIKE '%".$post['data']['search']."%' 
+				OR bd.brand_name LIKE '%".$post['data']['search']."%'
+				OR wiv.code LIKE '%".$post['data']['search']."%'
+				OR ct.category_name LIKE '%".$post['data']['search']."%') 
+				ORDER BY pt.product_name DESC" : " ORDER BY pt.product_name DESC";
+		$result = $this->p_instance->getDetails($sql, array());
+		$branch_id = (int)$post['data']['branch_id'];
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);
 			$productDetails = $this->get_inventory_product_color($branch_id, (int)$product_id); 
@@ -892,10 +847,9 @@ class Products{
 				'brand_name' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['brand_name'], 
 				'category_name' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['category_name'], 
 				'colour_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['colour_id'], 
-				'color' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['color'], 
+				'color' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['colour_name'], 
 				'desc' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['desc'], 
 				'code' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['code'], 
-				'size_innitual' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_innitual'], 
 				'size' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_label'], 
 				'size_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_id'], 
 				'quantity' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['quantity'], 
@@ -905,10 +859,10 @@ class Products{
 				'branch_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['branch_id'], 
 				'image' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['image']
 			);
-
 		}
 		// CONVERT OT JSON 
 		echo json_encode($dataArr);
+		// echo json_encode($sql);
 	}
 }
 ?>
