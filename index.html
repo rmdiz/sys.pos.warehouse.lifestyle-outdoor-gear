@@ -564,7 +564,7 @@
                         <h3>User List</h3>
                     </div>
                     <div class="title-modifications hide">
-                        <select id="product_pegination_limit_number">
+                        <select class="userlimit">
                             <option value="15" selected="">Showing 15 User </option>
                             <option value="30">Showing 30 User </option>
                             <option value="60">Showing 60 User </option>
@@ -572,26 +572,13 @@
                             <option value="120">Showing 120 User </option>
                             <option value="All">Showing all User</option>
                         </select>
-                        <select id="sort_by_product_category">
-                            <option selected="">Show By Type</option>
-                        </select>
-                        <a id="export_product">
-                            <h3>Export </h3>
-                            <span class="material-symbols-outlined">cloud_sync</span>
-                        </a>
-                        <button class="btn bg-blue" id="newInventory">
+                        <button class="btn bg-success" id="newUser">
                             <span class="material-symbols-outlined">add</span>
-                        </button>
-                        <button class="btn bg-success" id="editInventory">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="btn bg-danger" id="deleteInventory">
-                            <span class="material-symbols-outlined">delete</span>
                         </button>
                     </div>
                 </div>
 
-                <table class="designed">
+                <table class="design">
                     <thead>
                         <tr>
                             <th>
@@ -630,7 +617,7 @@
                                 </label>
                             </th>
                             <th class="">
-                                <label class="counter">
+                                <label>
                                     <span>Status</span>
                                 </label>
                             </th>
@@ -669,7 +656,7 @@
                     </tbody>
                     
                 </table>
-                <div class="pagination_link user-list_pagination">
+                <div class="pagination_link user-list_pagination" data-id="getUserAccounts">
                 </div>
             </div>
             <div class="supplier-section page" id="Suppliers">

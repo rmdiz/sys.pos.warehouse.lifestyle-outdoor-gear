@@ -68,13 +68,140 @@ setInterval(()=> {
  * SYSTEM FUNCTIONS A-Z
  **/
 
+    
+    // GENERATE DROPDOWN OPTION FOR TABLE INLINE EDIT validat
+    const optionDataIsolation = (td) => {
+        let dataList = [];
+        if(td.classList.length == 3){
+            if(td.classList[2] == 'warehouseinventoryList'){
+               temp = [];
+               site.warehouseinventoryList.forEach(details => {if(!temp.includes(JSON.stringify({'name': details.name}))){temp.push(JSON.stringify({'name': details.name}))}});
+               temp.filter(details => {dataList.push(JSON.parse(details))});
+               generateOptions(dataList);
+
+            }else{
+                site[td.classList[2]].forEach(details => {
+                    dataList.push({'name': details.name});
+                });
+
+            }
+        }
+        
+        return generateOptions(dataList);
+    }
+
+    const generateOptions = (dataArray) => {
+        let allOptions 
+        dataArray.forEach(option => {
+            allOptions += `<option>${option.name}</option>`;
+        })
+        return allOptions;
+    }
+
+    // SINGLE ITEM INLINE EDIT
+    const tableSingleItemEdit = (buttonArray, identifier) => {
+        buttonArray.forEach(inlineEdit => inlineEdit.addEventListener('click', (e) => {
+            let tr = inlineEdit.parentElement.parentElement.parentElement;
+            if(inlineEdit.classList.contains('inProgress')){
+                asignDataAfterEdit(tr, inlineEdit, identifier);
+            }else{
+                asignDataForEdit(tr, inlineEdit, identifier); 
+            }    
+        }));
+        
+    }
+    // GET TABLE DATA (td) AND ASSIGN IT TO AN INPUT FIELD/DATA LIST FOR EDIT
+    const asignDataForEdit = (tr, inlineEdit, identifier) => {
+        tr.childNodes.forEach((td, index) => {
+            if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
+                let data = (td.classList.contains('select-data')) ? '<input list="sels'+index+'" name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'">'+optionDataIsolation(td)+'</datalist>':'<input type="text" value="' + td.childNodes[0].textContent.trim() + '" />';  
+                tr.childNodes[index].childNodes[0].innerHTML = data;
+            }
+        });
+        console.log(inlineEdit.parentElement.children[1])
+        inlineEdit.classList.add('inProgress');
+        inlineEdit.textContent = 'save_as';
+
+        // ADD CLOSE BTN
+        let closeBtn = `<span class="material-symbols-outlined danger  user-inline-delete">close</span>`;
+        inlineEdit.parentElement.insertAdjacentHTML('beforeend', closeBtn);
+        // CANCLE OPERATION IF CLOSE BTN IS CLICKE
+        closeBtn = inlineEdit.parentElement.children[1];
+        closeBtn.addEventListener('click', () => {
+            tr.childNodes.forEach((td, index) => {
+                if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
+                    let data = (td.childNodes[0].childNodes[0].value)
+                    tr.childNodes[index].childNodes[0].textContent = data;  
+                    
+                }
+            });
+            inlineEdit.classList.remove('inProgress');
+            inlineEdit.textContent = 'edit';
+            removeElement('span.user-inline-delete')
+        })
+    }
+
+    // GET TABLE DATA (td) IN THE INPUT FIELD AND ASIGN IT TO THE (td) ELEMENT AS TEXTCONTENT AFTER EDIT
+    const asignDataAfterEdit = (tr, inlineEdit, identifier) => {
+        let updateData = {}
+        tr.childNodes.forEach((td, index) => {
+            if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
+                let data = (td.childNodes[0].childNodes[0].value)
+                /**
+                 * COLLECT DATA AFTER EDITING GETING IDS 
+                 * FOR DROP DOWN FIELDS INSTED OF THEIR NAMES/VALUES
+                 */
+                let dataReformatArr =td.classList.contains('select-data') ? site[td.classList[2]].filter(info => info.name == data) : [{'id': data}];
+                // CHECK IF DATA WAS RECEIVED BACK IF NOT THE VALUE ENETERD WAS WRONG
+                if (dataReformatArr.length == 1) {
+                    updateData[td.dataset.name] = dataReformatArr[0].id;
+                    // REASIGN DATA BACK TO TABLE ELEMENT TD IF THEIR ARA NO ERRORS
+                    // tr.childNodes[index].childNodes[0].innerHTML = data;  
+                }
+                else{
+                    deliverNotification('Invalid Delatils in ' + td.dataset.name + ' dropdown', 'warning');
+                }
+            }
+        });
+        // SAVE EDITED DATA
+        saveInlineEditData(updateData, tr);
+        inlineEdit.classList.remove('inProgress');
+        inlineEdit.textContent = 'edit';
+    }
+    // SAVE DATA EDITED IN THE TABLE
+    const saveInlineEditData = (data, tr) => {
+        document.getElementById(tr.parentElement.id).append(preloader());
+        // console.log(data)
+        // console.log(tr.parentElement);
+        // GET WHAT TABLE WE ARE EDITING AND SPECIFY VALUES
+        switch(tr.parentElement.id){
+            case 'users_list':
+                data = {'data': data, 'id': tr.dataset.id, 'action': 'updateUser'};
+                if(tr.classList.contains('newrow')){
+                    data.action = 'addUser';
+                    data.userImage = "default.png";
+                }
+                res = run(data);
+                res.always(details => {
+                    console.log(details)
+                    removeElement('div.preloader');
+                    deliverNotification(details.message, details.response);
+                    getUserAccounts(); 
+
+                });
+                
+            break;
+        }
+    }
+
     // RENDER DYNAMIC PAGE DATA
     const renderPageData = (data, identifier, start = -1) => {
         let dataArrayFormat = [];
         let itemContainer = "";
         let dataKeys = [];
         let counter = 0;
-
+        let pageNo = "";
+        let inlineEditBtns = "";
         let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
         switch(identifier){
             case 'allbranchessaleinvoices':
@@ -89,7 +216,7 @@ setInterval(()=> {
                 let t = start;
                 // CHECK IF DATA IS FROM THE DATABASE
                 // data = site.allbranchessaleinvoices;
-                console.log(start)
+                // console.log(start)
                 // GET INVOICE POPULATION TYPE (EITHER PURCHASE DETAILS OR INVOICE)
                 let listingType = document.querySelector('.listing_type').value;
                 // INVOICE/SALE FILTERS
@@ -113,7 +240,7 @@ setInterval(()=> {
                 removeElement('div.preloader');
                 // ENFORCE DISPLAY LIMIT
                 limit = Number(salelimit_filter);
-                console.log(data)
+                // console.log(data)
                 if(user_branch_id != 0){
                     // MAKE BRANCH DROPDOWN UNCLICKABLE BY ATTENDANTS
                     document.querySelector(".branch_list").setAttribute('readonly',  'readonly');
@@ -165,7 +292,7 @@ setInterval(()=> {
                     }else{
                         dataKeys = Object.keys(branchInvoices).slice(start);
                     }
-                    console.log(dataKeys)
+                    // console.log(dataKeys)
                     dataKeys.forEach((infoKey, index, infoKeys) => {
                         setTimeout(generateSaleExportTb(branchInvoices[infoKey]), 0);
                         if(
@@ -200,11 +327,75 @@ setInterval(()=> {
                 // console.log(branchInvoices);
                 reveal('invoice');
             break;
+            
+            case 'user':
+                let count = 1
+                if(data[1] != data[0].length){
+                    pageNo = Number(document.querySelector('.user-list_pagination span.active').textContent);
+                    // let total = data[1];
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
+                // count = (pageNo == 1) ? pageNo : (limit + 1);
+                itemContainer = document.getElementById('users_list');
+                itemContainer.innerHTML = "";
+                templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    data.forEach((itemDetails, index) => {
+                        templateString = `
+                        <tr class="unrevealed userrevealer" data-id="${itemDetails.user_id}">
+                            <td><label class="counter">${count}</label></td>
+                            <td class="edit-data" data-name="first_name"><label class="short-fixed">${itemDetails.first_name}</label></td>
+                            <td class="edit-data" data-name="last_name"><label class="short-fixed">${itemDetails.username}</label></td>
+                            <td class="update_psd"><label class="password">*******************</label></td>
+                            <td>
+                                <label class="action" data-id="user">
+                                    <span class="material-symbols-outlined primary inline-edit">edit</span>
+                                </label>
+                            </td>
+                            <td class="edit-data select-data userTypeList" data-name="user_type"><label class="primary">${itemDetails.user_type}</label></td>
+                            <td class="edit-data select-data statusList" data-name="status"><label class="${(itemDetails.status == 'Activated') ? 'success' : 'warning'}">${itemDetails.status}</label></td>
+                            <td>
+                                <div class="image">
+                                    <img src="./images/${itemDetails.image}" alt="">
+                                    <label for="upload-product-image" title="Click to choose new image to upload">
+                                        <span class="material-symbols-outlined">cloud_sync</span>
+                                        <input type="file" id="upload-product-image">
+                                    </label>
+                                </div>
+                                <img src="./images/${itemDetails.image}" class="preview-image">
+                            </td>
+                            <td class="edit-data" data-name="telephone"><label>${itemDetails.telephone}</label></td>
+                            <td class="edit-data select-data branchList" data-name="branch"><label>${itemDetails.branch}</label></td>
+                            <td class="edit-data" data-name="address"><label>${itemDetails.address}</label></td>
+                            <td class="edit-data" data-name="email"><label class="fixed-width">${itemDetails.email}</label></td>
+                        </tr> 
+
+                        `;
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                    });
+                    inlineEditBtns = document.querySelectorAll('.userrevealer .inline-edit');
+                    tableSingleItemEdit(inlineEditBtns, 'edit-data');
+                    passwordUpdate(document.querySelectorAll('.userrevealer .update_psd'));
+
+                }else{
+                    templateString = `
+                        <tr class="unrevealed userrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
+                }
+                reveal('user');
+
+            break;
         }
 
     }
     const generatePegination = (data, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
-        console.log(data)
+        // console.log(data)
         let pages = 1;  
         let range = []; 
         let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
@@ -457,40 +648,40 @@ setInterval(()=> {
         return  (((Math.round(((Number(price)/rate) + Number.EPSILON)) * 100) / 100 ));
     }
     const tRowAction =() => {
-        let actionBtnsParent = document.querySelectorAll("td label.action");
+        let actionBtnsParent = document.querySelectorAll(".userrevealer td label.action");
         // console.log(actionBtnsParent);
-        actionBtnsParent.forEach(actionBtn => {
-            for (var i = actionBtn.children.length - 1; i >= 0; i--) {
-                // console.log(actionBtn.children[i]);
-                let btn = actionBtn.children[i];
-                btn.addEventListener('click', (e) => {
-                    let tr = actionBtn.parentElement.parentElement.parentElement.children;
-                    let clickedTr = actionBtn.parentElement.parentElement;
-                    // REMOVE ACTIVE CLASS FROM ALL THE TABLE ROWS
-                    for (var x = tr.length - 1; x >= 0; x--) {
-                        tr[x].classList.remove('active');
-                        tr[x].style.top = `0px`
-                        // MOVE THE NEXT/PREVIOUS TABLE ROW BY THE HEIGHT OF THE EXPANDED ROW
-                       if(tr[x] == clickedTr){
-                            clickedTr.style.top = `-${x * Number(clickedTr.offsetHeight)}px`
-                            console.log(clickedTr.offsetHeight);
-                       }else{
-                            tr[x].children[2].children[0].children[2].textContent = 'add';
-                       }
-                    }
-                    if(btn.textContent == 'add'){
-                        btn.textContent = "remove";
-                        // ADD ACTIVE CLOSE TO THE PARENT OF THE CLICK ELEMENT
-                        clickedTr.classList.add('active');
+        // actionBtnsParent.forEach(actionBtn => {
+        //     for (var i = actionBtn.children.length - 1; i >= 0; i--) {
+        //         // console.log(actionBtn.children[i]);
+        //         let btn = actionBtn.children[i];
+        //         btn.addEventListener('click', (e) => {
+        //             let tr = actionBtn.parentElement.parentElement.parentElement.children;
+        //             let clickedTr = actionBtn.parentElement.parentElement;
+        //             // REMOVE ACTIVE CLASS FROM ALL THE TABLE ROWS
+        //             for (var x = tr.length - 1; x >= 0; x--) {
+        //                 tr[x].classList.remove('active');
+        //                 tr[x].style.top = `0px`
+        //                 // MOVE THE NEXT/PREVIOUS TABLE ROW BY THE HEIGHT OF THE EXPANDED ROW
+        //                if(tr[x] == clickedTr){
+        //                     clickedTr.style.top = `-${x * Number(clickedTr.offsetHeight)}px`
+        //                     console.log(clickedTr.offsetHeight);
+        //                }else{
+        //                     tr[x].children[2].children[0].children[2].textContent = 'add';
+        //                }
+        //             }
+        //             if(btn.textContent == 'add'){
+        //                 btn.textContent = "remove";
+        //                 // ADD ACTIVE CLOSE TO THE PARENT OF THE CLICK ELEMENT
+        //                 clickedTr.classList.add('active');
 
-                    }else{
-                        btn.textContent = "add";
-                        clickedTr.style.top = `0px`
-                    }
-                })
-            }
+        //             }else{
+        //                 btn.textContent = "add";
+        //                 clickedTr.style.top = `0px`
+        //             }
+        //         })
+        //     }
 
-        })
+        // });
     }
 
     const reveal = (identifier) => {
@@ -512,34 +703,34 @@ setInterval(()=> {
             // OBJECT TO HOLD BRANCH IDS AND THEIR TOTAL SALES
             let branchTotal = {};
             let branchInvoices = {};
-            console.log(data)
+            // console.log(data)
             // data = (start == -1) ? data : site.allbranchessaleinvoices;
             site.branchList.forEach(branch => {
                 // IF BRANCH DOESN'T EQUAL TO ALL
                 if(branch.id != 5){
                     branchTotal[branch.id] = 0; // EXAMPLE OF EXPECTED OUT PUT{'1' : 0,'2' : 0,'3':0}
                     branchInvoices = data[branch.id];
-                    // console.log(data[branch.id])
-                    Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
-                        if(!payment_type_list_filter.includes('Method')){
-                            if(Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)){
+                    if(Object.keys(data[branch.id]).length > 0){
+                        Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
+                            if(!payment_type_list_filter.includes('Method')){
+                                if(Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)){
+                                    let totalPrice = Number(branchInvoices[infoKey].totalPrice);
+                                    totalSum += totalPrice;
+                                    // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
+                                    branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
+                                        branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
+                                    })
+                                }
+                            }else{
                                 let totalPrice = Number(branchInvoices[infoKey].totalPrice);
                                 totalSum += totalPrice;
                                 // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
                                 branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
                                     branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
-                                })
+                                });
                             }
-                        }else{
-                            let totalPrice = Number(branchInvoices[infoKey].totalPrice);
-                            totalSum += totalPrice;
-                            // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
-                            branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
-                                branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
-                            })
-
-                        }
-                    });
+                        });
+                    }
                 }
             });
             // GET CURRENCY RATE(DOLAR)
@@ -723,7 +914,7 @@ setInterval(()=> {
                 // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
                 site.searchResult[site.session.branch_id] = convertToObject(details);
             }else{
-                console.log(details)
+                // console.log(details)
                 site.branchList.forEach(branch => {
                     site.searchResult[branch.id] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
                 });
@@ -731,6 +922,197 @@ setInterval(()=> {
             renderPageData(site.searchResult, 'allbranchessaleinvoices');
 
         });
+    }
+    const getUserAccounts = (page = 1) => {
+        document.getElementById(`users_list`).after(preloader());
+        let limitShow = document.querySelector('#Accounts .userlimit').value//(document.querySelector('#Accounts .userlimit').value != "All") ? 
+        // : 15;
+        let data = {'limit': limitShow,'action':'getLimitedUsers', 'page': page};
+        data.action = (document.querySelector('#Accounts .userlimit').value != "All") ? 'getLimitedUsers': 'getAllUsers';
+        // console.log(limitShow)
+        res = run(data);
+        res.always(details => {
+            // console.log(details)
+            removeElement('div.preloader');
+            formPagination(details[1], 'user', Number(limitShow), 'arr');
+            renderPageData(details, 'user');
+        });
+    }
+    const passwordUpdate = (psdTds) => {
+        psdTds.forEach(td => td.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            // console.log(td);
+            let tdData = td.children[0];
+            let form = `
+                <form id="updatePassword">
+                    <span for="psdUdate" class="material-symbols-outlined">close</span>
+                    <input type="text" id="psd" placeholder="New password">
+                </form>
+            `;
+            td.innerHTML = form;
+            // CANCEAL PASSWORD UPDATE 
+            document.querySelector('#updatePassword span').addEventListener('click', () => {
+                td.innerHTML ="";
+                td.append(tdData);
+                // console.log(tdData)
+            });
+            // UPDATE PASSWORD
+            document.querySelector('#updatePassword').addEventListener('submit', (e) => {
+                e.preventDefault();
+                let newPass = document.querySelector('#updatePassword input').value;
+                let data = {'id': td.parentElement.dataset.id,'action':'updateUserPassword', 'password': newPass};
+                res = run(data);
+                res.always((details) => {
+                    console.log(details)
+                    deliverNotification(details.message, details.response);
+                    td.innerHTML = "";
+                    td.append(tdData);
+
+                })
+            })
+        }));
+
+    }
+    const formPagination = (total, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
+        // console.log(data)
+        let pages = 1;  
+        let range = []; 
+        // let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
+        let peginationLink = document.querySelector(`.pagination_link.${item}-list_pagination`);
+        if(total > limit){
+            let page = Math.ceil(total/limit);
+            pages = total & limit === 0 ? page : page + 1;
+            range = [...Array(pages).keys()];
+            // console.log(total, range, peginationLink)
+
+            let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
+            let itemLink = '<span><<</span> ';
+            range.forEach((rangeValue, index) => {
+                if(index < 11){
+                    if(rangeValue == 0){
+                        itemLink += ` <span class="prev"><</span>`;
+
+                    }else{
+                        if(activePeginationLink != null){
+                            itemLink += ` <span class="${(rangeValue == Number(activePeginationLink.textContent)) ? 'active': ''}">${rangeValue}</span>`;
+                        }else{
+                            itemLink += ` <span class="${(rangeValue == 1) ? 'active': ''}">${rangeValue}</span>`;
+                        }
+                    }
+                }
+            });
+            itemLink += '<span class="next">></span><span>>></span>';
+            peginationLink.innerHTML = itemLink;
+
+            paginationNavigation(dataType, displayLinkNumber, range, item, limit);
+
+
+            if(range.length < displayLinkNumber){
+                document.querySelectorAll(`.pagination_link.${item}-list_pagination span`).forEach((pLink, index) => {
+                    if(pLink.textContent == '<<' || pLink.textContent == '<' || pLink.textContent == '>>' || pLink.textContent == '>' ){
+                        pLink.classList.add('hide');
+                    }
+                });
+            }
+        }else{
+            peginationLink.innerHTML = '';
+        }
+    }
+
+    const paginationNavigation = (dataType, displayLinkNumber, range, item, limit) => {
+        // console.log(item)
+        let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
+        // console.log(limit)
+        itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
+            itemLinks.forEach(itemLink => {itemLink.classList.remove('active')});
+
+            switch(paginationLink.textContent){
+                case '>':
+
+                    itemLinks.forEach(itemLink => {itemLink.classList.remove('hide')});
+                    itemLinks.forEach(itemLink => {
+                        if(itemLink.textContent !== '<<' && itemLink.textContent !== '<' && itemLink.textContent !== '>>' && itemLink.textContent !== '>' ){
+                            if(((displayLinkNumber + Number(itemLink.textContent)) <= Number(range[range.length - 1]))){
+                                itemLink.textContent = displayLinkNumber + Number(itemLink.textContent);
+                            }else{
+                                itemLink.textContent = displayLinkNumber + Number(itemLink.textContent);
+                                itemLink.classList.add('hide');
+                                if(((displayLinkNumber + Number(itemLink.textContent)) >= Number(range[range.length - 1]))){
+                                    document.querySelector(`.pagination_link.${item}-list_pagination span.next`).classList.add('hide');
+                                }
+                            }
+                        }
+                       
+                    });
+                break;
+                case '>>':
+                    let values = [];
+                    // let totalData = (typeof(data) == 'object') ? Object.keys(data).length : data.length;
+                    if(range.length > displayLinkNumber){
+                        for (var i = 11; i >= 0; i--) {
+                            values.push(Number(range[range.length - 1]) - i);
+                        }
+
+                        itemLinks.forEach((itemLink, index) => {
+                            itemLink.classList.remove('hide');
+                            if(itemLink.textContent !== '<<' && itemLink.textContent !== '<' && itemLink.textContent !== '>>' && itemLink.textContent !== '>' ){
+                               itemLink.textContent = values[index];
+                            }
+                        });
+                        document.querySelector(`.pagination_link.${item}-list_pagination span.next`).classList.add('hide');
+
+                    }else{
+                        itemLinks.forEach((itemLink, index) => {
+                            if(itemLink.textContent !== '<<' || itemLink.textContent !== '<' || itemLink.textContent !== '>>' || itemLink.textContent !== '>' ){
+                                itemLink.classList.add('hide');
+                            }
+                        });
+                    }
+                break;
+                case '<':
+                    itemLinks.forEach(itemLink => itemLink.classList.remove('hide'));
+                    let tracker = [];
+                    itemLinks.forEach(itemLink => {
+                        if(itemLink.textContent !== '<<' && itemLink.textContent !== '<' && itemLink.textContent !== '>>' && itemLink.textContent !== '>' ){
+
+                            if(((Number(itemLink.textContent) - displayLinkNumber) >= Number(range[1]))){
+                                itemLink.textContent = Number(itemLink.textContent) - displayLinkNumber;
+                                tracker.push(Number(itemLink.textContent) - displayLinkNumber);
+                            }else{
+                                document.querySelector(`.pagination_link.${item}-list_pagination span.prev`).classList.add('hide');
+                            }
+                        }
+                    });
+                    if(tracker.length < 10){
+                        let newLinks = [Number(range[0])];
+                        for (var i = 0; i <= 11; i++) {
+                            newLinks.push(Number(range[0]) + i);
+                            if(itemLinks[i].textContent !== '<<' && itemLinks[i].textContent !== '<' && itemLinks[i].textContent !== '>>' && itemLinks[i].textContent !== '>' ){
+                               itemLinks[i].textContent = newLinks[i];
+                            }
+                        }
+                    }
+                break;
+                case '<<':
+                    itemLinks.forEach(itemLink => itemLink.classList.remove('hide'));
+                    itemLinks.forEach((itemLink, index) => {
+                        
+                        if(itemLink.textContent !== '<<' && itemLink.textContent !== '<' && itemLink.textContent !== '>>' && itemLink.textContent !== '>' ){
+                            itemLink.textContent = index - 1;
+                        }
+                    });
+                    document.querySelector(`.pagination_link.${item}-list_pagination span.prev`).classList.add('hide');
+                break;
+                default:
+                    paginationLink.classList.add('active');
+                    rqtPage = Number(paginationLink.textContent);
+                    switch(item){
+                        case 'user':
+                            getUserAccounts(rqtPage); 
+                        break;
+                    }
+            }
+        }));
     }
     const convertToObject = (data) => {
         let obj = {};
@@ -805,11 +1187,21 @@ setInterval(()=> {
         }
         return options;
     }
+    const localStorageSize = function () {
+        let _lsTotal = 0,_xLen, _x;
+        for (_x in localStorage) {
+            if (!localStorage.hasOwnProperty(_x)) continue;
+            _xLen = (localStorage[_x].length + _x.length) * 2;
+            _lsTotal += _xLen;
+        }
+        return  (_lsTotal / 1024).toFixed(2);
+    }
 document.addEventListener('DOMContentLoaded', () => {
-
+    // console.log(localStorageSize())
     document.getElementById('startdate').value = today;  
     document.getElementById('enddate').value = today;  
     getInvoiceByDate(); 
+    getUserAccounts();
 
     // SET ACCOUNT PROFILE IMAGE AND USERNAME
     let accountInfo = document.getElementById('user-account-information');
@@ -909,11 +1301,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeClosetn = document.querySelector('.theme-menu__close');
     themeBtn.addEventListener('click', () => {
         themeMenu.classList.toggle('active');
-
     });
     themeClosetn.addEventListener('click', () => {
         themeMenu.classList.toggle('active');
-
     });
 
     const themeCs = document.querySelectorAll('.mode-list__color');
@@ -976,5 +1366,53 @@ document.addEventListener('DOMContentLoaded', () => {
             export_table_to_csv (table, csv_name, download_link);
         });
     }   
+
+    // _______________________________USER________________________________
+    document.getElementById('newUser').addEventListener('click', () => {
+        let newTr = `
+             <tr class="newrow userrevealer" data-id="0">
+                <td><label class="counter">0</label></td>
+                <td class="edit-data" data-name="first_name"><label class="short-fixed"><input type="text" placeholder="First name"></label></td>
+                <td class="edit-data" data-name="last_name"><label class="short-fixed"><input type="text" placeholder="Last name"></label></td>
+                <td class="update_psd edit-data" data-name="password"><label class="password"><input type="text" placeholder="Password"></label></td>
+                <td>
+                    <label class="action" data-id="user">
+                        <span class="material-symbols-outlined primary new-user-inline-edit inProgress">save_as</span>
+                        <span class="material-symbols-outlined danger new-user-inline-delete">close</span>
+                    </label>
+                </td>
+                <td class="edit-data select-data userTypeList" data-name="user_type"><label class="primary"><input list="sels0003" name="sel0003" placeholder="User Type" id="sel0003"><datalist id="sels0003">${generateOptions(site.userTypeList)}</datalist></label></td>
+                <td class="edit-data select-data statusList" data-name="status"><label><input list="sels013" name="sel013" placeholder="Status" id="sel013"><datalist id="sels013">${generateOptions(site.statusList)}</datalist></label></td>
+                <td>
+                    <div class="image">
+                        <img src="./images/default.png" alt="">
+                        <label for="upload-product-image" title="Click to choose new image to upload">
+                            <span class="material-symbols-outlined">cloud_sync</span>
+                            <input type="file" id="upload-product-image" value='default.png'>
+                        </label>
+                    </div>
+                    <img src="./images/default.png" class="preview-image">
+                </td>
+                <td class="edit-data" data-name="telephone"><label><input type="text" placeholder="Telephone"></label></td>
+                <td class="edit-data select-data branchList" data-name="branch"><label><input list="sels0013" name="sel0013" placeholder="branch" id="sel0013"><datalist id="sels0013">${generateOptions(site.branchList)}</datalist></label></td>
+                <td class="edit-data" data-name="address"><label><input type="text" placeholder="Address"></label></td>
+                <td class="edit-data" data-name="email"><label class="fixed-width"><input type="text" placeholder="Email"></label></td>
+            </tr> 
+        `;
+        document.querySelector('#users_list').insertAdjacentHTML('afterBegin', newTr);
+        document.querySelector('.newrow .new-user-inline-delete').addEventListener('click', () => {
+            removeElement('tr.newrow');
+        });
+        document.querySelector('.newrow .new-user-inline-edit').addEventListener('click', () => {
+            // removeElement('tr.newrow');
+            let tr = document.querySelector('#users_list tr.newrow');
+            let inlineEdit = document.querySelector('#users_list tr.newrow .new-user-inline-edit');
+            asignDataAfterEdit(tr, inlineEdit, "edit-data");
+        });
+    });
+    // USER FILTERS
+    document.querySelector("#Accounts .userlimit").addEventListener('change', (e) => {
+        getUserAccounts()
+    });
 
 });

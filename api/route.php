@@ -94,6 +94,15 @@
 		case 'getLimitedUsers':
 			$accountList = $accountController->getLimitedUsers((int) $_POST["limit"], (int) $_POST["page"]);
         break;
+		case 'updateUser':
+			$accountList = $accountController->updateUser($_POST);
+        break;
+		case 'addUser':
+			$accountList = $accountController->addUser($_POST);
+        break;
+		case 'updateUserPassword':
+			$accountList = $accountController->updateUserPassword($_POST);
+        break;
 		case 'getAllSuppliers':
 			$supplierList = $supplierController->getAllSuppliers($_POST);
         break;

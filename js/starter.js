@@ -116,19 +116,19 @@ const autorun = (data) => {
     }
 }
 // LOAD PRODUCT LIST  convert
-setTimeout(dataRequest('Product', {'limit': 15,'action':'getLimitedProducts', 'page': page}, 1), 0);
+// setTimeout(dataRequest('Product', {'limit': 15,'action':'getLimitedProducts', 'page': page}, 1), 0);
 
 // LOAD WAREHOUSE INVENTORY PRODUCT LIST
-setTimeout(dataRequest('WarehouseInventory', {'limit': 15,'action':'getLimitedWarehouseInventory', 'page': page}, 1), 0);
+// setTimeout(dataRequest('WarehouseInventory', {'limit': 15,'action':'getLimitedWarehouseInventory', 'page': page}, 1), 0);
 
 // LOAD BRANCH INVENTORY LIST
 // setTimeout(dataRequest('BranchInventory', {'limit': 15,'action':'getLimitedBranchInventory', 'page': page}, 1), 0);
 
 // LOAD USER LIST
-setTimeout(dataRequest('User', {'limit': 15,'action':'getLimitedUsers', 'page': page}, 1), 0);
+// setTimeout(dataRequest('User', {'limit': 15,'action':'getLimitedUsers', 'page': page}, 1), 0);
 
 // LOAD SUPPLIER LIST
-setTimeout(dataRequest('Supplier', {'limit': 15,'action':'getLimitedSuppliers', 'page': page}, 1), 0);
+// setTimeout(dataRequest('Supplier', {'limit': 15,'action':'getLimitedSuppliers', 'page': page}, 1), 0);
 
 // // LOAD INVOICE LIST
 // setTimeout(dataRequest('Invoice', {'limit': 15,'action':'getLimitedInvoices', 'page': page}, 1), 0);
@@ -157,13 +157,13 @@ let c = setInterval(() => {
             site.branchList.forEach(branch => {
                 // console.log(branch)
                 setTimeout(()=>{
-                    allBranchesDataRequest(branch.id, 'allbranchesinventoryproducts', {'limit': 500, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInventoryProducts'}, 1);
+                    // allBranchesDataRequest(branch.id, 'allbranchesinventoryproducts', {'limit': 500, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInventoryProducts'}, 1);
                 }, 0);
                 setTimeout(()=>{
-                    if(!site.allbranchessaleinvoices){
-                        site.allbranchessaleinvoices = {};
-                    }
-                    site.allbranchessaleinvoices[branch.id] ={};
+                    // if(!site.allbranchessaleinvoices){
+                    //     site.allbranchessaleinvoices = {};
+                    // }
+                    // site.allbranchessaleinvoices[branch.id] ={};
                     // allBranchesDataRequest(branch.id, 'allbranchessaleinvoices', {'limit': 500, 'sdate': today, 'edate': today, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInvoices'}, 1);
                 }, 0);
 

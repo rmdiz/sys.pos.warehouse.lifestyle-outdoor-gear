@@ -441,7 +441,8 @@ table.design{
     background: var(--white);
     position: relative;
     min-height: 40rem;
-    overflow-y: unset;
+    height: auto;
+    /*overflow-y: unset;*/
 }
 table.design.hide{
     height: 0;
@@ -803,6 +804,30 @@ table.design tr td.det .moreinvoicedetails .invoice_header .price-and-currency s
 }
 table.design tr:nth-child(even){
     background: ghostwhite;
+}
+.update_psd label{
+    pointer-events: none;
+}
+#updatePassword{
+    position: relative;
+    width: inherit;
+    height: inherit;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+#updatePassword span{
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--danger);
+}
+#updatePassword input{
+    width: 100%;
+    height: 100%;
+    background: var(--white);
 }
 ::-webkit-scrollbar {
     width: .6em;

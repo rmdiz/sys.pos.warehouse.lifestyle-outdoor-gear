@@ -19,18 +19,38 @@ class Model{
         return $stmt;
 	}
 
+    // public function signIn($username){
+    //     $query = "SELECT ut.*, utt.permissions, utt.user_type, bc.branch_location, att.branch_id, att.user_id AS atuserid, ui.image 
+    //         FROM user_tb ut 
+    //         LEFT OUTER JOIN user_type_tb utt 
+    //         ON ut.user_type_id = utt.user_type_id  
+    //         LEFT OUTER JOIN attendant_tb att 
+    //         ON att.user_id = ut.user_id  
+    //         LEFT OUTER JOIN branch_tb bc 
+    //         ON att.branch_id = bc.branch_id   
+    //         LEFT OUTER JOIN user_profile_image_tb ui 
+    //         ON ui.user_id = ut.user_id   
+    //         WHERE ut.username = ? ";
+        
+    //     // PREPARE QUERY STATEMENT
+    //     $stmt = $this->conn->prepare( $query );
+    //     $stmt->bindValue(1, $username);
+    //     // RUN/EXECUTE QUERY
+    //     $stmt->execute();
+    //     return $stmt;
+
+     
+    // }
     public function signIn($username){
-        $query = "SELECT ut.*, utt.permissions, utt.user_type, bc.branch_location, att.branch_id, att.user_id AS atuserid, ui.image 
+        $query = "SELECT ut.*, utt.permissions, utt.user_type, bc.branch_location, ut.user_id AS atuserid, ui.image 
             FROM user_tb ut 
             LEFT OUTER JOIN user_type_tb utt 
             ON ut.user_type_id = utt.user_type_id  
-            LEFT OUTER JOIN attendant_tb att 
-            ON att.user_id = ut.user_id  
             LEFT OUTER JOIN branch_tb bc 
-            ON att.branch_id = bc.branch_id   
+            ON ut.branch_id = bc.branch_id   
             LEFT OUTER JOIN user_profile_image_tb ui 
             ON ui.user_id = ut.user_id   
-            WHERE ut.username = ? ";
+            WHERE ut.status_id = 3 AND ut.username = ? ";
         
         // PREPARE QUERY STATEMENT
         $stmt = $this->conn->prepare( $query );
