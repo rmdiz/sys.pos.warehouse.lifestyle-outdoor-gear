@@ -88,6 +88,9 @@
 		case 'getLimitedBranchInventory':
 			$BranchInventoryList = $productController->getLimitedBranchInventory((int) $_POST["limit"], (int) $_POST["page"]);
         break;
+        case 'getAllWarehouseProducts':
+			$warehouseProductList = $productController->getAllWarehouseProducts($_POST);
+        break;
 		case 'getAllUsers':
 			$accountList = $accountController->getAllUsers($_POST);
         break;
@@ -118,8 +121,8 @@
 		case 'getLimitedInvoices':
 			$slaeList = $saleController->getLimitedInvoices((int) $_POST["limit"], (int) $_POST["page"], $_POST);
         break;
-		case 'saveProduct':
-			$productList = $productController->saveProduct($_POST);
+		case 'addProduct':
+			$productList = $productController->addProduct($_POST);
         break;
 		case 'updateProduct':
 			$productList = $productController->updateProduct($_POST);
@@ -133,11 +136,11 @@
 		case 'updateBranchinventory':
 			$branchinventoryList = $productController->updateBranchinventory($_POST);
 			break;
-		case 'updateWarehouseinventory':
-			$warehouseinventoryList = $productController->updateWarehouseinventory($_POST);
+		case 'updateWarehouseInventory':
+			$warehouseinventoryList = $productController->updateWarehouseInventory($_POST);
 			break;
-		case 'saveWarehouseinventory':
-			$warehouseinventoryList = $productController->saveWarehouseinventory($_POST);
+		case 'addWarehouseInventory':
+			$warehouseinventoryList = $productController->addWarehouseInventory($_POST);
         break;
 		case 'delete_info':
 			// ACTUAL DELETING

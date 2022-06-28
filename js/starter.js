@@ -146,6 +146,9 @@ setTimeout(autorun({'reload': false, 'action':'getSizes', 'name': 'sizeList'}), 
 setTimeout(autorun({'reload': false, 'action':'getPaymentTypes', 'name': 'paymentTypeList'}), 0);
 setTimeout(autorun({'reload': false, 'action':'getDiscounts', 'name': 'discountList'}), 0);
 setTimeout(autorun({'reload': false, 'action':'getCurrencys', 'name': 'currencyList'}), 0);
+setTimeout(autorun({'reload': false, 'action':'getAllSuppliers', 'name': 'supplierList'}), 0);
+setTimeout(autorun({'reload': false, 'action':'getAllProducts', 'name': 'productList'}), 0);
+setTimeout(autorun({'reload': false, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'}), 0);
 
 // LOAD All Branch Inventory
 let action = 0;

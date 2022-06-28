@@ -118,12 +118,11 @@ setInterval(()=> {
                 tr.childNodes[index].childNodes[0].innerHTML = data;
             }
         });
-        console.log(inlineEdit.parentElement.children[1])
         inlineEdit.classList.add('inProgress');
         inlineEdit.textContent = 'save_as';
 
         // ADD CLOSE BTN
-        let closeBtn = `<span class="material-symbols-outlined danger  user-inline-delete">close</span>`;
+        let closeBtn = `<span class="material-symbols-outlined danger  ${inlineEdit.parentElement.dataset.id}-inline-delete">close</span>`;
         inlineEdit.parentElement.insertAdjacentHTML('beforeend', closeBtn);
         // CANCLE OPERATION IF CLOSE BTN IS CLICKE
         closeBtn = inlineEdit.parentElement.children[1];
@@ -137,7 +136,7 @@ setInterval(()=> {
             });
             inlineEdit.classList.remove('inProgress');
             inlineEdit.textContent = 'edit';
-            removeElement('span.user-inline-delete')
+            removeElement(`span.${inlineEdit.parentElement.dataset.id}-inline-delete`);
         })
     }
 
@@ -146,7 +145,7 @@ setInterval(()=> {
         let updateData = {}
         tr.childNodes.forEach((td, index) => {
             if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
-                let data = (td.childNodes[0].childNodes[0].value)
+                let data = (td.childNodes[0].childNodes[0].value);
                 /**
                  * COLLECT DATA AFTER EDITING GETING IDS 
                  * FOR DROP DOWN FIELDS INSTED OF THEIR NAMES/VALUES
@@ -155,24 +154,24 @@ setInterval(()=> {
                 // CHECK IF DATA WAS RECEIVED BACK IF NOT THE VALUE ENETERD WAS WRONG
                 if (dataReformatArr.length == 1) {
                     updateData[td.dataset.name] = dataReformatArr[0].id;
-                    // REASIGN DATA BACK TO TABLE ELEMENT TD IF THEIR ARA NO ERRORS
-                    // tr.childNodes[index].childNodes[0].innerHTML = data;  
+                    // REASIGN DATA BACK TO TABLE ELEMENT TD IF THEIR ARE NO ERRORS
+                    if(!tr.classList.contains('newrow')){
+                        tr.childNodes[index].childNodes[0].innerHTML = data;  
+                    }
                 }
                 else{
                     deliverNotification('Invalid Delatils in ' + td.dataset.name + ' dropdown', 'warning');
                 }
             }
         });
-        // SAVE EDITED DATA
-        saveInlineEditData(updateData, tr);
         inlineEdit.classList.remove('inProgress');
         inlineEdit.textContent = 'edit';
+        // SAVE EDITED DATA
+        saveInlineEditData(updateData, tr, inlineEdit);
     }
     // SAVE DATA EDITED IN THE TABLE
-    const saveInlineEditData = (data, tr) => {
+    const saveInlineEditData = (data, tr, btn) => {
         document.getElementById(tr.parentElement.id).append(preloader());
-        // console.log(data)
-        // console.log(tr.parentElement);
         // GET WHAT TABLE WE ARE EDITING AND SPECIFY VALUES
         switch(tr.parentElement.id){
             case 'users_list':
@@ -180,20 +179,89 @@ setInterval(()=> {
                 if(tr.classList.contains('newrow')){
                     data.action = 'addUser';
                     data.userImage = "default.png";
+                    btn.textContent = 'save_as';
                 }
+                res = run(data);
+                res.always(details => {
+                    console.log(details)
+                    let element = document.querySelector(`#${tr.parentElement.id} div.preloader`)
+                    removeElement(element);
+                    // removeElement('div.preloader');
+                    deliverNotification(details.message, details.response);
+                    // getUserAccounts(); 
+                    if((details.response == "success") && (btn.textContent == 'save_as')){
+                        console.log(details.info)
+                        let templateString = userTmp(details.info, 'New');
+                        renderSingelRow(details.info, templateString, '#users_list .newrow');
+
+                    }else if(btn.textContent == 'edit'){
+                        removeElement('span.user-inline-delete');
+                    }
+
+                });
+                
+            break;
+            case 'products_list':
+                data = {'data': data, 'id': tr.dataset.id, 'action': 'updateProduct'};
+                if(tr.classList.contains('newrow')){
+                    data.action = 'addProduct';
+                    btn.textContent = 'save_as';
+                }
+                console.log(data);
+                res = run(data);
+                res.always(details => {
+                    console.log(details)
+                    let parent = document.querySelector('#products_list').parentElement.id
+                    let element = document.querySelector(`#${parent} div.preloader`)
+                    removeElement(element);
+                    // removeElement('div.preloader');
+                    deliverNotification(details.message, details.response);
+                    if((details.response == "success") && (btn.textContent == 'save_as')){
+                        let templateString = productTmp(details.info, 'New');
+                        renderSingelRow(details.info, templateString, '#products_list .newrow');
+                    }else if(btn.textContent == 'edit'){
+                        removeElement('span.product-inline-delete');
+                    }
+                });
+                
+            break;
+            case 'warehouseinventorys_list':
+                data = {'data': data, 'id': tr.dataset.id, 'action': 'updateWarehouseInventory'};
+                if(tr.classList.contains('newrow')){
+                    data.action = 'addWarehouseInventory';
+                    btn.textContent = 'save_as';
+                }
+                console.log(data);
                 res = run(data);
                 res.always(details => {
                     console.log(details)
                     removeElement('div.preloader');
                     deliverNotification(details.message, details.response);
-                    getUserAccounts(); 
-
+                    if((details.response == "success") && (btn.textContent == 'save_as')){
+                        let templateString = warehouseInventoryTmp(details.info, 'New');
+                        renderSingelRow(details.info, templateString, '#warehouseinventorys_list .newrow');
+                    }else if(btn.textContent == 'edit'){
+                        removeElement('span.warehouseinventory-inline-delete');
+                    }
+                    
                 });
                 
             break;
         }
     }
+    // ADD THE ADDED ROW TO THE TABLE WITHOUT PAGE REFRESH
+    const renderSingelRow = (data, templateString, identifier) => {
+        let newNode = document.createElement('tr');
+        newNode.classList.add('productrevealer');
+        newNode.setAttribute('id', data.id);
+        newNode.innerHTML = templateString;
+        referenceNode = document.querySelector(identifier);
+        insertAfter(newNode, referenceNode);
+    }
 
+    const insertAfter =(newNode, referenceNode) => {
+        referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+    }
     // RENDER DYNAMIC PAGE DATA
     const renderPageData = (data, identifier, start = -1) => {
         let dataArrayFormat = [];
@@ -201,6 +269,7 @@ setInterval(()=> {
         let dataKeys = [];
         let counter = 0;
         let pageNo = "";
+        let count = 1;
         let inlineEditBtns = "";
         let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
         switch(identifier){
@@ -329,7 +398,6 @@ setInterval(()=> {
             break;
             
             case 'user':
-                let count = 1
                 if(data[1] != data[0].length){
                     pageNo = Number(document.querySelector('.user-list_pagination span.active').textContent);
                     // let total = data[1];
@@ -343,36 +411,10 @@ setInterval(()=> {
                 data = data[0];
                 if(data.length > 0){
                     data.forEach((itemDetails, index) => {
-                        templateString = `
-                        <tr class="unrevealed userrevealer" data-id="${itemDetails.user_id}">
-                            <td><label class="counter">${count}</label></td>
-                            <td class="edit-data" data-name="first_name"><label class="short-fixed">${itemDetails.first_name}</label></td>
-                            <td class="edit-data" data-name="last_name"><label class="short-fixed">${itemDetails.username}</label></td>
-                            <td class="update_psd"><label class="password">*******************</label></td>
-                            <td>
-                                <label class="action" data-id="user">
-                                    <span class="material-symbols-outlined primary inline-edit">edit</span>
-                                </label>
-                            </td>
-                            <td class="edit-data select-data userTypeList" data-name="user_type"><label class="primary">${itemDetails.user_type}</label></td>
-                            <td class="edit-data select-data statusList" data-name="status"><label class="${(itemDetails.status == 'Activated') ? 'success' : 'warning'}">${itemDetails.status}</label></td>
-                            <td>
-                                <div class="image">
-                                    <img src="./images/${itemDetails.image}" alt="">
-                                    <label for="upload-product-image" title="Click to choose new image to upload">
-                                        <span class="material-symbols-outlined">cloud_sync</span>
-                                        <input type="file" id="upload-product-image">
-                                    </label>
-                                </div>
-                                <img src="./images/${itemDetails.image}" class="preview-image">
-                            </td>
-                            <td class="edit-data" data-name="telephone"><label>${itemDetails.telephone}</label></td>
-                            <td class="edit-data select-data branchList" data-name="branch"><label>${itemDetails.branch}</label></td>
-                            <td class="edit-data" data-name="address"><label>${itemDetails.address}</label></td>
-                            <td class="edit-data" data-name="email"><label class="fixed-width">${itemDetails.email}</label></td>
-                        </tr> 
+                        templateString = `<tr class="unrevealed userrevealer" data-id="${itemDetails.user_id}">`;
+                        templateString += userTmp(itemDetails, count);
+                        templateString += `</tr> `;
 
-                        `;
                         itemContainer.insertAdjacentHTML('beforeend', templateString);
                         count++;
                     });
@@ -391,8 +433,210 @@ setInterval(()=> {
                 reveal('user');
 
             break;
-        }
+            case 'product':
+                if(data[1] != data[0].length){
+                    pageNo = Number(document.querySelector('.product-list_pagination span.active').textContent);
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
+                itemContainer = document.getElementById('products_list');
+                itemContainer.innerHTML = "";
+                templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    data.forEach((itemDetails, index) => {
+                        templateString = `<tr class="unrevealed productrevealer" data-id="${itemDetails.id}">`;
+                        templateString += productTmp(itemDetails, count);
+                        templateString += '</tr>';
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                    });
+                    inlineEditBtns = document.querySelectorAll('.productrevealer .inline-edit');
+                    tableSingleItemEdit(inlineEditBtns, 'edit-data');
 
+                }else{
+                    templateString = `
+                        <tr class="unrevealed productrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
+                }
+                reveal('product');
+
+            break;
+            case 'warehouseinventory':
+                if(data[1] != data[0].length){
+                    let paginationLink = (!document.querySelector('.warehouseinventory-list_pagination span.active')) ? document.querySelectorAll('.warehouseinventory-list_pagination span')[document.querySelectorAll('.warehouseinventory-list_pagination span').length - 2].textContent : document.querySelector('.warehouseinventory-list_pagination span.active').textContent;
+                    pageNo = Number(paginationLink);
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
+                itemContainer = document.getElementById('warehouseinventorys_list');
+                itemContainer.innerHTML = "";
+                templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    data.forEach((itemDetails, index) => {
+                        templateString = `<tr class="unrevealed warehouseinventoryrevealer" data-id="${itemDetails.id}">`;
+                        templateString += warehouseInventoryTmp(itemDetails, count);
+                        templateString += '</tr>';
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                    });
+                    inlineEditBtns = document.querySelectorAll('.warehouseinventoryrevealer .inline-edit');
+                    tableSingleItemEdit(inlineEditBtns, 'edit-data');
+
+                }else{
+                    templateString = `
+                        <tr class="unrevealed warehouseinventoryrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
+                }
+                reveal('warehouseinventory');
+
+            break;
+            case 'branchinventory':
+                if(data[1] != data[0].length){
+                    let paginationLink = (!document.querySelector('.branchinventory-list_pagination span.active')) ? document.querySelectorAll('.warehouseinventory-list_pagination span')[document.querySelectorAll('.warehouseinventory-list_pagination span').length - 2].textContent : document.querySelector('.warehouseinventory-list_pagination span.active').textContent;
+                    pageNo = Number(paginationLink);
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
+                itemContainer = document.getElementById('branchinventorys_list');
+                itemContainer.innerHTML = "";
+                templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    data.forEach((itemDetails, index) => {
+                        templateString = `<tr class="unrevealed branchinventoryrevealer" data-id="${itemDetails.id}">`;
+                        templateString += branchinventoryTmp(itemDetails, count);
+                        templateString += '</tr>';
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                    });
+                    inlineEditBtns = document.querySelectorAll('.branchinventoryrevealer .inline-edit');
+                    tableSingleItemEdit(inlineEditBtns, 'edit-data');
+
+                }else{
+                    templateString = `
+                        <tr class="unrevealed branchinventoryrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
+                }
+                reveal('branchinventory');
+
+            break;
+        }
+    }
+    const userTmp = (itemDetails, count) => {
+        let templateString = `
+            <td><label class="counter">${count}</label></td>
+            <td class="edit-data" data-name="first_name"><label class="short-fixed">${itemDetails.first_name}</label></td>
+            <td class="edit-data" data-name="last_name"><label class="short-fixed">${itemDetails.username}</label></td>
+            <td class="update_psd"><label class="password">*******************</label></td>
+            <td>
+                <label class="action" data-id="user">
+                    <span class="material-symbols-outlined primary inline-edit">edit</span>
+                </label>
+            </td>
+            <td class="edit-data select-data userTypeList" data-name="user_type"><label class="primary">${itemDetails.user_type}</label></td>
+            <td class="edit-data select-data statusList" data-name="status"><label class="${(itemDetails.status == 'Activated') ? 'success' : 'warning'}">${itemDetails.status}</label></td>
+            <td>
+                <div class="image">
+                    <img src="./images/${itemDetails.image}" alt="">
+                    <label for="upload-user-image" title="Click to choose new image to upload">
+                        <span class="material-symbols-outlined">cloud_sync</span>
+                        <input type="file" id="upload-user-image">
+                    </label>
+                </div>
+                <img src="./images/${itemDetails.image}" class="preview-image">
+            </td>
+            <td class="edit-data" data-name="telephone"><label>${itemDetails.telephone}</label></td>
+            <td class="edit-data select-data branchList" data-name="branch"><label>${itemDetails.branch}</label></td>
+            <td class="edit-data" data-name="address"><label>${itemDetails.address}</label></td>
+            <td class="edit-data" data-name="email"><label class="fixed-width">${itemDetails.email}</label></td>
+
+        `;
+        return templateString;
+    }
+    const branchinventoryTmp = (itemDetails, count) => {
+        // console.log(itemDetails)
+        let templateString = `
+            <td><label class="counter">${count}</label></td>
+            <td class="edit-data select-data warehouseinventoryList" data-name="product_id"><label class="fixed-width">${itemDetails.desc}</label></td>
+            <td>
+                <label class="action" data-id="branchinventory">
+                    <span class="material-symbols-outlined primary inline-edit">edit</span>
+                    <span title="return to warehouse" class="material-symbols-outlined warning inline-return">sync</span>
+                </label>
+            </td>
+            <td class="edit-data select-data branchList" data-name="branch_id"><label class="short-fixed">${itemDetails.branch_name}</label></td>
+            <td class="edit-data select-data colorList" data-name="colour_id"><label class="short-fixed">${itemDetails.color}</label></td>
+            <td class="edit-data select-data sizeList" data-name="size_id"><label class="short-fixed">${itemDetails.size}</label></td>
+            <td class="edit-data" data-name="code"><label class="primary">${itemDetails.code}</label></td>
+            <td class="edit-data" data-name="quantity"><label>${itemDetails.quantity}</label></td>
+            <td data-name="availableQuantity"><label>${itemDetails.availableQuantity}</label></td>
+            <td>${(itemDetails.quantity > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>'}</td>
+        `;
+        return templateString;
+    }
+    const warehouseInventoryTmp = (itemDetails, count) => {
+        // console.log(itemDetails)
+        let templateString = `
+            <td><label class="counter">${count}</label></td>
+            <td class="edit-data select-data productList" data-name="product_id"><label class="fixed-width">${itemDetails.name}</label></td>
+            <td>
+                <label class="action" data-id="warehouseinventory">
+                    <span class="material-symbols-outlined primary inline-edit">edit</span>
+                </label>
+            </td>
+            <td class="edit-data" data-name="quantity"><label>${itemDetails.quantity}</label></td>
+            <td>${(itemDetails.quantity > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>'}</td>
+            <td>
+                <div class="image">
+                    <img src="./images/${itemDetails.image}" alt="">
+                    <label for="upload-product-image" title="Click to choose new image to upload">
+                        <span class="material-symbols-outlined">cloud_sync</span>
+                        <input type="file" id="upload-product-image">
+                    </label>
+                </div>
+                <img src="./images/${itemDetails.image}" class="preview-image">
+            </td>
+            <td class="edit-data" data-name="code"><label class="primary">${itemDetails.code}</label></td>
+
+            <td class="edit-data select-data colorList" data-name="colour_id"><label class="short-fixed">${itemDetails.color}</label></td>
+            <td class="edit-data select-data sizeList" data-name="size_id"><label class="short-fixed">${itemDetails.size}</label></td>
+            <td class="edit-data" data-name="description"><label class="fixed-width">${itemDetails.desc}</label></td>
+        `;
+        return templateString;
+    }
+
+    const productTmp = (itemDetails, count) => {
+
+        let templateString = `
+            <td><label class="counter">${count}</label></td>
+            <td class="edit-data" data-name="product_name"><label class="fixed-width">${itemDetails.name}</label></td>
+            <td>
+                <label class="action" data-id="product">
+                    <span class="material-symbols-outlined primary inline-edit">edit</span>
+                </label>
+            </td>
+            <td class="edit-data select-data categoryList" data-name="category_id"><label class="short-fixed">${itemDetails.category_name}</label></td>
+            <td class="edit-data" data-name="buy_price"><label class="primary">${itemDetails.buy_price}</label></td>
+            <td class="edit-data" data-name="wholesale_price"><label class="warning">${itemDetails.wholesale_price}</label></td>
+            <td class="edit-data" data-name="sale_price"><label class="success">${itemDetails.sale_price}</label></td>
+            <td class="edit-data select-data brandList" data-name="brand_id"><label class="short-fixed">${itemDetails.brand_name}</label></td>
+            <td class="edit-data select-data sizeSchemeList" data-name="size_scheme_id"><label class="primary">${itemDetails.scheme_name}</label></td>
+            <td class="edit-data" data-name="code_initual"><label>${itemDetails.code_initual}</label></td>
+            <td class="edit-data select-data supplierList" data-name="supplier_id"><label>${itemDetails.supplier}</label></td>
+
+        `;
+        return templateString;
     }
     const generatePegination = (data, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
         // console.log(data)
@@ -923,6 +1167,54 @@ setInterval(()=> {
 
         });
     }
+    const getWarehouseInventory = (page = 1) =>{
+        document.getElementById(`warehouseinventorys_list`).after(preloader());
+        let limitShow = document.querySelector('#WarehouseInventorys .warehouselimit').value;
+        let data = {'limit': limitShow,'action':'getLimitedWarehouseInventory', 'page': page};
+        data.action = (document.querySelector('#WarehouseInventorys .warehouselimit').value != "All") ? 'getLimitedWarehouseInventory': 'getAllWarehouseInventorys';
+        // console.log(limitShow)
+        res = run(data);
+        res.always(details => {
+            console.log(details)
+            if(page == 1){
+                formPagination(details[1], 'warehouseinventory', Number(limitShow), 'arr');
+            }
+            renderPageData(details, 'warehouseinventory');
+            removeElement('div.preloader');
+        });
+    }
+    const getBranchInventory = (page = 1) =>{
+        document.getElementById(`branchinventorys_list`).after(preloader());
+        let limitShow = document.querySelector('#BranchInventorys .branchlimit').value;
+        let data = {'limit': limitShow,'action':'getLimitedBranchInventory', 'page': page};
+        data.action = (document.querySelector('#BranchInventorys .branchlimit').value != "All") ? 'getLimitedBranchInventory': 'getAllBranchInventorys';
+        // console.log(limitShow)
+        res = run(data);
+        res.always(details => {
+            console.log(details)
+            if(page == 1){
+                formPagination(details[1], 'branchinventory', Number(limitShow), 'arr');
+            }
+            renderPageData(details, 'branchinventory');
+            removeElement('div.preloader');
+        });
+    }
+    const getProducts = (page = 1) => {
+        document.getElementById(`products_list`).after(preloader());
+        let limitShow = document.querySelector('#Products .productslimit').value;
+        let data = {'limit': limitShow,'action':'getLimitedProducts', 'page': page};
+        data.action = (document.querySelector('#Products .productslimit').value != "All") ? 'getLimitedProducts': 'getAllProducts';
+        // console.log(limitShow)
+        res = run(data);
+        res.always(details => {
+            console.log(details)
+            removeElement('div.preloader');
+            if(page == 1){
+                formPagination(details[1], 'product', Number(limitShow), 'arr');
+            }
+            renderPageData(details, 'product');
+        });
+    }
     const getUserAccounts = (page = 1) => {
         document.getElementById(`users_list`).after(preloader());
         let limitShow = document.querySelector('#Accounts .userlimit').value//(document.querySelector('#Accounts .userlimit').value != "All") ? 
@@ -934,7 +1226,9 @@ setInterval(()=> {
         res.always(details => {
             // console.log(details)
             removeElement('div.preloader');
-            formPagination(details[1], 'user', Number(limitShow), 'arr');
+             if(page == 1){
+                formPagination(details[1], 'user', Number(limitShow), 'arr');
+            }
             renderPageData(details, 'user');
         });
     }
@@ -1110,6 +1404,15 @@ setInterval(()=> {
                         case 'user':
                             getUserAccounts(rqtPage); 
                         break;
+                        case 'product':
+                            getProducts(rqtPage); 
+                        break;
+                        case 'warehouseinventory':
+                            getWarehouseInventory(rqtPage); 
+                        break;
+                        case 'branchinventory':
+                            getBranchInventory(rqtPage); 
+                        break;
                     }
             }
         }));
@@ -1200,8 +1503,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // console.log(localStorageSize())
     document.getElementById('startdate').value = today;  
     document.getElementById('enddate').value = today;  
-    getInvoiceByDate(); 
-    getUserAccounts();
+    setTimeout(getProducts(), 0);
+    setTimeout(getBranchInventory(), 0);
+    setTimeout(getWarehouseInventory(), 0);
+    setTimeout(getInvoiceByDate(), 0) 
+    setTimeout(getUserAccounts(), 0);
 
     // SET ACCOUNT PROFILE IMAGE AND USERNAME
     let accountInfo = document.getElementById('user-account-information');
@@ -1369,50 +1675,194 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // _______________________________USER________________________________
     document.getElementById('newUser').addEventListener('click', () => {
-        let newTr = `
-             <tr class="newrow userrevealer" data-id="0">
-                <td><label class="counter">0</label></td>
-                <td class="edit-data" data-name="first_name"><label class="short-fixed"><input type="text" placeholder="First name"></label></td>
-                <td class="edit-data" data-name="last_name"><label class="short-fixed"><input type="text" placeholder="Last name"></label></td>
-                <td class="update_psd edit-data" data-name="password"><label class="password"><input type="text" placeholder="Password"></label></td>
-                <td>
-                    <label class="action" data-id="user">
-                        <span class="material-symbols-outlined primary new-user-inline-edit inProgress">save_as</span>
-                        <span class="material-symbols-outlined danger new-user-inline-delete">close</span>
-                    </label>
-                </td>
-                <td class="edit-data select-data userTypeList" data-name="user_type"><label class="primary"><input list="sels0003" name="sel0003" placeholder="User Type" id="sel0003"><datalist id="sels0003">${generateOptions(site.userTypeList)}</datalist></label></td>
-                <td class="edit-data select-data statusList" data-name="status"><label><input list="sels013" name="sel013" placeholder="Status" id="sel013"><datalist id="sels013">${generateOptions(site.statusList)}</datalist></label></td>
-                <td>
-                    <div class="image">
-                        <img src="./images/default.png" alt="">
-                        <label for="upload-product-image" title="Click to choose new image to upload">
-                            <span class="material-symbols-outlined">cloud_sync</span>
-                            <input type="file" id="upload-product-image" value='default.png'>
+        if(document.getElementById('newUser').children[0].textContent == 'add'){
+            let newTr = `
+                 <tr class="newrow userrevealer" data-id="0">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data" data-name="first_name"><label class="short-fixed"><input type="text" placeholder="First name"></label></td>
+                    <td class="edit-data" data-name="last_name"><label class="short-fixed"><input type="text" placeholder="Last name"></label></td>
+                    <td class="update_psd edit-data" data-name="password"><label class="password"><input type="text" placeholder="Password"></label></td>
+                    <td>
+                        <label class="action" data-id="user">
+                            <span class="material-symbols-outlined primary new-user-inline-edit inProgress">save_as</span>
+                            <span class="material-symbols-outlined danger new-user-inline-delete">close</span>
                         </label>
-                    </div>
-                    <img src="./images/default.png" class="preview-image">
-                </td>
-                <td class="edit-data" data-name="telephone"><label><input type="text" placeholder="Telephone"></label></td>
-                <td class="edit-data select-data branchList" data-name="branch"><label><input list="sels0013" name="sel0013" placeholder="branch" id="sel0013"><datalist id="sels0013">${generateOptions(site.branchList)}</datalist></label></td>
-                <td class="edit-data" data-name="address"><label><input type="text" placeholder="Address"></label></td>
-                <td class="edit-data" data-name="email"><label class="fixed-width"><input type="text" placeholder="Email"></label></td>
-            </tr> 
-        `;
-        document.querySelector('#users_list').insertAdjacentHTML('afterBegin', newTr);
-        document.querySelector('.newrow .new-user-inline-delete').addEventListener('click', () => {
+                    </td>
+                    <td class="edit-data select-data userTypeList" data-name="user_type"><label class="primary"><input list="sels0003" name="sel0003" placeholder="User Type" id="sel0003"><datalist id="sels0003">${generateOptions(site.userTypeList)}</datalist></label></td>
+                    <td class="edit-data select-data statusList" data-name="status"><label><input list="sels013" name="sel013" placeholder="Status" id="sel013"><datalist id="sels013">${generateOptions(site.statusList)}</datalist></label></td>
+                    <td>
+                        <div class="image">
+                            <img src="./images/default.png" alt="">
+                            <label for="upload-product-image" title="Click to choose new image to upload">
+                                <span class="material-symbols-outlined">cloud_sync</span>
+                                <input type="file" id="upload-product-image" value='default.png'>
+                            </label>
+                        </div>
+                        <img src="./images/default.png" class="preview-image">
+                    </td>
+                    <td class="edit-data" data-name="telephone"><label><input type="text" placeholder="Telephone"></label></td>
+                    <td class="edit-data select-data branchList" data-name="branch"><label><input list="sels0013" name="sel0013" placeholder="branch" id="sel0013"><datalist id="sels0013">${generateOptions(site.branchList)}</datalist></label></td>
+                    <td class="edit-data" data-name="address"><label><input type="text" placeholder="Address"></label></td>
+                    <td class="edit-data" data-name="email"><label class="fixed-width"><input type="text" placeholder="Email"></label></td>
+                </tr> 
+            `;
+            document.querySelector('#users_list').insertAdjacentHTML('afterBegin', newTr);
+            
+            document.querySelector('.newrow .new-user-inline-edit').addEventListener('click', () => {
+                // removeElement('tr.newrow');
+                let tr = document.querySelector('#users_list tr.newrow');
+                let inlineEdit = document.querySelector('#users_list tr.newrow .new-user-inline-edit');
+                asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            });
+            document.getElementById('newUser').children[0].textContent = 'close';
+        }else{
             removeElement('tr.newrow');
-        });
-        document.querySelector('.newrow .new-user-inline-edit').addEventListener('click', () => {
-            // removeElement('tr.newrow');
-            let tr = document.querySelector('#users_list tr.newrow');
-            let inlineEdit = document.querySelector('#users_list tr.newrow .new-user-inline-edit');
-            asignDataAfterEdit(tr, inlineEdit, "edit-data");
-        });
+            document.getElementById('newUser').children[0].textContent = 'add';
+            getUserAccounts();
+        }
     });
     // USER FILTERS
     document.querySelector("#Accounts .userlimit").addEventListener('change', (e) => {
-        getUserAccounts()
+        getUserAccounts();
     });
 
+    /**
+     * -------------------------------- PRODUCT SECTION -------------------------------
+     **/
+    document.getElementById('newProduct').addEventListener('click', () => {
+        if(document.getElementById('newProduct').children[0].textContent == 'add'){
+            let newTr = `
+
+                <tr class="newrow productrevealer" data-id="00">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data" data-name="product_name"><label class="fixed-width"><input type="text" placeholder="Product name"></label></td>
+                    <td>
+                        <label class="action" data-id="product">
+                            <span class="material-symbols-outlined primary new-product-inline-edit">save_as</span>
+                        </label>
+                    </td>
+                    <td class="edit-data select-data categoryList" data-name="category_id"><label class="short-fixed"><input list="sels110013" name="sel110013" placeholder="Category" id="sel110013"><datalist id="sels110013">${generateOptions(site.categoryList)}</datalist></label></td>
+                    <td class="edit-data" data-name="buy_price"><label class="primary"><input type="text" placeholder="Manufucture Price"></label></td>
+                    <td class="edit-data" data-name="wholesale_price"><label class="warning"><input type="text" placeholder="Wholesale Price"></label></td>
+                    <td class="edit-data" data-name="sale_price"><label class="success"><input type="text" placeholder="Retial Price"></label></td>
+                    <td class="edit-data select-data brandList" data-name="brand_id"><label class="short-fixed"><input list="sels10013" name="sel10013" placeholder="brand" id="sel10013"><datalist id="sels10013">${generateOptions(site.brandList)}</datalist></label></td>
+                    <td class="edit-data select-data sizeSchemeList" data-name="size_scheme_id"><label class="primary"><input list="sels00013" name="sel00013" placeholder="Size Scheme" id="sel00013"><datalist id="sels00013">${generateOptions(site.sizeSchemeList)}</datalist></label></td>
+                    <td class="edit-data" data-name="code_initual"><label><input type="text" placeholder="Code initual"></label></td>
+                    <td class="edit-data select-data supplierList" data-name="supplier_id"><label><input list="sels0013" name="sel0013" placeholder="Supplier" id="sel0013"><datalist id="sels0013">${generateOptions(site.supplierList)}</datalist></label></td>
+                </tr> 
+            `;
+            document.querySelector('#products_list').insertAdjacentHTML('afterBegin', newTr);
+            document.querySelector('.newrow .new-product-inline-edit').addEventListener('click', () => {
+                // removeElement('tr.newrow');
+                let tr = document.querySelector('#products_list tr.newrow');
+                let inlineEdit = document.querySelector('#products_list tr.newrow .new-product-inline-edit');
+                console.log(tr, inlineEdit);
+                asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            });
+            document.getElementById('newProduct').children[0].textContent = 'close';
+        }else{
+            removeElement('tr.newrow');
+            document.getElementById('newProduct').children[0].textContent = 'add';
+            getProducts();
+        }
+    });
+    // PRODUCT FILTERS
+    document.querySelector("#Products .productslimit").addEventListener('change', (e) => {
+        getProducts()
+    });
+
+    /**
+     * -------------------------------- WAREHOUSE INVENTORY SECTION -------------------------------
+     **/
+    document.getElementById('newWarehouseInventoryProduct').addEventListener('click', () => {
+        if(document.getElementById('newWarehouseInventoryProduct').children[0].textContent == 'add'){
+            let newTr = `
+                <tr class="newrow warehouseinventoryproductrevealer" data-id="200">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data select-data productList" data-name="product_id"><label class="fixed-fixed"><input list="sels1120013" name="sel1120013" placeholder="Product" id="sel1120013"><datalist id="sels1120013">${generateOptions(site.productList)}</datalist></label></td>
+                    <td>
+                        <label class="action" data-id="warehouse-inventory-product">
+                            <span class="material-symbols-outlined primary new-warehouse-inventory-product-inline-edit">save_as</span>
+                        </label>
+                    </td>
+                    <td class="edit-data" data-name="quantity"><label class="short-fixed"><input type="text" placeholder="quantity"></label></td>
+                    <td class="edit-data select-data statusList" data-name="status_id"><label class="short-fixed"><input list="sels11200013" name="sel11200013" placeholder="Status" id="sel11200013"><datalist id="sels11200013">${generateOptions(site.statusList)}</datalist></label></td>
+                    <td>
+                        <div class="image">
+                            <img src="./images/default.png" alt="">
+                            <label for="upload-product-image" title="Click to choose new image to upload">
+                                <span class="material-symbols-outlined">cloud_sync</span>
+                                <input type="file" id="upload-product-image" value='default.png'>
+                            </label>
+                        </div>
+                        <img src="./images/default.png" class="preview-image">
+                    </td>
+                    <td class="edit-data" data-name="code"><label class="primary"><input type="text" placeholder="Code"></label></td>
+                    <td class="edit-data select-data colorList" data-name="colour_id"><label class="short-fixed"><input list="sels120013" name="sel120013" placeholder="Colour" id="sel120013"><datalist id="sels120013">${generateOptions(site.colorList)}</datalist></label></td>
+                    <td class="edit-data select-data sizeList" data-name="size_id"><label><input list="sels0013" name="sel0013" placeholder="Size" id="sel0013"><datalist id="sels0013">${generateOptions(site.sizeList)}</datalist></label></td>
+                    <td class="edit-data" data-name="description"><label class="fixed-width"><input type="text" placeholder="description"></label></td>
+                </tr> 
+            `;
+            document.querySelector('#warehouseinventorys_list').insertAdjacentHTML('afterBegin', newTr);
+            document.querySelector('.newrow .new-warehouse-inventory-product-inline-edit').addEventListener('click', () => {
+                // removeElement('tr.newrow');
+                let tr = document.querySelector('#warehouseinventorys_list tr.newrow');
+                let inlineEdit = document.querySelector('#warehouseinventorys_list tr.newrow .new-warehouse-inventory-product-inline-edit');
+                console.log(tr, inlineEdit);
+                asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            });
+            document.getElementById('newWarehouseInventoryProduct').children[0].textContent = 'close';
+        }else{
+            removeElement('tr.newrow');
+            document.getElementById('newWarehouseInventoryProduct').children[0].textContent = 'add';
+            getWarehouseInventory();
+        }
+    });
+    // PRODUCT FILTERS
+    document.querySelector("#WarehouseInventorys .warehouselimit").addEventListener('change', (e) => {
+        getWarehouseInventory();
+    });
+
+    /**
+     * -------------------------------- BRANCH INVENTORY SECTION -------------------------------
+     **/
+    document.getElementById('newBranchInventoryProduct').addEventListener('click', () => {
+        if(document.getElementById('newBranchInventoryProduct').children[0].textContent == 'add'){
+            let newTr = `
+                <tr class="newrow branchinventoryproductrevealer" data-id="200">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data select-data warehouseProductList" data-name="inventory_id"><label class="fixed-fixed"><input list="sels1120013" name="sel1120013" placeholder="Product" id="sel1120013"><datalist id="sels1120013">${generateOptions(site.warehouseProductList)}</datalist></label></td>
+                    <td>
+                        <label class="action" data-id="branch-inventory-product">
+                            <span class="material-symbols-outlined primary new-branch-inventory-product-inline-edit">save_as</span>
+                        </label>
+                    </td>
+                    <td class="edit-data select-data branchList" data-name="branch_id"><label><input list="sels0013" name="sel0013" placeholder="branch" id="sel0013"><datalist id="sels0013">${generateOptions(site.branchList)}</datalist></label></td>
+                    <td class="edit-data select-data colorList" data-name="colour_id"><label class="short-fixed"><input list="sels120013" name="sel120013" placeholder="Colour" id="sel120013"><datalist id="sels120013">${generateOptions(site.colorList)}</datalist></label></td>
+                    <td class="edit-data select-data sizeList" data-name="size_id"><label><input list="sels0013" name="sel0013" placeholder="Size" id="sel0013"><datalist id="sels0013">${generateOptions(site.sizeList)}</datalist></label></td>
+                    <td class="edit-data" data-name="code"><label class="primary"><input type="text" placeholder="Code"></label></td>
+                    <td class="edit-data" data-name="quantity"><label class="short-fixed"><input type="text" placeholder="quantity"></label></td>
+                    <td data-name="availableQuantity"><label>0</label></td>
+                    <td class="edit-data select-data statusList" data-name="status_id"><label class="short-fixed"><input list="sels11200013" name="sel11200013" placeholder="Status" id="sel11200013"><datalist id="sels11200013">${generateOptions(site.statusList)}</datalist></label></td>
+                </tr> 
+            `;
+            document.querySelector('#branchinventorys_list').insertAdjacentHTML('afterBegin', newTr);
+            document.querySelector('.newrow .new-branch-inventory-product-inline-edit').addEventListener('click', () => {
+                // removeElement('tr.newrow');
+                let tr = document.querySelector('#branchinventorys_list tr.newrow');
+                let inlineEdit = document.querySelector('#branchinventorys_list tr.newrow .new-branch-inventory-product-inline-edit');
+                console.log(tr, inlineEdit);
+                asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            });
+            document.getElementById('newBranchInventoryProduct').children[0].textContent = 'close';
+        }else{
+            removeElement('tr.newrow');
+            document.getElementById('newBranchInventoryProduct').children[0].textContent = 'add';
+            getBranchInventory();
+        }
+    });
+    // BRANCH FILTERS
+    document.querySelector("#BranchInventorys .branchlimit").addEventListener('change', (e) => {
+        getBranchInventory();
+    });
 });

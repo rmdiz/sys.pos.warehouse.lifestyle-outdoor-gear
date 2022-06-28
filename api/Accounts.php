@@ -23,7 +23,7 @@ class Accounts{
 					LEFT OUTER JOIN branch_tb bt 
 					ON bt.branch_id  = ut.branch_id
 					LEFT OUTER JOIN user_profile_image_tb upt 
-					ON ut.user_id = upt.user_id ORDER BY user_id";
+					ON ut.user_id = upt.user_id ORDER BY user_id DESC";
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
@@ -61,7 +61,7 @@ class Accounts{
 					LEFT OUTER JOIN branch_tb bt 
 					ON bt.branch_id  = ut.branch_id
 					LEFT OUTER JOIN user_profile_image_tb upt 
-					ON ut.user_id = upt.user_id ORDER BY user_id";
+					ON ut.user_id = upt.user_id ORDER BY user_id DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
@@ -207,9 +207,10 @@ class Accounts{
 		$result = $this->p_instance->getDetails($sql, array('username' =>  $post['data']['last_name']));
 
 		$msg = '';
+		$productDetails = array();
 		// GET NUMBER OF ROWS
 		if($result->rowCount()){
-			$msg = array('response'=> "warning", 'message' => 'Username already taken please');
+			$msg = array('response'=> "warning", 'message' => 'Username already taken please', 'info' => $productDetails);
 		}
 		else{
 			$user_id = $this->p_instance->Save("user_tb", $user_details);
@@ -217,18 +218,60 @@ class Accounts{
 			if($user_id){
 				$user_image_id = $this->p_instance->Save("user_profile_image_tb", array('user_id' => $user_id, 'status_id' => 3, 'image' =>  $post['userImage']));
 				if($user_image_id){
-					$msg = array('response'=> "success", 'message' => 'Operation completed successfully');
+					$msg = array('response'=> "success", 'message' => 'Operation completed successfully', 'info' => $productDetails);
 
 				}else{
-					$msg = array('response'=> "warning", 'message' => 'Operation completed half successfully');
+					$msg = array('response'=> "warning", 'message' => 'Operation completed half successfully', 'info' => $productDetails);
 				}
 
+				$productDetails = $this->getSingleuser((int)$user_id);
+				$msg = (array('response'=> "success", 'message' => 'Accound created successfully', 'info' => $productDetails));
+
 			}else{
-				$msg = array('response'=> "danger", 'message' => 'Operation failed');
+				$msg = array('response'=> "danger", 'message' => 'Operation failed', 'info' => $productDetails);
 			}
 
 		}
 		echo json_encode($msg);
+	}
+	public function getSingleuser($user_id){
+		$dataArr = array();
+		$sql = "SELECT ut.*, bt.branch_location, st.status_name, utt.user_type, upt.image FROM user_tb ut 
+					LEFT OUTER JOIN user_type_tb utt 
+					ON ut.user_type_id  = utt.user_type_id
+					LEFT OUTER JOIN status_tb st 
+					ON ut.status_id  = st.status_id
+					LEFT OUTER JOIN branch_tb bt 
+					ON bt.branch_id  = ut.branch_id
+					LEFT OUTER JOIN user_profile_image_tb upt 
+					ON ut.user_id = upt.user_id 
+					WHERE ut.user_id = ?
+					ORDER BY user_id";
+
+		$result = $this->p_instance->getDetails($sql, array('ut.user_id' => $user_id));
+		
+		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+			extract($row);
+
+			$dataArr[] = array(
+				'user_id'			=>	$user_id,
+				'name'			=> $first_name . ' ' .$last_name,
+				'username'		=>	$username,
+				'first_name'		=>	$first_name,
+				'last_name'			=>	$last_name,
+				'telephone'		=>	$telephone,
+				'email'			=>	$email,
+				'address'		=>	$address,
+				'date'		=>	$created_at,
+				'user_type_id'			=>	$user_type_id,
+				'user_type'		=>	$user_type,
+				'status'		=>	$status_name,
+				'branch'		=>	$branch_location,
+				'image'	=>	$image
+			);
+
+		}
+		return $dataArr[0];
 	}
 	public function getSingleProduct($user_id){
 		$dataArr = array();

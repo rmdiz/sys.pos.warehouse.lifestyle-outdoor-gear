@@ -99,7 +99,7 @@ class Products{
 			echo json_encode(array('response'=> "warning", 'message' => 'Update failed'));
 		}
 	}
-	public function updateWarehouseinventory($post){
+	public function updateWarehouseInventory($post){
 		$inventory_id = (int) $post['id'];
 		$updateData = array(
 			'product_id' =>  (int)  $post['data']['product_id'],
@@ -118,7 +118,7 @@ class Products{
 		}
 		// echo json_encode($updateData);
 	}
-	public function saveWarehouseinventory($post){
+	public function addWarehouseInventory($post){
 		$sql = "SELECT * FROM `warehouseInventory_tb` WHERE `product_id` = ? AND `colour_id` = ? AND `size_id` = ?";
 		$doesInventoryProductExist = $this->p_instance->getDetails($sql, array('product_id' => (int) $post['data']['product_id'], 'colour_id' => (int) $post['data']['colour_id'], 'size_id' => (int) $post['data']['size_id']));
         $num = $doesInventoryProductExist->rowCount();
@@ -166,7 +166,7 @@ class Products{
 		}
 		// echo json_encode($res);
 	}
-	public function saveProduct($post){
+	public function addProduct($post){
 		$sql = "SELECT * FROM `product_detail_tb` WHERE product_name = ? ";
 		$doesProductExist = $this->p_instance->getDetails($sql, array('product_name' => $post['data']['product_name']));
         $num = $doesProductExist->rowCount();
@@ -177,6 +177,7 @@ class Products{
 				'product_name' => $post['data']['product_name'],
 				'code_initual' => strtoupper($post['data']['code_initual']),
 				'category_id' => (int) $post['data']['category_id'],
+				'wholesale_price' => $post['data']['wholesale_price'],
 				'sale_price' => $post['data']['sale_price'],
 				'buy_price' => $post['data']['buy_price'],
 				'brand_id' => (int) $post['data']['brand_id'],
@@ -209,6 +210,7 @@ class Products{
 				'code_initual' => $code_initual,
 				'category_id' => $category_id, 
 				'sale_price' => $sale_price, 
+				'wholesale_price' => $wholesale_price, 
 				'buy_price' => $buy_price, 
 				'brand_id' => $brand_id, 
 				'brand_name' => $brand_name, 
@@ -317,7 +319,8 @@ class Products{
 
 		}
 		// CONVERT OT JSON 
-		return $dataArr[0];
+		echo json_encode([$dataArr, $total]);
+
 	}
 
 
@@ -334,6 +337,9 @@ class Products{
 		}
 		$sql = "SELECT pt.*, cy.category_name, bd.brand_name, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM product_detail_tb pt LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id WHERE status_id != 0 ORDER BY product_id DESC";
 
+		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
+
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
 		$result = $this->p_instance->getDetails($filter_query, array());
 
@@ -347,6 +353,7 @@ class Products{
 				'category_id' => $category_id, 
 				'sale_price' => $sale_price, 
 				'buy_price' => $buy_price, 
+				'wholesale_price' => $wholesale_price, 
 				'brand_id' => $brand_id, 
 				'brand_name' => $brand_name, 
 				'category_name' => $category_name, 
@@ -356,14 +363,15 @@ class Products{
 			);
 
 		}
-		// CONVERT OT JSON home_sea
-		echo json_encode($dataArr);
+		// CONVERT OT JSON 
+		echo json_encode([$dataArr, $total]);
 	}
 	public function getAllProducts($post){
 		$dataArr = array();
 		$sql = "SELECT pt.*, cy.category_name, bd.brand_name, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM product_detail_tb pt LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id WHERE status_id != 0  ORDER BY product_id DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
 
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);
@@ -375,6 +383,7 @@ class Products{
 				'category_id' => $category_id, 
 				'sale_price' => $sale_price, 
 				'buy_price' => $buy_price, 
+				'wholesale_price' => $wholesale_price, 
 				'brand_id' => $brand_id, 
 				'brand_name' => $brand_name, 
 				'category_name' => $category_name, 
@@ -386,7 +395,9 @@ class Products{
 		}
 		// CONVERT OT JSON 
 		echo json_encode($dataArr);
+
 	}
+
 	public function getLimitedWarehouseInventory($limit, $incomingPage){
 		$dataArr = array();
 		if($incomingPage > 1)
@@ -408,7 +419,8 @@ class Products{
 		    LEFT OUTER JOIN size_tb sz ON iv.size_id = sz.size_id 
 		    LEFT OUTER JOIN inventory_product_images_tb im ON iv.inventory_id = im.inventory_id  WHERE iv.status_id != 0  AND pt.status_id != 0 
 		    ORDER BY iv.inventory_id DESC";
-
+		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
 		$result = $this->p_instance->getDetails($filter_query, array());
 
@@ -440,7 +452,7 @@ class Products{
 
 		}
 		// CONVERT OT JSON home_sea
-		echo json_encode($dataArr);
+		echo json_encode([$dataArr, $total]);
 	}
 	public function getAllWarehouseInventorys($post){
 		$dataArr = array();
@@ -457,6 +469,7 @@ class Products{
 		    ORDER BY iv.inventory_id  DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
 
 		
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -487,6 +500,27 @@ class Products{
 
 		}
 		// CONVERT OT JSON 
+		echo json_encode([$dataArr, $total]);
+	}
+	public function getAllWarehouseProducts($post){$dataArr = array();
+		$sql = "SELECT iv.inventory_id, iv.description, iv.quantity, pt.* FROM warehouseInventory_tb iv 
+			LEFT OUTER JOIN product_detail_tb pt ON pt.product_id = iv.product_id WHERE iv.status_id != 0  AND iv.quantity != 0  AND pt.status_id != 0 
+		    ORDER BY iv.inventory_id  DESC";
+
+		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
+		
+		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+			extract($row);
+
+			$dataArr[] = array(
+				'id' => $inventory_id,
+				'name' => $description,
+				'quantity' => $quantity,
+				'product_id' => $product_id
+			);
+
+		}
 		echo json_encode($dataArr);
 	}
 	public function getLimitedBranchInventory($limit, $incomingPage){
@@ -499,18 +533,31 @@ class Products{
 		{
 			$start = 0;
 		}
-		$sql = "SELECT 
-			biv.*, wiv.product_id, wiv.colour_id, wiv.size_id, wiv.code, wiv.quantity AS availableQuantity, wiv.description, cl.colour_name, sz.size_label, im.image_name, pt.product_name, pt.category_id, pt.sale_price, pt.buy_price, pt.brand_id, cy.category_name, bd.brand_name, sc.scheme_name, bc.branch_location FROM branch_inventory_tb biv 
+		// $sql = "SELECT 
+		// 	biv.*, wiv.product_id, wiv.colour_id, wiv.size_id, wiv.code, wiv.quantity AS availableQuantity, wiv.description, cl.colour_name, sz.size_label, im.image_name, pt.product_name, pt.category_id, pt.sale_price, pt.buy_price, pt.brand_id, cy.category_name, bd.brand_name, sc.scheme_name, bc.branch_location FROM branch_inventory_tb biv 
+		// 	LEFT OUTER JOIN warehouseInventory_tb wiv ON biv.warehouse_inventory_id = wiv.inventory_id
+		// 	LEFT OUTER JOIN product_detail_tb pt ON wiv.product_id = pt.product_id 
+		//     LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id 
+		//     LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id 
+		//     LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id 
+		//     LEFT OUTER JOIN colour_tb cl ON wiv.colour_id = cl.colour_id 
+		//     LEFT OUTER JOIN branch_tb bc ON biv.branch_id = bc.branch_id 
+		//     LEFT OUTER JOIN size_tb sz ON wiv.size_id = sz.size_id 
+		//     LEFT OUTER JOIN inventory_product_images_tb im ON wiv.inventory_id = im.inventory_id  WHERE wiv.status_id != 0  AND pt.status_id != 0  
+		//     ORDER BY biv.branch_inventory_id  DESC";
+		$sql = "
+			SELECT 
+			biv.*, wiv.product_id, wiv.colour_id, wiv.size_id, wiv.code, wiv.quantity AS availableQuantity, wiv.description, bc.branch_location FROM branch_inventory_tb biv 
 			LEFT OUTER JOIN warehouseInventory_tb wiv ON biv.warehouse_inventory_id = wiv.inventory_id
-			LEFT OUTER JOIN product_detail_tb pt ON wiv.product_id = pt.product_id 
-		    LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id 
-		    LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id 
-		    LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id 
-		    LEFT OUTER JOIN colour_tb cl ON wiv.colour_id = cl.colour_id 
 		    LEFT OUTER JOIN branch_tb bc ON biv.branch_id = bc.branch_id 
-		    LEFT OUTER JOIN size_tb sz ON wiv.size_id = sz.size_id 
-		    LEFT OUTER JOIN inventory_product_images_tb im ON wiv.inventory_id = im.inventory_id  WHERE wiv.status_id != 0  AND pt.status_id != 0  
-		    ORDER BY biv.branch_inventory_id  DESC";
+            LEFT OUTER JOIN product_detail_tb pt ON pt.product_id = biv.product_id
+            WHERE wiv.status_id != 0  AND pt.status_id != 0  
+		    ORDER BY biv.branch_inventory_id  DESC
+		";
+
+		
+		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
 
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
 		$result = $this->p_instance->getDetails($filter_query, array());
@@ -518,34 +565,46 @@ class Products{
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);
 
+			// $dataArr[] = array(
+			// 	'id' => $branch_inventory_id,
+			// 	'warehouse_inventory_id' => $warehouse_inventory_id,
+			// 	'product_id' => $product_id,
+			// 	'name' => $product_name,
+			// 	'category_id' => $category_id, 
+			// 	'sale_price' => $sale_price, 
+			// 	'buy_price' => $buy_price, 
+			// 	'brand_id' => $brand_id, 
+			// 	'brand_name' => $brand_name, 
+			// 	'category_name' => $category_name, 
+			// 	'colour_id' => $colour_id, 
+			// 	'color' => $colour_name, 
+			// 	'desc' => $description, 
+			// 	'code' => $code, 
+			// 	'size' => $size_label, 
+			// 	'size_id' => $size_id, 
+			// 	'availableQuantity' => $availableQuantity, 
+			// 	'quantity' => $quantity, 
+			// 	'branch_name' => $branch_location, 
+			// 	'branch_id' => $branch_id, 
+			// 	'date' => $date, 
+			// 	'image' => ($image_name == null) ? 'default.png' : $image_name,
+			// );
 			$dataArr[] = array(
 				'id' => $branch_inventory_id,
 				'warehouse_inventory_id' => $warehouse_inventory_id,
 				'product_id' => $product_id,
-				'name' => $product_name,
-				'category_id' => $category_id, 
-				'sale_price' => $sale_price, 
-				'buy_price' => $buy_price, 
-				'brand_id' => $brand_id, 
-				'brand_name' => $brand_name, 
-				'category_name' => $category_name, 
-				'colour_id' => $colour_id, 
-				'color' => $colour_name, 
 				'desc' => $description, 
 				'code' => $code, 
-				'size' => $size_label, 
-				'size_id' => $size_id, 
 				'availableQuantity' => $availableQuantity, 
 				'quantity' => $quantity, 
 				'branch_name' => $branch_location, 
 				'branch_id' => $branch_id, 
 				'date' => $date, 
-				'image' => ($image_name == null) ? 'default.png' : $image_name,
 			);
 
 		}
-		// CONVERT OT JSON home_sea
-		echo json_encode($dataArr);
+		// CONVERT OT JSON 
+		echo json_encode([$dataArr, $total]);
 	}
 	public function getAllBranchInventorys($post){
 		$dataArr = array();
@@ -572,6 +631,7 @@ class Products{
 		}
 
 		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
 
 		
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -604,7 +664,9 @@ class Products{
 
 		}
 		// CONVERT OT JSON 
-		echo json_encode($dataArr);
+		// echo json_encode($dataArr);
+		echo json_encode([$dataArr, $total]);
+
 	}
 	public function getLimitedBranchInventoryProducts($post){
 		$dataArr = array();
