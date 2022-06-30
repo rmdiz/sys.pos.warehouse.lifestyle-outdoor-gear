@@ -23,7 +23,7 @@ class Accounts{
 					LEFT OUTER JOIN branch_tb bt 
 					ON bt.branch_id  = ut.branch_id
 					LEFT OUTER JOIN user_profile_image_tb upt 
-					ON ut.user_id = upt.user_id ORDER BY user_id DESC";
+					ON ut.user_id = upt.user_id ORDER BY status_id DESC";
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
@@ -61,7 +61,7 @@ class Accounts{
 					LEFT OUTER JOIN branch_tb bt 
 					ON bt.branch_id  = ut.branch_id
 					LEFT OUTER JOIN user_profile_image_tb upt 
-					ON ut.user_id = upt.user_id ORDER BY user_id DESC";
+					ON ut.user_id = upt.user_id ORDER BY status_id DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();

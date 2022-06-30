@@ -115,40 +115,22 @@ const autorun = (data) => {
         });
     }
 }
-// LOAD PRODUCT LIST  convert
-// setTimeout(dataRequest('Product', {'limit': 15,'action':'getLimitedProducts', 'page': page}, 1), 0);
-
-// LOAD WAREHOUSE INVENTORY PRODUCT LIST
-// setTimeout(dataRequest('WarehouseInventory', {'limit': 15,'action':'getLimitedWarehouseInventory', 'page': page}, 1), 0);
-
-// LOAD BRANCH INVENTORY LIST
-// setTimeout(dataRequest('BranchInventory', {'limit': 15,'action':'getLimitedBranchInventory', 'page': page}, 1), 0);
-
-// LOAD USER LIST
-// setTimeout(dataRequest('User', {'limit': 15,'action':'getLimitedUsers', 'page': page}, 1), 0);
-
-// LOAD SUPPLIER LIST
-// setTimeout(dataRequest('Supplier', {'limit': 15,'action':'getLimitedSuppliers', 'page': page}, 1), 0);
-
-// // LOAD INVOICE LIST
-// setTimeout(dataRequest('Invoice', {'limit': 15,'action':'getLimitedInvoices', 'page': page}, 1), 0);
-
 // LOAD HELPER DATA LIST
-setTimeout(autorun({'reload': false, 'action':'getBranches', 'name': 'branchList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getCategories', 'name': 'categoryList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getStatus', 'name': 'statusList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getBrands', 'name': 'brandList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getSizeSchemes', 'name': 'sizeSchemeList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getUserTypes', 'name': 'userTypeList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getCustomers', 'name': 'customerList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getColors', 'name': 'colorList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getSizes', 'name': 'sizeList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getPaymentTypes', 'name': 'paymentTypeList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getDiscounts', 'name': 'discountList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getCurrencys', 'name': 'currencyList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getAllSuppliers', 'name': 'supplierList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getAllProducts', 'name': 'productList'}), 0);
-setTimeout(autorun({'reload': false, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getBranches', 'name': 'branchList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getCategories', 'name': 'categoryList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getStatus', 'name': 'statusList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getBrands', 'name': 'brandList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getSizeSchemes', 'name': 'sizeSchemeList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getUserTypes', 'name': 'userTypeList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getCustomers', 'name': 'customerList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getColors', 'name': 'colorList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getSizes', 'name': 'sizeList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getPaymentTypes', 'name': 'paymentTypeList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getDiscounts', 'name': 'discountList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getCurrencys', 'name': 'currencyList'}), 0);
+setTimeout(autorun({'reload': true, 'action':'getAllSuppliers', 'name': 'supplierList'}), 0);
+// setTimeout(autorun({'reload': true, 'action':'getAllProducts', 'name': 'productList'}), 0);
+// setTimeout(autorun({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'}), 0);
 
 // LOAD All Branch Inventory
 let action = 0;
@@ -166,7 +148,7 @@ let c = setInterval(() => {
                     // if(!site.allbranchessaleinvoices){
                     //     site.allbranchessaleinvoices = {};
                     // }
-                    // site.allbranchessaleinvoices[branch.id] ={};
+                    // site.allbranchessaleinvoices[branch.id] ={};allbranchessaleinvoices
                     // allBranchesDataRequest(branch.id, 'allbranchessaleinvoices', {'limit': 500, 'sdate': today, 'edate': today, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInvoices'}, 1);
                 }, 0);
 
@@ -175,25 +157,6 @@ let c = setInterval(() => {
     }
 }, 50);
 
-const allBranchesDataRequest = (dataKey, requestName, requestData, counter, reload = 'false') => {
-    // GET FIRST allbranchesinventoryproducts IS SET
-    // IF ITS NOT SET, SET IT TO AN EMPTY OBJECT
-    if(!site[requestName]){
-        site[requestName] = {}
-    }
-    $.ajax({
-        url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
-        type: "POST",
-        dataType  : 'json',
-        data: requestData,
-        success: function(data){
-            // USE BRANCH ID AS KEY TO SET EACH BRACH DATA  
-            site[requestName][dataKey] = convertToObject(data);
-            // UPDATE SITE DATA
-            updateSiteData(site);
-        }
-    });
-}
 const convertToObject = (data) => {
     let obj = {};
     data.forEach(info => {

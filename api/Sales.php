@@ -640,6 +640,14 @@ class Sales{
 				$sql .= (count(explode('WHERE', $sql)) == 1) ? " WHERE branch_id = " . (int)$post['branch_id'] : " AND branch_id = " . (int)$post['branch_id'];
 			}
 		}
+		if(isset($post['search'])){
+			if((int)$post['search'] != 0){
+				// CHECK IF STATEMENT ALREADY HAS A WHERE CLOUSE
+				$sql .= (count(explode('WHERE', $sql)) == 1) ? " WHERE " : " AND ";
+				$sql .= "id  = ".(int)$post['search'];
+			}
+		}
+
 		$sql .= " ORDER BY purchase_date DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-/* ****************************** VARIABLES filtration ********************** */
+/* ****************************** VARIABLES search-bar ********************** */
 :root{
     --grey: #eee;
     --dark-grey: #aaaaaa;
@@ -498,6 +498,10 @@ table.design tr td label.counter{
 table.design tr td label.fixed-width,
 table.design tr th label.fixed-width{
     width: 20rem !important;
+}
+table.design tr td label.desc-fixed-width,
+table.design tr th label.desc-fixed-width{
+    width: 30rem !important;
 }
 table.design tr td label.short-fixed,
 table.design tr th label.short-fixed{
@@ -1060,6 +1064,9 @@ table.design tr:nth-child(even){
     overflow: hidden;
     font-weight: 500;
     font-size: 3rem;
+}
+.backup-btn *{
+    pointer-events: none;
 }
 .backup-btn,
 .restore-btn,
@@ -2066,7 +2073,7 @@ html,body{overflow: hidden;}
         padding: .5rem 1rem;
         border: 0;
     }
-    nav .search-bar span{
+    nav .search-bar label{
         background: var(--blue);
         color: var(--white);
         border-top-right-radius: 55px;

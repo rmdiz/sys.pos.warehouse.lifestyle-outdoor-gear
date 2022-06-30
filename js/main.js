@@ -47,64 +47,44 @@ let expectedData = {
  * IF AVAILABLE LOAD IT
  **/
 setInterval(()=> {
-    // LOOP THROUGH EXPECTED DATA OBJECT
-    Object.keys(expectedData).forEach((expectedDataKey, index, expectedDataKeys) =>{
-        // IF EXPECTED DATA HAS DATA LOAD THROUGH SITE DATA
-        if(expectedDataKeys.length > 0){
-            // CHECK EACH KEY IN SITE DATA, IF KEY EXITS DELETE IT FROM EXPECTED DATA
-            Object.keys(site).forEach(siteDataKey => {
-                if(siteDataKey == expectedDataKey){
-                    delete expectedData[expectedDataKey];
-                    // LOAD DATA FOUND IN LOCAL SITE DATA
-                    setTimeout(()=> {
-                        renderPageData(site[siteDataKey], siteDataKey, );
-                    }, 0);
-                }
-            }); 
-        }
-    });
-    // console.log(expectedData) 
-
-
     /**
      * CHECK FOR NEW SALE EVERY AFTER 0.00 MILLI SECONDS
      **/
     let totalDialySale = "00";
-    if(site.allbranchessaleinvoices){
-        let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
-        let data = site.allbranchessaleinvoices;
-        let branchSales = {};
-        if(user_branch_id != 0){
-            branchSales = data[user_branch_id];
-        }else{
-            Object.keys(data).forEach((dataKey, index) =>{
-                Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
-                    branchSales[innerDataKey] = data[dataKey][innerDataKey];
-                });
-            });
-        }
-        // console.log(branchSales)
-        totalDialySale = Object.keys(branchSales).length;
-    }
+    // if(site.allbranchessaleinvoices){
+    //     let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
+    //     let data = site.allbranchessaleinvoices;
+    //     let branchSales = {};
+    //     if(user_branch_id != 0){
+    //         branchSales = data[user_branch_id];
+    //     }else{
+    //         Object.keys(data).forEach((dataKey, index) =>{
+    //             Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
+    //                 branchSales[innerDataKey] = data[dataKey][innerDataKey];
+    //             });
+    //         });
+    //     }
+    //     // console.log(branchSales)
+    //     totalDialySale = Object.keys(branchSales).length;
+    // }
     document.getElementById('todaySales').textContent = totalDialySale;
  }, 0);
 
 /**
  * SYSTEM FUNCTIONS A-Z
  **/
-    const generatePegination = (data, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
-        console.log(data)
+    
+    const formPagination = (total, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
+        // console.log(data)
         let pages = 1;  
         let range = []; 
-        let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
+        // let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
         let peginationLink = document.querySelector(`.pagination_link.${item}-list_pagination`);
-        // console.log(Object.keys(data).length)
         if(total > limit){
             let page = Math.ceil(total/limit);
-            // let page = Math.floor(total/limit);
             pages = total & limit === 0 ? page : page + 1;
             range = [...Array(pages).keys()];
-            console.log(total, range, peginationLink)
+            // console.log(total, range, peginationLink)
 
             let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
             let itemLink = '<span><<</span> ';
@@ -125,7 +105,7 @@ setInterval(()=> {
             itemLink += '<span class="next">></span><span>>></span>';
             peginationLink.innerHTML = itemLink;
 
-            paginationManipulation(dataType, displayLinkNumber, range, data, item, limit);
+            paginationNavigation(dataType, displayLinkNumber, range, item, limit);
 
 
             if(range.length < displayLinkNumber){
@@ -139,8 +119,9 @@ setInterval(()=> {
             peginationLink.innerHTML = '';
         }
     }
-    const paginationManipulation = (dataType, displayLinkNumber, range, data, item, limit) => {
-        console.log(item)
+
+    const paginationNavigation = (dataType, displayLinkNumber, range, item, limit) => {
+        // console.log(item)
         let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
         // console.log(limit)
         itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
@@ -224,32 +205,14 @@ setInterval(()=> {
                     document.querySelector(`.pagination_link.${item}-list_pagination span.prev`).classList.add('hide');
                 break;
                 default:
-                    console.log(typeof(data))
-                    let start = ((Number(paginationLink.textContent) - 1) * limit);
-                    document.getElementById(`${item}s_list`).innerHTML = '';
-                    let identifier = item;
                     paginationLink.classList.add('active');
-                    // renderPageData(data, paginationLink.parentElement.dataset.id, start);
-                    renderPageData(data, document.querySelector(`.pagination_link.${item}-list_pagination`).dataset.id, start);
-                    // CONVERT OBJECT DATA FORMAT TO ARRAY FORMAT
-                    // let arrayDataFormat = [];
-                    // if(typeof(data) == "object"){
-                    //     Object.keys(data).forEach(dataRowKey => {
-                    //         arrayDataFormat.push(data[dataRowKey])
-                    //     })
-                    // }else{
-                    //     arrayDataFormat = data;
-                    // }
-                    // console.log(arrayDataFormat.slice(start, (start + limit)));
-                    // console.log(paginationLink.parentElement.dataset.id)
-                    // for (var i = paginationLink.parentElement.parentElement.children.length - 1; i >= 0; i--) {
-                    //     let child = paginationLink.parentElement.parentElement.children[i]
-                    //     // console.log(child.classList.contains('design').children[1].id)
-                    // }
-
+                    let rqtPage = Number(paginationLink.textContent);
+                    switch(item){
+                        case 'branchinventoryproduct':
+                            getBranchInventory(rqtPage); 
+                        break;
+                    }
             }
-
-
         }));
     }
     // UPDATE SITE DATA
@@ -258,181 +221,225 @@ setInterval(()=> {
         site = JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear'));
     }
     // RENDER DYNAMIC PAGE DATA
-    const renderPageData = (data, identifier, start = 0) => {
+
+    // RENDER DYNAMIC PAGE DATA
+    const renderPageData = (data, identifier, start = -1) => {
         let dataArrayFormat = [];
         let itemContainer = "";
         let dataKeys = [];
         let counter = 0;
-
+        let pageNo = "";
+        let count = 1;
+        let inlineEditBtns = "";
         let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
         switch(identifier){
-            case 'allbranchesinventoryproducts':
-                data = site.allbranchesinventoryproducts;
-                let branchInventoryProducts = {};
-                dataArrayFormat = [];
+            case 'branchinventoryproduct':
+                console.log(data)
+                if(data[1] != data[0].length){
+                    let paginationLink = (!document.querySelector('.branchinventoryproduct-list_pagination span.active')) ? document.querySelectorAll('.branchinventoryproduct-list_pagination span')[document.querySelectorAll('.branchinventoryproduct-list_pagination span').length - 2].textContent : document.querySelector('.branchinventoryproduct-list_pagination span.active').textContent;
+                    pageNo = Number(paginationLink);
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
                 itemContainer = document.getElementById('branchinventoryproducts_list');
-                itemContainer.innerHTML ="";
-                // LIMIT
-                let homelimit = document.querySelector('.homelimit').value;
-                limit = Number(homelimit);
-                if(user_branch_id != 0){
-                    branchInventoryProducts = data[user_branch_id];
-                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
-                    // ENFORCE DISPLAY LIMIT
-                    if(homelimit != 'All') {
-                        dataKeys = Object.keys(branchInventoryProducts).slice(start, (limit + start));
-                    }else{
-                        dataKeys = Object.keys(branchInventoryProducts).slice(start);
-                    }
-                    dataKeys.forEach((infoKey, index, infoKeys) => {
-                        itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[infoKey], index));
+                itemContainer.innerHTML = "";
+                let templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    data.forEach((itemDetails, index) => {
+                        templateString = productTmp(itemDetails, index);
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
                     });
+
+                    // MAKE PRODUCT ITEMS CLICKABLE
+                    showItemDetails();
                 }else{
-                    Object.keys(data).forEach((dataKey, index) =>{
-                        Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
-                            branchInventoryProducts[innerDataKey] = data[dataKey][innerDataKey];
-                            // itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[innerDataKey], index));
-                        });
-                    });
-                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
-                    // ENFORCE DISPLAY LIMIT
-                    if(homelimit != 'All') {
-                        dataKeys = Object.keys(branchInventoryProducts).slice(start, (limit + start));
-                    }else{
-                        dataKeys = Object.keys(branchInventoryProducts).slice(start);
-                    }
-                    dataKeys.forEach((infoKey, index, infoKeys) => {
-                        itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[infoKey], index));
-                    });
+                    templateString = `
+                        <tr class="unrevealed branchinventoryrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
                 }
-                // MAKE PRODUCT ITEMS CLICKABLE
-                showItemDetails();
-                if(start == 0){
-                    generatePegination(branchInventoryProducts, 'branchinventoryproduct', limit);
-                }
+                // reveal('branchinventoryproduct');
 
-                // console.log(branchInventoryProducts);
-            break;
-            case 'allbranchessaleinvoices':
-                // TRACK IF REQUEST IS FROM PAGINATION
-                // IF T IS ZERO (0) THEN THE REQUEST IS FROM DATABASE
-                // IF NOT ITS FROM PEGINATION
-                let t = start;
-                // CHECK IF DATA IS FROM THE DATABASE
-                data = site.allbranchessaleinvoices;
-
-                // CALCULATE TOTAL SALES IN EACH BRACH AND OVERALL TOTAL
-                setTimeout(calculateTotalSales(data, start), 0);
-                // GET INVOICE POPULATION TYPE (EITHER PURCHASE DETAILS OR INVOICE)
-                let listingType = document.querySelector('.listing_type').value;
-                // INVOICE/SALE FILTERS
-                let branch_list_filter = document.querySelector(".branch_list").value;
-                let payment_type_list_filter = document.querySelector('.payment_type_list').value;
-                let currency_list_filter = document.querySelector(".currency_list").value;
-                let salelimit_filter = document.querySelector(".salelimit").value;
-                // console.log(branch_list_filter, payment_type_list_filter, currency_list_filter, salelimit_filter)
-                // POPULATE BRANCH INVOICE TABLE ROWS
-                let branchInvoices = {};
-                dataArrayFormat = [];
-                itemContainer = (listingType == "invoice") ? document.getElementById('invoices_list') : document.getElementById('sales_list');
-                itemContainer.innerHTML =``;
-                if(listingType == "invoice"){
-                    document.getElementById('sales_list').parentElement.classList.add("hide")
-                    document.getElementById('invoices_list').parentElement.classList.remove('hide'); 
-                }else{
-                    document.getElementById('invoices_list').parentElement.classList.add("hide")
-                    document.getElementById('sales_list').parentElement.classList.remove('hide'); 
-                }
-                removeElement('div.preloader');
-                // ENFORCE DISPLAY LIMIT
-                // console.log(salelimit_filter)
-                limit = Number(salelimit_filter);
-                if(user_branch_id != 0){
-                    // MAKE BRANCH DROPDOWN UNCLICKABLE BY ATTENDANTS
-                    document.querySelector(".branch_list").setAttribute('readonly',  'readonly');
-                    document.querySelector(".branch_list").style.pointerEvents = 'none';
-                    // GET BRANCH DATA
-                    branchInvoices = data[user_branch_id];
-                    if(Object.keys(branchInvoices).length > 0){
-                        // GET BRANCH DATA KEYS GET THE LIMITED DATA 
-                        // ENFORCE DISPLAY LIMIT
-                        if(salelimit_filter != 'All') {
-                            dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
-                        }else{
-                            dataKeys = Object.keys(branchInvoices).slice(start);
-                        }
-                        // LOOP THROUGH THE DATAKEYS TO RENDER DATA ASSOCIATED WITH THEM
-                        dataKeys.forEach((infoKey, index, infoKeys) => {
-                            if(
-                                (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
-                                (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
-                                ){
-                                itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
-                                counter++;
-                            }
-                            start++;
-                        });
-                    }else{
-                        itemContainer.innerHTML = "<tr><td colspan='10'><label class'warning'><center>Nothing found.</center></label></td></tr>";
-                    }
-                }else{
-                    Object.keys(data).forEach((dataKey, index) =>{
-                        Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
-                            branchInvoices[innerDataKey] = data[dataKey][innerDataKey];
-                        });
-                    });
-                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
-                    // ENFORCE DISPLAY LIMIT
-                    if(salelimit_filter != 'All') {
-                        dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
-                    }else{
-                        dataKeys = Object.keys(branchInvoices).slice(start);
-                    }
-                    dataKeys.forEach((infoKey, index, infoKeys) => {
-                        setTimeout(generateSaleExportTb(branchInvoices[infoKey]), 0);
-                        if(
-                            (Number(branchInvoices[infoKey].invoiceDetails[0].branch_id) == Number(branch_list_filter)) || 
-                            (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('Branch')) ||
-                            (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('All'))  
-                            ){
-                            if(
-                                (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
-                                (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
-                                ){
-
-                                itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
-                                console.log(start+1, start + Number(branchInvoices[infoKey].totalItems));
-                                counter++;
-                            }
-                        }
-                        // CHECK IF TABLE IS POPULATED IN ACODANCE WITH THE INVOICE
-                        // IF ITS BY INVOICE INCREAMENT START BY ONE EACH REPEATITION
-                        // IF ITS BY SALE/PURCHASE THEN INCREAMENT START BY THE NUMBER OF ITEMS ON THE INVOICE
-                        console.log(branchInvoices[infoKey].totalItems);
-                        start = (listingType == "invoice") ? start+1 : start + Number(branchInvoices[infoKey].totalItems);
-                        // console.log(branchInvoices[innerDataKey].invoiceDetails[0].payment_type_id)
-                        // console.log(branchInvoices[innerDataKey].invoiceDetails[0].currency)
-                        // console.log(branchInvoices[innerDataKey].invoiceDetails[0])
-                        // itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[innerDataKey], index, count) : saleTmp(branchInvoices[innerDataKey], index, count)));
-                    })
-                }
-
-                // MAKE INVOICE ACTION BUTTONS CLICKABLE
-                tRowAction();
-                if(t == 0){
-                    generatePegination(branchInvoices, 'invoice', limit);
-                }
-
-                // console.log(branchInvoices);
-                reveal('invoice');
             break;
         }
-
     }
+    // const renderPageData = (data, identifier, start = 0) => {
+    //     let dataArrayFormat = [];
+    //     let itemContainer = "";
+    //     let dataKeys = [];
+    //     let counter = 0;
+
+    //     let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
+    //     switch(identifier){
+    //         case 'allbranchesinventoryproducts':
+    //             data = site.allbranchesinventoryproducts;
+    //             let branchInventoryProducts = {};
+    //             dataArrayFormat = [];
+    //             itemContainer = document.getElementById('branchinventoryproducts_list');
+    //             itemContainer.innerHTML ="";
+    //             // LIMIT
+    //             let homelimit = document.querySelector('.homelimit').value;
+    //             limit = Number(homelimit);
+    //             if(user_branch_id != 0){
+    //                 branchInventoryProducts = data[user_branch_id];
+    //                 // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+    //                 // ENFORCE DISPLAY LIMIT
+    //                 if(homelimit != 'All') {
+    //                     dataKeys = Object.keys(branchInventoryProducts).slice(start, (limit + start));
+    //                 }else{
+    //                     dataKeys = Object.keys(branchInventoryProducts).slice(start);
+    //                 }
+    //                 dataKeys.forEach((infoKey, index, infoKeys) => {
+    //                     itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[infoKey], index));
+    //                 });
+    //             }else{
+    //                 Object.keys(data).forEach((dataKey, index) =>{
+    //                     Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
+    //                         branchInventoryProducts[innerDataKey] = data[dataKey][innerDataKey];
+    //                         // itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[innerDataKey], index));
+    //                     });
+    //                 });
+    //                 // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+    //                 // ENFORCE DISPLAY LIMIT
+    //                 if(homelimit != 'All') {
+    //                     dataKeys = Object.keys(branchInventoryProducts).slice(start, (limit + start));
+    //                 }else{
+    //                     dataKeys = Object.keys(branchInventoryProducts).slice(start);
+    //                 }
+    //                 dataKeys.forEach((infoKey, index, infoKeys) => {
+    //                     itemContainer.insertAdjacentHTML('beforeend', productTmp(branchInventoryProducts[infoKey], index));
+    //                 });
+    //             }
+    //             // MAKE PRODUCT ITEMS CLICKABLE
+    //             showItemDetails();
+    //             if(start == 0){
+    //                 generatePegination(branchInventoryProducts, 'branchinventoryproduct', limit);
+    //             }
+
+    //             // console.log(branchInventoryProducts);
+    //         break;
+    //         case 'allbranchessaleinvoices':
+    //             // TRACK IF REQUEST IS FROM PAGINATION
+    //             // IF T IS ZERO (0) THEN THE REQUEST IS FROM DATABASE
+    //             // IF NOT ITS FROM PEGINATION
+    //             let t = start;
+    //             // CHECK IF DATA IS FROM THE DATABASE
+    //             // data = site.allbranchessaleinvoices;
+
+    //             // CALCULATE TOTAL SALES IN EACH BRACH AND OVERALL TOTAL
+    //             // setTimeout(calculateTotalSales(data, start), 0);
+    //             // GET INVOICE POPULATION TYPE (EITHER PURCHASE DETAILS OR INVOICE)
+    //             let listingType = document.querySelector('.listing_type').value;
+    //             // INVOICE/SALE FILTERS
+    //             let branch_list_filter = document.querySelector(".branch_list").value;
+    //             let payment_type_list_filter = document.querySelector('.payment_type_list').value;
+    //             let currency_list_filter = document.querySelector(".currency_list").value;
+    //             let salelimit_filter = document.querySelector(".salelimit").value;
+    //             // console.log(branch_list_filter, payment_type_list_filter, currency_list_filter, salelimit_filter)
+    //             // POPULATE BRANCH INVOICE TABLE ROWS
+    //             let branchInvoices = {};
+    //             dataArrayFormat = [];
+    //             itemContainer = (listingType == "invoice") ? document.getElementById('invoices_list') : document.getElementById('sales_list');
+    //             itemContainer.innerHTML =``;
+    //             if(listingType == "invoice"){
+    //                 document.getElementById('sales_list').parentElement.classList.add("hide")
+    //                 document.getElementById('invoices_list').parentElement.classList.remove('hide'); 
+    //             }else{
+    //                 document.getElementById('invoices_list').parentElement.classList.add("hide")
+    //                 document.getElementById('sales_list').parentElement.classList.remove('hide'); 
+    //             }
+    //             removeElement('div.preloader');
+    //             // ENFORCE DISPLAY LIMIT
+    //             // console.log(salelimit_filter)
+    //             limit = Number(salelimit_filter);
+    //             if(user_branch_id != 0){
+    //                 // MAKE BRANCH DROPDOWN UNCLICKABLE BY ATTENDANTS
+    //                 document.querySelector(".branch_list").setAttribute('readonly',  'readonly');
+    //                 document.querySelector(".branch_list").style.pointerEvents = 'none';
+    //                 // GET BRANCH DATA
+    //                 branchInvoices = data[user_branch_id];
+    //                 if(Object.keys(branchInvoices).length > 0){
+    //                     // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+    //                     // ENFORCE DISPLAY LIMIT
+    //                     if(salelimit_filter != 'All') {
+    //                         dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
+    //                     }else{
+    //                         dataKeys = Object.keys(branchInvoices).slice(start);
+    //                     }
+    //                     // LOOP THROUGH THE DATAKEYS TO RENDER DATA ASSOCIATED WITH THEM
+    //                     dataKeys.forEach((infoKey, index, infoKeys) => {
+    //                         if(
+    //                             (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
+    //                             (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
+    //                             ){
+    //                             itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
+    //                             counter++;
+    //                         }
+    //                         start++;
+    //                     });
+    //                 }else{
+    //                     itemContainer.innerHTML = "<tr><td colspan='10'><label class'warning'><center>Nothing found.</center></label></td></tr>";
+    //                 }
+    //             }else{
+    //                 Object.keys(data).forEach((dataKey, index) =>{
+    //                     Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
+    //                         branchInvoices[innerDataKey] = data[dataKey][innerDataKey];
+    //                     });
+    //                 });
+    //                 // GET BRANCH DATA KEYS GET THE LIMITED DATA 
+    //                 // ENFORCE DISPLAY LIMIT
+    //                 if(salelimit_filter != 'All') {
+    //                     dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
+    //                 }else{
+    //                     dataKeys = Object.keys(branchInvoices).slice(start);
+    //                 }
+    //                 dataKeys.forEach((infoKey, index, infoKeys) => {
+    //                     setTimeout(generateSaleExportTb(branchInvoices[infoKey]), 0);
+    //                     if(
+    //                         (Number(branchInvoices[infoKey].invoiceDetails[0].branch_id) == Number(branch_list_filter)) || 
+    //                         (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('Branch')) ||
+    //                         (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('All'))  
+    //                         ){
+    //                         if(
+    //                             (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
+    //                             (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
+    //                             ){
+
+    //                             itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
+    //                             console.log(start+1, start + Number(branchInvoices[infoKey].totalItems));
+    //                             counter++;
+    //                         }
+    //                     }
+    //                     // CHECK IF TABLE IS POPULATED IN ACODANCE WITH THE INVOICE
+    //                     // IF ITS BY INVOICE INCREAMENT START BY ONE EACH REPEATITION
+    //                     // IF ITS BY SALE/PURCHASE THEN INCREAMENT START BY THE NUMBER OF ITEMS ON THE INVOICE
+    //                     console.log(branchInvoices[infoKey].totalItems);
+    //                     start = (listingType == "invoice") ? start+1 : start + Number(branchInvoices[infoKey].totalItems);
+    //                     // console.log(branchInvoices[innerDataKey].invoiceDetails[0].payment_type_id)
+    //                     // console.log(branchInvoices[innerDataKey].invoiceDetails[0].currency)
+    //                     // console.log(branchInvoices[innerDataKey].invoiceDetails[0])
+    //                     // itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[innerDataKey], index, count) : saleTmp(branchInvoices[innerDataKey], index, count)));
+    //                 })
+    //             }
+
+    //             // MAKE INVOICE ACTION BUTTONS CLICKABLE
+    //             tRowAction();
+    //             if(t == 0){
+    //                 generatePegination(branchInvoices, 'invoice', limit);
+    //             }
+
+    //             // console.log(branchInvoices);
+    //             reveal('invoice');
+    //         break;
+    //     }
+
+    // }
     const productTmp = (itemData, index)=>{
         let firstItemDetails = itemData.product_sizes[0]
-        // console.log(itemData);
-        // console.log(firstItemDetails.quantity) navigateT
         let tmp = `
             <div class="product" data-page="1">
                 <a class="list-item" data-details="item-identifier-${firstItemDetails.branch_inventory_id}" href="#header" data-item-colors='${JSON.stringify(itemData.product_colors)}'>
@@ -660,7 +667,7 @@ setInterval(()=> {
         let branchTotal = {};
         let branchInvoices = {};
         console.log(data)
-        data = (start == 0) ? data : site.allbranchessaleinvoices;
+        // data = (start == 0) ? data : site.allbranchessaleinvoices;
         site.branchList.forEach(branch => {
             // IF BRANCH DOESN'T EQUAL TO ALL
             if(branch.id != 5){
@@ -1403,16 +1410,6 @@ setInterval(()=> {
         site.page = {'pageIndex': 0, 'pg': 'home'};
         updateSiteData(site)
     }
-    const  updateSoldProductDetails = (data, branch_id)=>{
-        console.log(site.allbranchesinventoryproducts[branch_id]);
-        console.log(data);
-        data.forEach(product => {
-            // console.log(site.allbranchesinventoryproducts[product.branch_id][product.id])
-            site.allbranchesinventoryproducts[product.branch_id][product.id] = product;
-            // console.log(site.allbranchesinventoryproducts[product.branch_id][product.id])
-            // console.log(product)
-        });
-    }
     const clearFields = (elements) => {
         elements.forEach(element => element.value = '');
     }
@@ -1435,7 +1432,22 @@ setInterval(()=> {
         document.querySelector('.profile-area .profile-photo').innerHTML = `<img src="./images/${site.session.image}">`;
         document.querySelector('.profile-area .handle').innerHTML = `@${site.session.username}`;
     }
-    const getInvoiceByDate = () => {
+    const getBranchInventory = (page = 1) => {
+        document.getElementById(`branchinventoryproducts_list`).after(preloader());
+        let limitShow = (document.querySelector('#home .homelimit').value == 'All') ? 0 : document.querySelector('#home .homelimit').value;
+        let data = {'branch_id': site.session.branch_id, 'limit': limitShow,'action':'getSingleBranchInventory', 'page': page};
+        console.log(limit)
+        res = run(data);
+        res.always(details => {
+            console.log(details)
+            if(page == 1){
+                formPagination(details[1], 'branchinventoryproduct', Number(limitShow), 'arr');
+            }
+            renderPageData(details, 'branchinventoryproduct');
+            removeElement('div.preloader');
+        });
+    }
+    const getInvoiceByDate = (page = 1) => {
         document.getElementById(`invoices_list`).after(preloader());
         let startdate = document.getElementById('startdate').value;
         let enddate = document.getElementById('enddate').value;
@@ -1449,23 +1461,12 @@ setInterval(()=> {
         // console.log(data) calculate
         res = run(data);
         res.always(details => {
-            // console.log(details)
-            if(!site.allbranchessaleinvoices){
-                site.allbranchessaleinvoices = {};
+            console.log(details)
+            if(page == 1){
+                formPagination(details[1], 'invoice', Number(limitShow), 'arr');
             }
-            // removeElement('div.preloader');
-            if(site.session.user_type_id == 2){
-                // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
-                site.allbranchessaleinvoices[site.session.branch_id] = convertToObject(details);
-            }else{
-                console.log(details)
-                site.branchList.forEach(branch => {
-                    site.allbranchessaleinvoices[branch.id] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
-                });
-            }
-            updateSiteData(site);
-            // UPDATE DATA CHECKER VARIABLE
-            expectedData.allbranchessaleinvoices = 'invoice';
+            renderPageData(details, 'invoice');
+            removeElement('div.preloader');
         });
     }
     const allBranchesDataRequest = (dataKey, requestName, requestData, counter, reload = 'false') => {
@@ -1529,6 +1530,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startdate').value = today;  
     document.getElementById('enddate').value = today;  
     getInvoiceByDate(); 
+    getBranchInventory(); 
 
     /* 
     ------------------------------------------------------------------------------------
@@ -1694,8 +1696,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             // UPDATE SITE DATA WITH THE UPDATED LIST OF SALES
                             // UPDATE PRODUCT QUANTITY IN THE BRANCH INVENTORY PRODUCT
                             // UPDATE SITE DATA
-                            updateSoldProductDetails(data.updatedData, branch_id);
-
+                            getBranchInventory();
                             resetAdminToNoBranch();
                             
                             // UPDATE SITE PAGE(SAVE CURRENT PAGE)
@@ -1843,9 +1844,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // HOME SPECIFICATION DROPDOWNS pagination
     document.querySelector('.homelimit').addEventListener('change', () => {
-        document.getElementById(`branchinventoryproducts_list`).innerHTML = "";
-        document.getElementById(`branchinventoryproducts_list`).prepend(preloader());
-        expectedData.allbranchesinventoryproducts = 'branchinventoryproduct';
+        getBranchInventory();
     });
 
     // SIGNOUT
@@ -1868,7 +1867,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         search();
     });
-    function search() {
+    function search(pageNo=1) {
         let searchValue = searchBar.value.toLowerCase();
         let page = document.querySelector('div.page.show');
         let count = 0;
@@ -1884,7 +1883,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 let limitShow = document.querySelector('.homelimit').value;  
 
-                let data ={'reload': true, 'search': searchValue, 'action':'search_products', 'name': 'allbranchesinventoryproducts'};
+                let data ={'reload': true, 'search': searchValue, 'action':'search_products'};
                 // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
                 if(site.session.user_type_id == 2){
                     data.branch_id = site.session.branch_id;
@@ -1893,26 +1892,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(data) 
                 // res = run(data);
                 res.always(details => {
-                    removeElement('div.preloader');
-                    // console.log(details)
-                    if(details.length > 0){
-                        if(!site.allbranchesinventoryproducts){
-                            site.allbranchesinventoryproducts = {};
-                        }
-                        if(site.session.user_type_id == 2){
-                            // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
-                            site.allbranchesinventoryproducts[site.session.branch_id] = convertToObject(details);
-                        }else{
-                            site.allbranchesinventoryproducts[5] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
-                        }
-                        updateSiteData(site);
-                        // UPDATE DATA CHECKER VARIABLE
-                        expectedData.allbranchesinventoryproducts = 'branchinventoryproduct';
-                        deliverNotification(`Total of ${details.length} found`, 'success');
-
-                    }else{
-                        deliverNotification(`Total of ${searchResultsTotal} found`, 'warning');
+                    console.log(details);
+                    if(pageNo == 1){
+                        formPagination(details[1], 'branchinventoryproduct', Number(limitShow), 'arr');
                     }
+                    renderPageData(details, 'branchinventoryproduct');
+                    removeElement('div.preloader');
                 });
                 break;
 
@@ -1925,4 +1910,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // DONT UPDATE DAILY SALES TO SITE DATA JUST DISPLAY THE SEARCH DATA
-// RENDER THE SEARCH DATA DON'T STORE IN LOCAL STORAGE export_sales
+// RENDER THE SEARCH DATA DON'T STORE IN LOCAL STORAGE

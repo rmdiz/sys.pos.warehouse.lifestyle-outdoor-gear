@@ -70,7 +70,8 @@
             <span class="material-symbols-outlined menu-toggle">menu</span>
             <form action="#" class="search-bar">
                 <input type="search" class="hide search-field" placeholder="Search...">
-                <span class="material-symbols-outlined search-btn">search</span>
+                <label for="search-btn" class="material-symbols-outlined search-btn">search</label>
+                <input type="submit" id="search-btn" style="display: none;">
             </form>
             <div class="top-nav">
                 <label for="notification" class="notification">
@@ -282,8 +283,8 @@
                                     </label>
                                 </th>
                                 <th>
-                                    <label  class="fixed-width">
-                                        <span>Description</span>
+                                    <label  class="desc-fixed-width">
+                                        <span>Description(brand > name > size > colour)</span>
                                         <span class="material-symbols-outlined">unfold_more</span>
                                     </label>
                                 </th>
@@ -295,18 +296,6 @@
                                 <th  class=" ">
                                     <label>
                                         <span>Branch</span>
-                                        <span class="material-symbols-outlined">unfold_more</span>
-                                    </label>
-                                </th>
-                                <th  class="">
-                                    <label>
-                                        <span>Colour</span>
-                                        <span class="material-symbols-outlined">unfold_more</span>
-                                    </label>
-                                </th>
-                                <th>
-                                    <label  class="">
-                                        <span>Size</span>
                                         <span class="material-symbols-outlined">unfold_more</span>
                                     </label>
                                 </th>
@@ -520,12 +509,6 @@
                                     <span>image</span>
                                 </label>
                             </th>
-                            <th  class=" ">
-                                <label>
-                                    <span>Code</span>
-                                    <span class="material-symbols-outlined">unfold_more</span>
-                                </label>
-                            </th>
                             <th  class="">
                                 <label>
                                     <span>Colour</span>
@@ -538,8 +521,14 @@
                                     <span class="material-symbols-outlined">unfold_more</span>
                                 </label>
                             </th>
+                            <th  class=" ">
+                                <label>
+                                    <span>Code</span>
+                                    <span class="material-symbols-outlined">unfold_more</span>
+                                </label>
+                            </th>
                             <th>
-                                <label  class="fixed-width">
+                                <label  class="desc-fixed-width">
                                     <span>Description</span>
                                     <span class="material-symbols-outlined">unfold_more</span>
                                 </label>

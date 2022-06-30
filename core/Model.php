@@ -4,7 +4,6 @@ class Model{
 	function __construct($_db){
 		$this->conn = $_db;
 	}
-
 	public function fetchAll($table){
 		$query = "SELECT *
             FROM " . $table;

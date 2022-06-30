@@ -69,11 +69,17 @@
 		case 'getLimitedProducts':
 			$productList = $productController->getLimitedProducts((int) $_POST["limit"], (int) $_POST["page"]);
         break;
+		case 'searchProducts':
+			$productList = $productController->searchProducts($_POST);
+        break;
 		case 'getAllWarehouseInventorys':
 			$productList = $productController->getAllWarehouseInventorys($_POST);
         break;
 		case 'getLimitedWarehouseInventory':
 			$productList = $productController->getLimitedWarehouseInventory((int) $_POST["limit"], (int) $_POST["page"]);
+        break;
+		case 'searchWarehouseInventory':
+			$productList = $productController->searchWarehouseInventory($_POST);
         break;
 		case 'getLimitedBranchInventoryProducts':
 			$productList = $productController->getLimitedBranchInventoryProducts($_POST);
@@ -87,6 +93,13 @@
         break;
 		case 'getLimitedBranchInventory':
 			$BranchInventoryList = $productController->getLimitedBranchInventory((int) $_POST["limit"], (int) $_POST["page"]);
+        break;
+        case 'searchBranchInventory':
+			$BranchInventoryList = $productController->searchBranchInventory($_POST);
+
+        break;
+		case 'getSingleBranchInventory':
+			$BranchInventoryList = $productController->getSingleBranchInventory($_POST);
         break;
         case 'getAllWarehouseProducts':
 			$warehouseProductList = $productController->getAllWarehouseProducts($_POST);
@@ -127,8 +140,8 @@
 		case 'updateProduct':
 			$productList = $productController->updateProduct($_POST);
 			break;
-		case 'saveBranchinventory':
-			$branchinventoryList = $productController->saveBranchinventory($_POST);
+		case 'addBranchinventory':
+			$branchinventoryList = $productController->addBranchinventory($_POST);
 		break;
 		case 'returnToWareHouse':
 			$branchinventoryList = $productController->returnToWareHouse($_POST);
