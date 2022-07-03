@@ -16,9 +16,9 @@
 
     <title>POS LIFESTYLE</title>
 
-    <!-- CUSTOME STYLES -->
+    <!-- CUSTOME STYLES receipt -->
     <link rel="stylesheet" href="./css/pos.css">
-    <!-- <link rel="stylesheet" href="./css/layout.css"> -->
+    <link rel="stylesheet" href="./css/print.css" media="print">
 
 </head>
 <body>
@@ -32,10 +32,10 @@
                     <span class="material-icons-outlined">dashboard</span>
                     <h3>Home</h3>
                 </a>
-                <a href="#" class="menu-item nav-link" data-pgno="1" data-pg="orders">
+               <!--  <a href="#" class="menu-item nav-link" data-pgno="1" data-pg="sales">
                     <span class="material-icons-outlined">inventory</span>
                     <h3>Orders</h3>
-                </a>
+                </a> -->
                 <a href="#" class="menu-item nav-link" data-pgno="2" data-pg="sales">
                     <span class="material-icons-outlined">bubble_chart</span>
                     <h3>Sales</h3>
@@ -235,7 +235,7 @@
                                             <span class="full_width"><b id="outlet">Outlet: null</b></span>
                                         </div>
                                         <div class="receipt_number">
-                                            <span id="invoice_no"><b>No.</b>: #8226</span>
+                                            <span id="invoice_no"><b>No.</b></span>
                                             <span id="invoice_date"><b>Date</b>: </span>
                                         </div>
                                     </div>
@@ -243,7 +243,7 @@
                                         <table class="receipt_table">
                                             <thead>
                                                 <tr>
-                                                    <th>PCode</th>
+                                                    <th>Code</th>
                                                     <th>Name</th>
                                                     <th><span class="item_quantity">Qty</span></th>
                                                     <th>Price</th>
@@ -338,34 +338,6 @@
                     </div>
                     <div class="report-statistics">
                         <div class="cards">
-                            <div class="card">
-                                <span class="material-icons-outlined">shopping_bag</span>
-                                <div class="stat-details branch_income">
-                                    <h2>00</h2>
-                                    <label>Pulickal Hotel</label>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <span class="material-icons-outlined">inventory</span>
-                                <div class="stat-details branch_income">
-                                    <h2>00</h2>
-                                    <label>Arena Mall</label>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <span class="material-icons-outlined">verified_user</span>
-                                <div class="stat-details branch_income">
-                                    <h2>00</h2>
-                                    <label>Victoria Mall</label>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <span class="material-icons-outlined">attach_money</span>
-                                <div class="stat-details">
-                                    <h2 id="totalIncome">233,000,000 <small>/=</small></h2>
-                                    <label>Total Income</label>
-                                </div>
-                            </div>
                         </div>
                         <div class="filtration">
                              <label>
@@ -463,43 +435,9 @@
                             <span class="material-icons-outlined">bubble_chart </span>
                             <h3>Sales List</h3>
                         </div>
-                        <div class="title-modifications ">
-                            <a id="export_sales">
-                                <h3>Export </h3>
-                                <span class="material-icons-outlined">cloud_sync</span>
-                            </a>
-                        </div>
                     </div>
                     <div class="report-statistics">
                         <div class="cards">
-                            <div class="card">
-                                <span class="material-icons-outlined">shopping_bag</span>
-                                <div class="stat-details branch_income">
-                                    <h2>00</h2>
-                                    <label>Pulickal Hotel</label>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <span class="material-icons-outlined">inventory</span>
-                                <div class="stat-details branch_income">
-                                    <h2>00</h2>
-                                    <label>Arena Mall</label>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <span class="material-icons-outlined">verified_user</span>
-                                <div class="stat-details branch_income">
-                                    <h2>00</h2>
-                                    <label>Victoria Mall</label>
-                                </div>
-                            </div>
-                            <div class="card">
-                                <span class="material-icons-outlined">attach_money</span>
-                                <div class="stat-details">
-                                    <h2 id="totalIncome">233,000,000 <small>/=</small></h2>
-                                    <label>Total Income</label>
-                                </div>
-                            </div>
                         </div>
                         <div class="filtration">
                             <select class="salelimit">
@@ -613,7 +551,7 @@
                             </tr>
                         </thead>
                         <tbody id="sales_list">
-                            <!-- <div class="preloader"></div> -->
+                            <!-- <div class="preloader"></div>  -->
                         </tbody>
                     </table>
                     <table class="design">

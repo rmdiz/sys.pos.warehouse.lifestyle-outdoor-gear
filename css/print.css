@@ -1,0 +1,205 @@
+/*
+------------------------------------------------------------------------------------
+------------------------------------- RECEIPT------------- -------------------------
+------------------------------------------------------------------------------------
+*/
+table.receipt_table{
+  width: 90%;
+}
+table.receipt_table thead{
+    background: transparent;
+
+}
+table.receipt_table thead tr:hover,
+table.receipt_table tbody tr:hover{
+    background: transparent;
+}
+.receipting{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+.receipt{
+    position: relative;
+    background: var(--white);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 280px !important;
+    height: 0rem;
+    min-height: 0;
+    overflow: hidden;
+    font-size: .8rem;
+}
+.receipt.show{
+    height: auto;
+    min-height: 10rem;
+}
+label.printReceipt{
+    padding-top: .8rem;
+    padding: .5rem .8rem;
+    display: flex;
+}
+.receipt_overlay.active{
+    left: 0;
+    right: 0;
+}
+.receipt_header{
+    display: flex;
+    flex-direction: column;
+    font-size: .9rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    color: #000000;
+    padding: 0 .5rem;
+    width: inherit !important;
+}
+.receipt_header .logo{
+    display: flex;
+    justify-content: center;
+    width: inherit !important;
+    border-bottom: 1px solid #ccc;
+}
+.receipt_header .logo img{
+    height: 5rem;
+    object-fit: contain;
+}
+.receipt_header .contact{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*grid-template-columns: repeat(2, 1fr);*/
+    padding: .5rem 0;
+    font-size: .7rem !important;
+    justify-content: center;
+}
+.receipt_header .contact span{
+    display: flex;
+    /*width: 12.5rem;*/
+    padding: .2rem 0;
+}
+.receipt_header .contact span b{
+    padding-right: .5rem;
+    font-size: .9rem;
+}
+.receipt_header .contact span.full_width{
+    grid-column: 1/-1;
+    display: flex;
+    width: inherit;
+    text-align: center;
+    justify-content: center;
+    font-weight: 400;
+    font-size: .85rem;
+
+}
+.receipt_header .contact span:last-child{
+    text-transform: uppercase;
+}
+.receipt_number{
+    padding: .5rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: inherit;
+}
+.receipt_body{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: .8rem;
+    /*font-size: 1.2rem;*/
+    position: relative;
+    overflow: hidden;
+    width: inherit !important;
+}
+.receipt_table{
+    position: relative;
+    border-collapse: collapse;
+    margin: 0 .2rem;
+    font-size: .8rem !important;
+    /*width: 350px !important;*/
+    /*max-width: 350px !important;*/
+}
+.receipt_table thead tr th{
+    text-align: left;
+    border: 1px solid;
+    border-color: #ccc transparent #ccc transparent;
+    padding: .3rem;
+    color: #000000;
+    font-size: .8rem !important;
+}
+.receipt_table tbody tr td{
+    text-align: left;
+    padding-left: .2rem;
+    color: #000000;
+    font-size: .8rem !important;
+}
+.receipt_table thead tr th .item_quantity,
+.receipt_table tbody tr td .item_quantity{
+    display: flex;
+    width: 1.5rem;
+    overflow: hidden;
+    background: transparent;
+}
+.receipt_table thead tr th span{
+    font-size: .8rem;
+}
+.receipt_footer{
+    display: grid;
+    align-self: flex-start;
+    font-size: .7rem !important;
+    grid-template-columns: repeat(2, 1fr);
+    color: #000000;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+.receipt_footer span{
+    padding: .3rem;
+
+}
+.rTotal{
+    border: 2px solid;
+    border-color: #ccc transparent #ccc transparent;
+    text-transform: uppercase;
+    display: flex;
+    display: flex;
+    align-items: center;
+    font-size: .9rem;
+}
+.payType b{
+    font-size: .9rem;
+}
+.rTotal b{
+    padding-right: .2rem;
+    font-size: .9rem;
+}
+.receipt_footer .attendant{
+    padding-top: 1rem;
+    grid-column: 1/-1;
+    text-align: center;
+    width: 100%;
+    font-size: .9rem;
+
+}
+.receipt_footer .remarks{
+    border-bottom: 1px solid #ccc;
+    grid-column: 1/-1;
+    text-align: center;
+    width: 100%;
+    font-size: .9rem;
+}
+.receipt_footer .close{
+    font-style: italic;
+    font-size: .8rem;
+    grid-column: 1/-1;
+    text-align: center;
+    width: 100%;
+    text-transform: uppercase;
+}
+.receipt .item_name,
+.receipt .item_code,
+.receipt .item_quantity,
+.receipt .item_price,
+.receipt .item_total{
+    font-size: .8rem !important;
+ }

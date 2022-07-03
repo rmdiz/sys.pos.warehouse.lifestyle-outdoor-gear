@@ -30,7 +30,50 @@ class Sales{
 		echo json_encode($res);
 
 	}
+	public function returnSale($invoice_no){
+		$sql = "SELECT * FROM `sold_tb` WHERE invoice_no = ?";
+		$result = $this->p_instance->getDetails($sql, array('invoice_no' => (int)$invoice_no));
+		$dataArr = array();
+		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+			extract($row);
+			// RETURN TO BRANCH INVENTORY
+			$branchDetails = $this->returnQuantityToBranch((int)$branch_inventory_id, (int)$quantity);
+		}
+		// DELETE FROM SOLD
+		$delete = $this->p_instance->delete('sold_tb', 'invoice_no' , (int)$invoice_no);
+		// DELETE FROM INVOICE
+		$delete = $this->p_instance->delete('invoice_tb', 'id' , (int)$invoice_no);
 
+		if($delete){
+			echo json_encode(array('response'=> "success", 'message' => 'Product returned to branch inventory successfully'));
+		}else{
+			echo json_encode(array('response'=> "danger", 'message' => 'Operation failed'));
+		}
+		// echo json_encode($dataArr);
+	}
+	public function returnQuantityToBranch($branch_inventory_id, $purchaseQuantity){
+
+		$sql = "SELECT * FROM `branch_inventory_tb` WHERE branch_inventory_id = ? ";
+		$result = $this->p_instance->getDetails($sql, array('branch_inventory_id' => (int)$branch_inventory_id));
+		$dataArr = array();
+		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
+			extract($row);
+			// RETURN PURCHARSE QUANTITY BACK TO BRANCH INVENTORY QUANTITY
+			$inventory = array(
+				'quantity' =>  (int)$quantity + (int)$purchaseQuantity, 
+			);
+			// UPDATE INVENTORY QUANTITY
+			$inventory_info = $this->p_instance->updateDetails('branch_inventory_tb', 'branch_inventory_id', (int) $branch_inventory_id, $inventory);
+			// RETURN VALUE
+			$dataArr[] = array(
+				'NewQuantity' =>  (int)$quantity + (int)$purchaseQuantity, 
+				'quantity'	=>	$quantity,
+				'inventory_info' => $inventory_info
+			);
+				
+		}
+		return $dataArr;
+	}
 	public function getLimitedInvoices($limit, $incomingPage, $post){
 		$dataArr = array();
 		if($incomingPage > 1)
@@ -47,7 +90,7 @@ class Sales{
 				$sql .= " WHERE purchase_date BETWEEN '" . $post['data']['sdate'] . "' AND  '" . $post['data']['edate'];
 			}
 		}
-		$sql .= " ORDER BY purchase_date DESC";
+		$sql .= " ORDER BY id DESC";
 
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
 		$result = $this->p_instance->getDetails($filter_query, array());
@@ -79,7 +122,7 @@ class Sales{
 				$sql .= " WHERE purchase_date BETWEEN '" . $post['sdate'] . "' AND  '" . $post['edate'] . "'";
 			}
 		}
-		$sql .= " ORDER BY purchase_date DESC";
+		$sql .= " ORDER BY id DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
 
@@ -105,7 +148,7 @@ class Sales{
 	}
 
 	public function getInvoiceDetails($invoice_no){
-		$sql = "SELECT sd.*, iv.code, dt.discount_name, dt.discount_percentage, cl.colour_name, sz.innitual AS size_innitual, im.image_name, pt.product_name, ptt.payment_type_name, ct.fname AS customer_fname, ct.lname AS customer_lname, ct.email as customer_email, ct.telephone as customer_telephone, pt.sale_price, btt.brand_name, bt.branch_location, cy.category_name, ut.username, ut.first_name, ut.last_name, up.image AS user_image FROM `sold_tb` sd 
+		$sql = "SELECT sd.*, iv.code, dt.discount_name, dt.discount_percentage, cl.colour_name, sz.innitual AS size_innitual, im.image_name, pt.product_name, ptt.payment_type_name, ct.fname AS customer_fname, ct.lname AS customer_lname, ct.email as customer_email, ct.telephone as customer_telephone, btt.brand_name, bt.branch_location, cy.category_name, ut.username, ut.first_name, ut.last_name, up.image AS user_image FROM `sold_tb` sd 
 				LEFT OUTER JOIN product_detail_tb pt
 			    ON sd.product_id = pt.product_id 
 				LEFT OUTER JOIN branch_inventory_tb biv
@@ -147,7 +190,7 @@ class Sales{
 
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);
-			$totalPrice += ((int)$quantity * (int) $sale_price);
+			$totalPrice += ((int)$quantity * (int) $price);
 			$dataArr[] = array(
 				'purchase_id' => $purchase_id, 	
 				'product_id' => $product_id, 	
@@ -169,7 +212,7 @@ class Sales{
 				'customer_lname' => $customer_lname, 	
 				'customer_email' => $customer_email, 	
 				'customer_telephone' => $customer_telephone, 	
-				'sale_price' => $sale_price, 	
+				'sale_price' => $price, 	
 				'invoice_no' => $invoice_no, 	
 				'brand_name' => $brand_name, 	
 				'date' => $date, 	
@@ -184,7 +227,7 @@ class Sales{
 				'branch_id' => $branch_id,
 				'colour_name' => $colour_name,
 				'size_innitual' => $size_innitual,
-				'product_colors' => $this->get_inventory_product_color($product_id, $branch_id),
+				// 'product_colors' => $this->get_inventory_product_color($product_id, $branch_id),
 			);
 
 		}
@@ -192,10 +235,10 @@ class Sales{
 		return [$dataArr, $totalItems, $totalPrice];
 		
 	}
-	public function get_inventory_product_color($branch_id, $product_id)
-	{
+
+	public function get_inventory_product_color($branch_id, $product_id){
 		$sql = "
-			SELECT DISTINCT(iv.colour_id), cl.colour_name, img.image_name FROM `warehouseInventory_tb` iv LEFT OUTER JOIN colour_tb cl ON cl.colour_id = iv.colour_id LEFT OUTER JOIN inventory_product_images_tb img ON iv.inventory_id = img.inventory_id WHERE iv.product_id = ? 
+			SELECT DISTINCT(iv.colour_id), cl.colour_name, img.image_name FROM `warehouseInventory_tb` iv LEFT OUTER JOIN colour_tb cl ON cl.colour_id = iv.colour_id LEFT OUTER JOIN inventory_product_images_tb img ON iv.inventory_id = img.inventory_id WHERE iv.product_id = ?  
 		";
 		$result = $this->p_instance->getDetails($sql, array('iv.product_id' => (int)$product_id));
 
@@ -205,7 +248,7 @@ class Sales{
 			$colour_sizes =$this->get_inventoryproduct_sizes((int) $colour_id,  (int)$product_id, (int)$branch_id);
 			$dataArr[] = array(
 				'product_id' => (int)$product_id,
-				'branch_id' => (int)$branch_id, 
+				'brand_id' => (count($colour_sizes) == 0) ? 0 : $colour_sizes[0]['brand_id'], 
 				'product_image' => ($image_name != null) ? $image_name: "default.png", 
 				'colour_name' => $colour_name,
 				'colour_id' => $colour_id,
@@ -213,12 +256,10 @@ class Sales{
 			);
 		}
 
-		// return $sql;
 		return [$dataArr, $colour_sizes];
 
 
 	}
-	
 	public function get_inventoryproduct_sizes($colour_id, $product_id, $branch_id){
 		$inventory_id = 0;
 		$quantity = 0;
@@ -234,8 +275,9 @@ class Sales{
 	    LEFT OUTER JOIN size_tb sz ON wiv.size_id = sz.size_id 
 	    LEFT OUTER JOIN inventory_product_images_tb im ON wiv.inventory_id = im.inventory_id  
 		LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id 
-	    WHERE (wiv.status_id != 0  AND pt.status_id != 0 AND biv.branch_id = ? AND wiv.product_id = ? AND wiv.colour_id =  ? AND biv.quantity > 0 ) ORDER BY pt.product_name DESC";
-				$result = $this->p_instance->getDetails($sql, array('biv.branch_id' => (int) $branch_id,'wiv.product_id' => (int) $product_id, 'wiv.colour_id' => (int) $colour_id));
+	    WHERE (biv.branch_id = ? AND wiv.product_id = ? AND wiv.colour_id =  ? AND biv.quantity > 0 ) 
+	    ORDER BY pt.product_name DESC";
+		$result = $this->p_instance->getDetails($sql, array('biv.branch_id' => (int) $branch_id,'wiv.product_id' => (int) $product_id, 'wiv.colour_id' => (int) $colour_id));
 
 		$dataArr = array();
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
@@ -276,7 +318,6 @@ class Sales{
 		// echo json_encode($dataArr);
 
 	}
-
 
 	public function updateSale($post){
 		// foreach($post['data'] as $data){
@@ -494,137 +535,6 @@ class Sales{
 
 		return $dataArr;
 	}
-	public function getAllBranchInventoryProduct($branch_id){
-		$dataArr = array();
-		// $sql = "SELECT DISTINCT(biv.product_id) FROM branch_inventory_tb biv
-		// 	LEFT OUTER JOIN warehouseInventory_tb wiv ON biv.warehouse_inventory_id = wiv.inventory_id
-		// 	LEFT OUTER JOIN product_detail_tb pt ON wiv.product_id = pt.product_id WHERE (wiv.status_id != 0  AND pt.status_id != 0 AND biv.branch_id = ?)";
-
-		// $sql .= " ORDER BY pt.product_id  ASC";
-		// $filter_query = $sql;
-		// $result = $this->p_instance->getDetails($filter_query, array('biv.branch_id' => $branch_id));
-		
-		// while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-		// 	extract($row);
-		// 	$productDetails = $this->get_inventory_product_color($branch_id, (int)$product_id); 
-		// 	$product_colors = $productDetails[0];
-		// 	$product_sizes = $productDetails[1];
-		// 	$dataArr[] = array(
-		// 		'product_id' => (int)$product_id,
-		// 		'product_sizes' => $product_sizes, 
-		// 		'product_colors' => $product_colors,
-		// 		'id' => (int)(count($product_sizes) == 0) ? 0 : $product_sizes[0]['branch_inventory_id'],
-		// 		'warehouse_inventory_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['warehouse_inventory_id'],
-		// 		'name' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['name'],
-		// 		'category_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['category_id'], 
-		// 		'sale_price' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['sale_price'], 
-		// 		'buy_price' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['buy_price'], 
-		// 		'brand_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['brand_id'], 
-		// 		'brand_name' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['brand_name'], 
-		// 		'category_name' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['category_name'], 
-		// 		'colour_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['colour_id'], 
-		// 		'color' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['color'], 
-		// 		'desc' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['desc'], 
-		// 		'code' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['code'], 
-		// 		'size' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_label'], 
-		// 		'size_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['size_id'], 
-		// 		'quantity' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['quantity'], 
-		// 		'warehouseAvailableQuantity' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['warehouseAvailableQuantity'], 
-		// 		'quantity' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['quantity'], 
-		// 		'branch_name' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['branch_name'], 
-		// 		'branch_id' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['branch_id'], 
-		// 		'image' => (count($product_sizes) == 0) ? 0 : $product_sizes[0]['image']
-		// 	);
-
-		// }
-		// CONVERT OT JSON 
-		return $dataArr;
-
-	}
-	// public function get_inventory_product_color($branch_id, $product_id)
-	// {
-	// 	$sql = "
-	// 		SELECT DISTINCT(iv.colour_id), cl.colour_name, img.image_name FROM `warehouseInventory_tb` iv LEFT OUTER JOIN colour_tb cl ON cl.colour_id = iv.colour_id LEFT OUTER JOIN inventory_product_images_tb img ON iv.inventory_id = img.inventory_id WHERE iv.product_id = ?  
-	// 	";
-	// 	$result = $this->p_instance->getDetails($sql, array('iv.product_id' => (int)$product_id));
-
-	// 	$dataArr = array();
-	// 	while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-	// 		extract($row);
-	// 		$colour_sizes =$this->get_inventoryproduct_sizes((int) $colour_id,  (int)$product_id, (int)$branch_id);
-	// 		$dataArr[] = array(
-	// 			'product_id' => (int)$product_id,
-	// 			'branch_id' => (int)$branch_id, 
-	// 			'product_image' => ($image_name != null) ? $image_name: "default.png", 
-	// 			'colour_name' => $colour_name,
-	// 			'colour_id' => $colour_id,
-	// 			"color_products_sizes" => $colour_sizes
-	// 		);
-	// 	}
-
-	// 	return [$dataArr, $colour_sizes];
-
-
-	// }
-	// public function get_inventoryproduct_sizes($colour_id, $product_id, $branch_id){
-	// 	$inventory_id = 0;
-	// 	$quantity = 0;
-	// 	$sql = "SELECT 
-	// 	biv.*, wiv.product_id, wiv.inventory_id, wiv.colour_id, wiv.size_id, wiv.code, wiv.quantity AS warehouseAvailableQuantity, wiv.description, cl.colour_name, sz.size_label, sz.innitual, im.image_name, im.image_id, pt.product_name, pt.category_id, pt.sale_price, pt.buy_price, pt.brand_id, cy.category_name, bd.brand_name, sc.scheme_name, bc.branch_location, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM branch_inventory_tb biv 
-	// 	LEFT OUTER JOIN warehouseInventory_tb wiv ON biv.warehouse_inventory_id = wiv.inventory_id
-	// 	LEFT OUTER JOIN product_detail_tb pt ON wiv.product_id = pt.product_id 
-	//     LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id 
-	//     LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id 
-	//     LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id 
-	//     LEFT OUTER JOIN colour_tb cl ON wiv.colour_id = cl.colour_id 
-	//     LEFT OUTER JOIN branch_tb bc ON biv.branch_id = bc.branch_id 
-	//     LEFT OUTER JOIN size_tb sz ON wiv.size_id = sz.size_id 
-	//     LEFT OUTER JOIN inventory_product_images_tb im ON wiv.inventory_id = im.inventory_id  
-	// 	LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id 
-	//     WHERE (wiv.status_id != 0  AND pt.status_id != 0 AND biv.branch_id = ? AND wiv.product_id = ? AND wiv.colour_id =  ? AND biv.quantity > 0 ) ORDER BY pt.product_name DESC";
-	// 			$result = $this->p_instance->getDetails($sql, array('biv.branch_id' => (int) $branch_id,'wiv.product_id' => (int) $product_id, 'wiv.colour_id' => (int) $colour_id));
-
-	// 	$dataArr = array();
-	// 	while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
-	// 		extract($row);
-
-	// 		$dataArr[] = array(
-	// 			'id' => $colour_id,
-	// 			'branch_inventory_id' => $branch_inventory_id,
-	// 			'warehouse_inventory_id' => $warehouse_inventory_id,
-	// 			'product_id' => $product_id,
-	// 			'name' => $product_name,
-	// 			'category_id' => $category_id, 
-	// 			'sale_price' => $sale_price, 
-	// 			'buy_price' => $buy_price, 
-	// 			'brand_id' => $brand_id, 
-	// 			'brand_name' => $brand_name, 
-	// 			'category_name' => $category_name, 
-	// 			'colour_id' => $colour_id, 
-	// 			'colour_name' => $colour_name, 
-	// 			'desc' => $description, 
-	// 			'code' => $code, 
-	// 			'size_label' => $size_label, 
-	// 			'innitual' => $innitual,
-	// 			'size_id' => $size_id, 
-	// 			'supplier' => $supplier, 
-	// 			'scheme_name' => $scheme_name, 
-	// 			'warehouseAvailableQuantity' => $warehouseAvailableQuantity, 
-	// 			'quantity' => $quantity, 
-	// 			'branch_name' => $branch_location, 
-	// 			'branch_id' => $branch_id, 
-	// 			'date' => $date, 
-	// 			'image_id' => ($image_id != null) ? $image_id: 0,
-	// 			'image' => ($image_name == null) ? 'default.png' : $image_name,
-	// 		);
-	// 	}
-
-	// 	return $dataArr;
-	// 	// echo json_encode($dataArr);
-
-	// }
-
-
 	// POS ACTIONS
 	public function getBranchesInvoices($post){
 		$dataArr = array();
@@ -648,10 +558,11 @@ class Sales{
 			}
 		}
 
-		$sql .= " ORDER BY purchase_date DESC";
+		$sql .= " ORDER BY id DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
-
+		$total = $result->rowCount();
+		$incomingPage = (int) $post['page'];
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);
 			$invoiceDetails = $this->getBranchesInvoiceDetails((int)$id);
@@ -666,6 +577,7 @@ class Sales{
 				'totalItems'	=>	$invoiceDetails[1],
 				'totalPrice'	=>	$invoiceDetails[2],
 				'invoiceDetails' => $invoiceDetails[0],
+				'payment_type_id' => $invoiceDetails[0][0]['payment_type_id'],
 				'payment_type_name' => $invoiceDetails[0][0]['payment_type_name'],
 				'branch'	=>	$invoiceDetails[0][0]['branch_location'],
 				'customer_name'	=>	$invoiceDetails[0][0]['customer_fname'] .' '.$invoiceDetails[0][0]['customer_lname'],
@@ -673,7 +585,7 @@ class Sales{
 			);
 		}
 		// CONVERT OT JSON 
-		echo json_encode($dataArr);
+		echo json_encode([$dataArr, $total, $incomingPage]);
 		
 		// echo json_encode($sql);
 	}
@@ -689,7 +601,7 @@ class Sales{
 	}
 	public function getBranchesInvoiceDetails($invoice_no){
 		$sql = "
-			SELECT sd.*, biv.warehouse_inventory_id, iv.code, dt.discount_name, dt.discount_percentage, cl.colour_name, sz.innitual AS size_innitual, im.image_name, pt.product_name, ptt.payment_type_name, ct.fname AS customer_fname, ct.lname AS customer_lname, ct.email as customer_email, ct.telephone as customer_telephone, pt.sale_price, btt.brand_name, bt.branch_location, cy.category_name, ut.username, ut.first_name, ut.last_name, up.image AS user_image 
+			SELECT sd.*, biv.warehouse_inventory_id, iv.code, dt.discount_name, dt.discount_percentage, cl.colour_name, sz.innitual AS size_innitual, im.image_name, pt.product_name, ptt.payment_type_name, ct.fname AS customer_fname, ct.lname AS customer_lname, ct.email as customer_email, ct.telephone as customer_telephone, btt.brand_name, bt.branch_location, cy.category_name, ut.username, ut.first_name, ut.last_name, up.image AS user_image 
 			FROM `sold_tb` sd 
 				LEFT OUTER JOIN product_detail_tb pt
 			    ON sd.product_id = pt.product_id 
@@ -752,7 +664,7 @@ class Sales{
 				'customer_lname' => $customer_lname, 	
 				'customer_email' => $customer_email, 	
 				'customer_telephone' => $customer_telephone, 	
-				'sale_price' => $sale_price, 	
+				'sale_price' => $price, 	
 				'invoice_no' => $invoice_no, 	
 				'brand_name' => $brand_name, 	
 				'date' => $date, 	
@@ -767,10 +679,11 @@ class Sales{
 				'branch_id' => $branch_id,
 				'colour_name' => $colour_name,
 				'currency' => $currency,
+				'rate' => $rate,
 				'size_innitual' => $size_innitual,
-				// 'product_colors' => $this->get_inventory_product_color($product_id, $branch_id),
+				// 'product_colors' => $this->get_inventory_product_color((int)$product_id, (int)$branch_id),
 			);
-			$totalPrice += ((int)$quantity * (int) $sale_price);
+			$totalPrice += ((int)$quantity * (int) $price);
 		}
 		$totalItems = count($dataArr);
 		return [$dataArr, $totalItems, $totalPrice];

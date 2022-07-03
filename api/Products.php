@@ -20,7 +20,7 @@ class Products{
 					'warehouse_inventory_id' =>  $warehouse_inventory_id,
 					'product_id' =>  (int) $post['data']['product_id'],
 					'branch_id' =>   (int) $post['data']['branch_id'],
-					'date' =>   $post['date'],
+					'date' =>   $post['data']['date'],
 					'quantity' => (int) $post['data']['quantity']
 				);
 				$inventory_id = $this->p_instance->Save("branch_inventory_tb", $inventory_details);
@@ -40,11 +40,11 @@ class Products{
 		return $res;
 	}
 	public function returnToWareHouse($post){
-		$warehouse_inventory_id = (int) $post['data']['warehouse_inventory_id'];
-		$returnQuantity = (int) $post['data']['quantity'];
-		$availableQuantity = (int) $post['data']['availableQuantity'];
+		$warehouse_inventory_id = (int) $post['warehouse_inventory_id'];
+		$returnQuantity = (int) $post['quantity'];
+		$availableQuantity = (int) $post['availableQuantity'];
 		$newQauntity = $returnQuantity + $availableQuantity;
-		$branch_inventory_id = (int) $post['data']['inventory_id'];
+		$branch_inventory_id = (int) $post['inventory_id'];
 		// UPDATE INVENTORY PRODUCT
 		$updatedInventoryDetails =  $this->updateWarehouseInventoryQuantity($warehouse_inventory_id, $newQauntity);
 		if($updatedInventoryDetails){
@@ -53,14 +53,14 @@ class Products{
 			);
 			$inventory_id = $this->p_instance->updateDetails('branch_inventory_tb', 'branch_inventory_id', $branch_inventory_id, $inventory_details);;
 			if($inventory_id){
-				$inventoryDetails = $this->getOneBranchInventoryProduct($branch_inventory_id);
+				// $inventoryDetails = $this->getOneBranchInventoryProduct($branch_inventory_id);
 				$res = array(
 					'response'=> "success", 
 					'message' => 'Product quantity returned to warehouse inventory successfully', 
-					'info' => $inventoryDetails, 
 					'id' => $warehouse_inventory_id, 
-					'change' => $newQauntity,  
-					'secondary' => 'warehouseinventoryList'
+					// 'info' => $inventoryDetails, 
+					// 'change' => $newQauntity,  
+					// 'secondary' => 'warehouseinventoryList'
 				);
 				echo json_encode($res);
 			}else{
@@ -94,7 +94,7 @@ class Products{
 	public function updateWarehouseInventory($post){
 		$inventory_id = (int) $post['id'];
 		$updateData = array(
-			// 'product_id' =>  (int)  $post['data']['product_id'],
+			'product_id' =>  (int)  $post['data']['product_id'],
 			'colour_id' =>   (int) $post['data']['colour_id'],
 			'code' => strtoupper($post['data']['code']),
 			'size_id' =>  (int) $post['data']['size_id'],
@@ -102,6 +102,8 @@ class Products{
 			'description' => $post['data']['description'],
 		);
 		$res =  $this->p_instance->updateDetails('warehouseInventory_tb', 'inventory_id', $inventory_id, $updateData);
+		// $sql = "UPDATE `branch_inventory_tb` `product_id`= " + (int) $post['data']['product_id'] +" WHERE warehouse_inventory_id = " +  (int) $post['id'];
+		$res =  $this->p_instance->updateDetails('branch_inventory_tb', 'warehouse_inventory_id', $inventory_id, array( "product_id" => (int) $post['data']['product_id']));
 		if($inventory_id){
 			$inventoryDetails = $this->getOneWarehouseInventoryProduct($inventory_id);
 			echo json_encode(array('response'=> "success", 'message' => 'Inventory  Details updated successfully', 'info' => $inventoryDetails));
@@ -116,7 +118,8 @@ class Products{
         $num = $doesInventoryProductExist->rowCount();
 		if($num > 0){ 
 			echo json_encode(array('response'=> "warning", 'message' => 'Product already Exist'));
-		}else{
+		}
+		else{
 			$inventory_details = array(
 				'product_id' =>  (int)  $post['data']['product_id'],
 				'colour_id' =>   (int) $post['data']['colour_id'],
@@ -125,6 +128,7 @@ class Products{
 				'quantity' => (int) $post['data']['quantity'],
 				'description' => $post['data']['description'],
 			);
+				// echo json_encode(array('response'=> "success", 'message' => 'Product added to inventory successfully', 'info' => $inventory_details));
 
 			$inventory_id = $this->p_instance->Save("warehouseInventory_tb", $inventory_details);
 
@@ -398,7 +402,7 @@ class Products{
 	}
 	public function getAllProducts($post){
 		$dataArr = array();
-		$sql = "SELECT pt.*, cy.category_name, bd.brand_name, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM product_detail_tb pt LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id WHERE status_id != 0  ORDER BY product_id DESC";
+		$sql = "SELECT pt.*, cy.category_name, bd.brand_name, sc.scheme_name, CONCAT(sr.fname, ' ', sr.lname)AS supplier FROM product_detail_tb pt LEFT OUTER JOIN category_tb cy ON pt.category_id = cy.category_id LEFT OUTER JOIN brand_tb bd ON pt.brand_id = bd.brand_id LEFT OUTER JOIN size_Scheme_tb sc ON sc.scheme_id = pt.size_scheme_id LEFT OUTER JOIN supplier_tb sr ON pt.supplier_id = sr.supplier_id WHERE status_id != 0  ORDER BY pt.product_name ASC";
 
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
@@ -443,9 +447,10 @@ class Products{
 
 		$sql .= (isset($post['search'])) ? " WHERE (pt.product_name LIKE '%".$post['search']."%' 
 				OR bd.brand_name LIKE '%".$post['search']."%'
+				OR iv.description LIKE '%".$post['search']."%' 
 				OR iv.code LIKE '%".$post['search']."%'
 				OR ct.category_name LIKE '%".$post['search']."%') 
-				ORDER BY pt.product_name DESC" : " ORDER BY pt.product_name DESC";
+				ORDER BY pt.product_name ASC" : " ORDER BY pt.product_name ASC";
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
 
@@ -500,7 +505,7 @@ class Products{
 		    LEFT OUTER JOIN colour_tb cl ON iv.colour_id = cl.colour_id 
 		    LEFT OUTER JOIN size_tb sz ON iv.size_id = sz.size_id 
 		    LEFT OUTER JOIN inventory_product_images_tb im ON iv.inventory_id = im.inventory_id  WHERE iv.status_id != 0  AND pt.status_id != 0 
-		    ORDER BY pt.product_name DESC";
+		    ORDER BY iv.inventory_id DESC";
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
@@ -548,7 +553,7 @@ class Products{
 		    LEFT OUTER JOIN colour_tb cl ON iv.colour_id = cl.colour_id 
 		    LEFT OUTER JOIN size_tb sz ON iv.size_id = sz.size_id 
 		    LEFT OUTER JOIN inventory_product_images_tb im ON iv.inventory_id = im.inventory_id  WHERE iv.status_id != 0  AND pt.product_name != 0 
-		    ORDER BY iv.inventory_id  DESC";
+		    ORDER BY pt.product_name  ASC";
 
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
@@ -589,7 +594,7 @@ class Products{
 		$sql = "SELECT iv.inventory_id, iv.code, iv.description, iv.quantity, pt.* FROM warehouseInventory_tb iv 
 			LEFT OUTER JOIN product_detail_tb pt ON pt.product_id = iv.product_id 
 			WHERE iv.status_id != 0  AND iv.quantity != 0  AND pt.status_id != 0 
-		    ORDER BY iv.inventory_id  DESC";
+		    ORDER BY pt.product_name  DESC";
 
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
@@ -621,7 +626,8 @@ class Products{
 
 		$sql .= (isset($post['search'])) ? " WHERE (pt.product_name LIKE '%".$post['search']."%' 
 				OR bd.brand_name LIKE '%".$post['search']."%'
-				OR wiv.code LIKE '%".$post['search']."%'
+				OR wiv.code LIKE '%".$post['search']."%' 
+				OR wiv.description LIKE '%".$post['search']."%' 
 				OR ct.category_name LIKE '%".$post['search']."%') 
 				ORDER BY pt.product_name DESC" : " ORDER BY pt.product_name DESC";
 		$result = $this->p_instance->getDetails($sql, array());
@@ -651,7 +657,9 @@ class Products{
 		echo json_encode([$dataArr, $total]);
 		// echo json_encode($sql);
 	}
-	public function getLimitedBranchInventory($limit, $incomingPage){
+	public function getLimitedBranchInventory($post){
+		$limit = (int)$post['limit'];
+		$incomingPage = (int)$post['page'];
 		$dataArr = array();
 		if($incomingPage > 1)
 		{
@@ -667,16 +675,22 @@ class Products{
 			LEFT OUTER JOIN warehouseInventory_tb wiv ON biv.warehouse_inventory_id = wiv.inventory_id
 		    LEFT OUTER JOIN branch_tb bc ON biv.branch_id = bc.branch_id 
             LEFT OUTER JOIN product_detail_tb pt ON pt.product_id = biv.product_id
-            WHERE wiv.status_id != 0  AND pt.status_id != 0  
-		    ORDER BY biv.branch_inventory_id  DESC
+            WHERE wiv.status_id != 0  AND pt.status_id != 0 
 		";
 
-		
+		if(isset($post['branch_id'])){
+			if((int)$post['branch_id'] != 0){
+				// CHECK IF STATEMENT ALREADY HAS A WHERE CLOUSE
+				$sql .= (count(explode('WHERE', $sql)) == 1) ? " WHERE " : " AND ";
+				$sql .= "biv.branch_id = " . (int)$post['branch_id'];
+			}
+		}
 		$result = $this->p_instance->getDetails($sql, array());
 		$total = $result->rowCount();
 
-		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
-		$result = $this->p_instance->getDetails($filter_query, array());
+		$sql .=" ORDER BY biv.branch_inventory_id DESC";
+		$sql = $sql . ' LIMIT ' . $start . ', ' . $limit;
+		$result = $this->p_instance->getDetails($sql, array());
 		
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);
@@ -717,7 +731,8 @@ class Products{
 			LEFT OUTER JOIN product_detail_tb pt ON wiv.product_id = pt.product_id WHERE (wiv.status_id != 0  AND pt.status_id != 0 AND biv.branch_id = ?) 
 		";
 
-		// $sql .= " ORDER BY biv.product_id DESC ";
+		$sql .=" ORDER BY pt.product_name ASC";
+
 		$branch_id = (int) $post['branch_id'];
 		
 		$result = $this->p_instance->getDetails($sql, array('biv.branch_id' => $branch_id));
@@ -783,7 +798,7 @@ class Products{
 			if($post['data']['searchValue'] != ""){
 				$sql .= " AND (pt.product_name LIKE '%".$post['data']['searchValue']."%' OR bd.brand_name LIKE '%".$post['data']['searchValue']."%')";
 			}
-			$sql .= " ORDER BY biv.branch_inventory_id  DESC";
+			$sql .= " ORDER BY pt.product_name ASC";
 		}
 
 		$result = $this->p_instance->getDetails($sql, array());

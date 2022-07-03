@@ -58,7 +58,11 @@
             <a class="menu-item nav-link" href="#Profile" data-pg-no="7" data-page="Profile">
                 <span class="material-symbols-outlined">person</span>
                 <h3>Profile</h3>
-            </a>     
+            </a>   
+            <!-- <a href="#" id="setTheme">
+                <span class="material-symbols-outlined">manage_accounts</span>
+                <h3>Settings</h3>
+            </a>  --> 
             <a class="menu-item nav-link" href="#Settings" data-pg-no="8"  data-page="Settings">
                 <span class="material-symbols-outlined">manage_accounts</span>
                 <h3>Settings</h3>
@@ -141,7 +145,7 @@
                 <label for="user-image">
                     <img src="./images/box-logo.png" id="user-image">
                 </label>
-                <b><i>@</i>rogers</b>
+                <b><i>@</i></b>
                 <span class="material-symbols-outlined signout-btn">logout</span>
             </div>
         </nav>
@@ -168,7 +172,7 @@
             				<div class="branch-sales">
                                 <span class="material-symbols-outlined">attach_money</span>
                                 <h3>Sales </h3>
-                                <h1>113</h1>
+                                <h1>00</h1>
                             </div>
             			</div>
             			<div class="total-sale__price">
@@ -177,7 +181,7 @@
                                 <span class="material-symbols-outlined">attach_money</span>
                             </div>
                             <small><input type="date"></small>
-                            <h1>85,948,000/=</h1>
+                            <h1>00</h1>
                             <div class="branch">
                                 <button class="active">Victorial Mall</button>
                                 <button>Arena Mall</button>
@@ -240,7 +244,7 @@
                             
                             <div class="single_stat sync">
                                 <span class="material-symbols-outlined">currency_exchange</span>
-                                <input type="number" value="3500.96">
+                                <input type="number" id="dollarRate">
                                 <b>Dollar Rate</b>
                             </div>
                         </div>
@@ -263,7 +267,10 @@
                                 <option value="120">Showing 120  </option>
                                 <option value="All">Showing all </option>
                             </select>
-                            <a class="export">
+                            <select class="dash_branch_list">
+                                <option selected="">Branch </option>
+                            </select>
+                            <a class="export" id="export_branch_inventory">
                                 <h3>Export </h3>
                                 <span class="material-symbols-outlined">cloud_sync</span>
                             </a>
@@ -330,7 +337,18 @@
                     
                     <div class="pagination_link branchinventory-list_pagination">
                     </div>
-                    <table id="BranchInventorys_export_tb" class="hidden"></table>
+                    <table id="BranchInventorys_export_tb" class="hidden">
+                        <thead>
+                            <tr>
+                                <th>Description(brand > name > size > colour)</th>
+                                <th>Branch</th>
+                                <th>Code</th>
+                                <th>Qty</th>
+                                <th>Available</th>
+                            </tr>
+                        </thead>
+                        <tbody id="branchInvenrotytbody"></tbody>
+                    </table>
                 </div>
             </div>
             <div class="products-section page" id="Products">
@@ -356,7 +374,7 @@
                             <option value="120">Showing 120  </option>
                             <option value="All">Showing all </option>
                         </select>
-                        <a class="export">
+                        <a class="export" id="export_product">
                             <h3>Export </h3>
                             <span class="material-symbols-outlined">cloud_sync</span>
                         </a>
@@ -443,7 +461,23 @@
 
                 <div class="pagination_link product-list_pagination">
                 </div>
-                <table id="Products_export_tb" class="hidden"></table>
+                <table id="Products_export_tb" class="hidden">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Industrial</th>
+                            <th>Wholesale</th>
+                            <th>Retail</th>
+                            <th >Brand</th>
+                            <th>S.Scheme</th>
+                            <th >Code</th>
+                            <th>Supplier</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prodouctExportbody">
+                    </tbody>
+                </table>
             </div>
             
             <div class="inventory-section page" id="WarehouseInventorys">
@@ -463,7 +497,7 @@
                             <option value="120">Showing 120  </option>
                             <option value="All">Showing all </option>
                         </select>
-                        <a class="export">
+                        <a class="export" id="export_warehouse_inventory">
                             <h3>Export </h3>
                             <span class="material-symbols-outlined">cloud_sync</span>
                         </a>
@@ -542,7 +576,19 @@
                 
                 <div class="pagination_link warehouseinventory-list_pagination">
                 </div>
-                <table id="WarehouseInventorys_export_tb" class="hidden"></table>
+                <table id="WarehouseInventorys_export_tb" class="hidden">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>ty</th>
+                            <th>Colour</th>
+                            <th>Size</th>
+                            <th>Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="warehouserInventoryExpotbody"></tbody>
+                </table>
             </div>
             <div class="account-section page" id="Accounts">
                 <div class="section-title">
@@ -656,24 +702,9 @@
                         <span class="material-symbols-outlined">category</span>
                         <h3>Supplier List</h3>
                     </div>
-                    <div class="title-modifications hide">
-                        <a id="export_product">
-                            <h3>Export </h3>
-                            <span class="material-symbols-outlined">cloud_sync</span>
-                        </a>
-                        <button class="btn bg-blue" id="newInventory">
-                            <span class="material-symbols-outlined">add</span>
-                        </button>
-                        <button class="btn bg-success" id="editInventory">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="btn bg-danger" id="deleteInventory">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
                 </div>
 
-                <table class="designed">
+                <table class="design">
                     <thead>
                         <tr>
                             <th>
@@ -694,11 +725,11 @@
                                     <span class="material-symbols-outlined">unfold_more</span>
                                 </label>
                             </th>
-                            <th>
+                           <!--  <th>
                                 <label class="action">
                                     <span>Action</span>
                                 </label>
-                            </th>
+                            </th> -->
                             <th  class="">
                                 <label>
                                     <span>Telephone</span>
@@ -805,7 +836,7 @@
                     </div>
                 </div>
 
-                <table class="designed">
+                <table class="design">
                     <thead>
                         <tr>
                             <th>
@@ -1188,34 +1219,6 @@
                 </div>
                 <div class="report-statistics">
                     <div class="cards">
-                        <div class="card">
-                            <span class="material-symbols-outlined">shopping_bag</span>
-                            <div class="stat-details branch_income">
-                                <h2>00</h2>
-                                <label>Pulickal Hotel</label>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <span class="material-symbols-outlined">inventory</span>
-                            <div class="stat-details branch_income">
-                                <h2>00</h2>
-                                <label>Arena Mall</label>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <span class="material-symbols-outlined">verified_user</span>
-                            <div class="stat-details branch_income">
-                                <h2>00</h2>
-                                <label>Victoria Mall</label>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <span class="material-symbols-outlined">attach_money</span>
-                            <div class="stat-details">
-                                <h2 id="totalIncome">233,000,000 <small>/=</small></h2>
-                                <label>Total Income</label>
-                            </div>
-                        </div>
                     </div>
                     <div class="filtration">
                         <select class="salelimit">
@@ -1417,11 +1420,300 @@
                     </tr>
                 </table>
             </div>
+            <div class="page" id="Profile">
+                <div class="left">
+                    <div class="card">
+                        <div class="profile-photo" id="profile-user-image">
+                            <img src="./images/default.png">
+                        </div>
+                        <span id="profile-username">@Jackline</span>
+                        <h2 id="profile-name">Name: Naluyange Jackline</h2>
+                        <h2 id="profile-email">Email: tactical.ug@gmail.com</h2>
+                        <h2 id="profile-telephone">telephone: 0789684926</h2>
+                        <h2 id="profile-branch">Attendant</h2>
+                    </div>
+                </div>
+                <div class="right">
+                    <div class="title">
+                        <h3>Update your profile</h3>
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <form class="cart_billing">
+                        <div class="seachable_dropdown">
+                            <b for="add_customer_fname">First Name</b>
+                            <input type="text" name="update_user_fname" placeholder="User first name" id="update_user_fname">
+                        </div>
+                        <div class="seachable_dropdown">
+                            <b for="update_user_1name">Last Name</b>
+                            <input type="text" name="update_user_1name" placeholder="User last name" id="update_user_1name">
+                        </div>
+                        <div class="seachable_dropdown">
+                            <b for="update_user_email">Email</b>
+                            <input type="text" name="update_user_email" placeholder="User Email" id="update_user_email">
+                        </div>
+                        <div class="seachable_dropdown">
+                            <b for="update_user_telephone">Telephone</b>
+                            <input type="text" name="update_user_telephone" placeholder="User Telephone" id="update_user_telephone">
+                        </div>
+                        <div class="seachable_dropdown">
+                            <b for="update_user_username">username</b>
+                            <input type="text" name="update_user_username" placeholder="User username" id="update_user_username">
+                        </div>
+                        <div class="seachable_dropdown">
+                            <b for="update_user_type">user Type</b>
+                            <input type="text" name="update_user_type" placeholder="User password" id="update_user_type">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="settings-section page" id="Settings">
+                <div class="useables">
+                    <div class="four-box">
+                        <div class="box modes bg-white">
+                            <span class="material-symbols-outlined">light_mode</span>
+                            <h3>Light Mode</h3>
+                        </div>
+                        <div class="box modes bg-primary">
+                            <span class="material-symbols-outlined">dark_mode</span>
+                            <h3>Dark Mode</h3>
+                        </div>
+                        <div class="box color-theme">
+                            <b class="part-title">Theme Colors</b>
+                            <label for=""> <small></small> Blue</label>
+                            <label for=""> <small></small> Purple</label>
+                            <label for=""> <small></small> Green</label>
+                            <label for=""> <small></small> Charchoal</label>
+                            <label for=""> <small></small> White</label>
+
+                        </div>
+                        <div class="box color-theme">
+                            <b class="part-title">Active Theme and Colors</b>
+                            <label for=""> <small></small> Blue</label>
+                            <label for=""> <small></small> Blue</label>
+
+                        </div>
+                    </div>
+                    <div class="three-box">
+                        <div class="box">
+                            <b class="part-title">Choose Message Type</b>
+                            <div class="notification-type">
+                                <h3>Disapearing messages</h3>
+                                <span class="material-symbols-outlined">done_all</span>
+                            </div>
+                        </div>
+                        <div class="box">
+                            <b class="part-title">Choose Message Type</b>
+                            <div class="notification-type">
+                                <h3>Manual Close messages</h3>
+                                <span class="material-symbols-outlined">radio_button_unchecked</span>
+                            </div>
+                        </div>
+                        <div class="box">
+                            <b class="part-title">Choose notification Type</b>
+                            <div class="notification-type">
+                                <span class="material-symbols-outlined">check_box_outline_blank</span>
+                                <h3>Refreash page every after entry</h3>
+                            </div>
+                            <div class="notification-type">
+                                <span class="material-symbols-outlined">check_box_outline_blank</span>
+                                <h3>Refreash changed section after entry</h3>
+                            </div>
+                            <div class="notification-type">
+                                <span class="material-symbols-outlined">check_box</span>
+                                <h3>No refreash after entry</h3>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <div class="useables">
+                    <div class="three-box v1">
+                        <div class="box active">
+                            <div class="selected-item">
+                                <div class="selected-item-title">
+                                    <h3>Brands</h3>
+                                    <span class="material-symbols-outlined">add_task</span>
+                                </div>
+                                <table class="design">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label class="counter">
+                                                    <span>#</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label>
+                                                    <span>Name</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label class="action">
+                                                    <span>Action</span>
+                                                </label>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="brandList"> 
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
+                        <div class="box active">
+                            <div class="selected-item">
+                                <div class="selected-item-title">
+                                    <h3>Payment Methods</h3>
+                                    <span class="material-symbols-outlined" id="newpaymentType">add_task</span>
+                                </div>
+                                <table class="design">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label class="counter">
+                                                    <span>#</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label>
+                                                    <span>Name</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label class="action">
+                                                    <span>Action</span>
+                                                </label>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="paymentType">
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
+                        <div class="box active">
+                            <div class="selected-item">
+                                <div class="selected-item-title">
+                                    <h3>Category Details</h3>
+                                    <span class="material-symbols-outlined">add_task</span>
+                                </div>
+                                <table class="design">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label class="counter">
+                                                    <span>#</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label>
+                                                    <span>Name</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label class="username">
+                                                    <span>Description</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label class="action">
+                                                    <span>Action</span>
+                                                </label>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categoryList"></tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="four-box v1">
+                        <div class="box">
+                            <div class="selected-item">
+                                <div class="selected-item-title">
+                                    <h3>Color</h3>
+                                    <span class="material-symbols-outlined">add_task</span>
+                                </div>
+                                <table class="design">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label class="counter">
+                                                    <span>#</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label>
+                                                    <span>Name</span>
+                                                </label>
+                                            </th>
+                                            <!-- <th>
+                                                <label>
+                                                    <span>Code</span>
+                                                </label>
+                                            </th> -->
+                                            <th>
+                                                <label class="action">
+                                                    <span>Action</span>
+                                                </label>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="colorLIst">
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
+                        <div class="box">
+                            <div class="selected-item">
+                                <div class="selected-item-title">
+                                    <h3>Size</h3>
+                                    <span class="material-symbols-outlined">add_task</span>
+                                </div>
+                                <table class="design">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label class="counter">
+                                                    <span>#</span>
+                                                </label>
+                                            </th>
+                                            <th>
+                                                <label>
+                                                    <span>Name</span>
+                                                </label>
+                                            </th>
+                                            <!-- <th>
+                                                <label>
+                                                    <span>Code</span>
+                                                </label>
+                                            </th> -->
+                                            <th>
+                                                <label class="action">
+                                                    <span>Action</span>
+                                                </label>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="sizeLIst">
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     
+    <!-- <script src="./js/jquer.js"></script> -->
     <script src="./js/app.js"></script>
 </body>
 </html>

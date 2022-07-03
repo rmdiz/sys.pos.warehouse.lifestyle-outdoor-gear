@@ -23,6 +23,15 @@
 
 	// ROUTES updateSpecificSaleInform
 	switch ($request) {
+		case 'updateDollarRate':
+			$newRate = floatval($_POST['rate']);
+			$rate = $Model->updateDetails('currency_tb', 'id', 1, array('rate'=> $newRate));
+			echo json_encode($rate);
+		break;
+		case 'getDollarRate':
+			$rate = $Model->getDetails('SELECT * FROM currency_tb WHERE symbol = "$"',  array());
+			echo json_encode($rate->fetch(PDO::FETCH_ASSOC));
+		break;
 		case 'authenticate':
 			$auth = new Auth($Model);
 			$user_details = $auth->authenticate($_POST["username"], $_POST["password"]);
@@ -92,7 +101,7 @@
 			$BranchInventoryList = $productController->getAllBranchInventorys($_POST);
         break;
 		case 'getLimitedBranchInventory':
-			$BranchInventoryList = $productController->getLimitedBranchInventory((int) $_POST["limit"], (int) $_POST["page"]);
+			$BranchInventoryList = $productController->getLimitedBranchInventory($_POST);
         break;
         case 'searchBranchInventory':
 			$BranchInventoryList = $productController->searchBranchInventory($_POST);
@@ -155,6 +164,12 @@
 		case 'addWarehouseInventory':
 			$warehouseinventoryList = $productController->addWarehouseInventory($_POST);
         break;
+        case 'addPaymentType':
+	        $paymentTypeController->addPaymentType($_POST);
+        break;
+        case 'updatePaymentType':
+	        $paymentTypeController->updatePaymentType($_POST);
+        break;
 		case 'delete_info':
 			// ACTUAL DELETING
 			// if($Model->delete($_POST['data']['tb'], $_POST['data']['field'] , (int)$_POST['data']['id'])){
@@ -193,6 +208,9 @@
 		case 'getBranchesInvoices':
 			$saleList = $saleController->getBranchesInvoices($_POST);
         break;
+		case 'returnSale':
+			$saleController->returnSale($_POST['invoice_no']);
+		break;
 		// POS
 		case 'make_sale':
 			$saleController->makeTransaction($_POST['data']);

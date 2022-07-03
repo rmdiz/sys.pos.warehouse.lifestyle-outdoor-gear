@@ -30,5 +30,47 @@ class Payment_types{
 		echo json_encode($res);
 	}
 	
+	public function updatePaymentType($post){
+		$updateData = array(
+			'payment_type_name' =>  $post['paymentMethod']
+		);
+		$res =  $this->p_instance->updateDetails('payment_type_tb', 'payment_type_id', (int)$post['id'], $updateData);
+		if($res){
+			$msg = (array('response'=> "success", 'message' => 'payment Method updated successfully'));
+
+		}else{
+			$msg = array('response'=> "danger", 'message' => 'Operation failed');
+		}
+		echo json_encode($msg);
+	}	
+	public function addPaymentType($post){
+		$PaymentType_details = array(
+			'payment_type_name' =>  $post['paymentMethod']
+		);
+		$sql = "
+			SELECT * FROM payment_type_tb 
+                WHERE payment_type_name = ? 
+		";
+		$result = $this->p_instance->getDetails($sql, array('payment_type_name' =>  $post['paymentMethod']));
+
+		$msg = '';
+		$paymentMethodDetails = array();
+		// GET NUMBER OF ROWS
+		if($result->rowCount()){
+			$msg = array('response'=> "warning", 'message' => 'payment Method already Exists', 'info' => $paymentMethodDetails);
+		}
+		else{
+			$payment_type_id = $this->p_instance->Save("payment_type_tb", $PaymentType_details);
+
+			if($payment_type_id){
+				$msg = (array('response'=> "success", 'message' => 'payment Method added successfully'));
+
+			}else{
+				$msg = array('response'=> "danger", 'message' => 'Operation failed');
+			}
+
+		}
+		echo json_encode($msg);
+	}
 }
 ?>

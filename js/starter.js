@@ -49,7 +49,12 @@ const removeElement =(element) => {
 
 if(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
     if(JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')).session){
-        window.location.href = './index.html';
+        if(JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')).session.user_type_id == 1){
+            window.location.href = './index.html';
+        }else if(JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')).session.user_type_id == 2){
+            window.location.href = './pos.html';
+        }
+
     }else{
         deliverNotification('Thank you, signin please', 'success');
     }
@@ -140,7 +145,7 @@ let c = setInterval(() => {
         // clearInterval();
         if(action == 1){
             site.branchList.forEach(branch => {
-                // console.log(branch)
+                //// console.log(branch)
                 setTimeout(()=>{
                     // allBranchesDataRequest(branch.id, 'allbranchesinventoryproducts', {'limit': 500, 'page': 1, 'branch_id': branch.id, 'action':'getBranchesInventoryProducts'}, 1);
                 }, 0);
@@ -163,7 +168,7 @@ const convertToObject = (data) => {
         // USE INVENTORY ID AS KEY FOR EACH PRODUCT ID
         obj[info.id] = info;
     })
-    // console.log(obj);
+    //// console.log(obj);
     return obj;
 }
 // AUTO REFRESH SITE AFTER 5 Secounds IF THEIR ARE CHANGES IN DATA
@@ -183,14 +188,14 @@ const getTotals = (requestData) => {
             success: function(data){
                 if(data.length > 0 ){
                     data.forEach(res => {
-                        // console.log(res);
+                        //// console.log(res);
                         // let requestName = Object.keys(res)[0];
                         // let total = res[requestName];
                         // let lowerCaseRqtNm = requestName.toLowerCase();
                         // let localStorageNm = `${lowerCaseRqtNm}List`; //eg invoiceList general se
                         // if(site[localStorageNm]){
                         //     if(total != site[localStorageNm].length){
-                        //         console.log('Datachanged Update info')
+                        //      //   console.log('Datachanged Update info')
                         //         // dataRequest(requestName, {'limit': 15,'action': `getAll${requestName}s`}, 2, true);
                         //     }
                         // }

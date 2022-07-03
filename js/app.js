@@ -5,6 +5,7 @@ let limit = 15;
 
 let page = 1;
 let start = true;
+let objectifiedSalesData = {}
 
 var today = new Date();
 var dd = String(today.getDate()).padStart(2, '0');
@@ -17,6 +18,10 @@ setInterval( () => {
     if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
         window.location.href = './signin.html';
     }
+    /**
+     * CHECK FOR NEW SALE EVERY AFTER FIVE SECONDS
+     **/
+    getTodayInvoice();
 }, 5000); 
 
 if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
@@ -41,29 +46,6 @@ let expectedData = {
  * CHECK IF DATA IS AVAILABLE EVERY AFTER 1 SECONDS
  * IF AVAILABLE LOAD IT
  **/
-setInterval(()=> {
-    // LOOP THROUGH EXPECTED DATA OBJECT
-    Object.keys(expectedData).forEach((expectedDataKey, index, expectedDataKeys) =>{
-        // IF EXPECTED DATA HAS DATA LOAD THROUGH SITE DATA
-        if(expectedDataKeys.length > 0){
-            // CHECK EACH KEY IN SITE DATA, IF KEY EXITS DELETE IT FROM EXPECTED DATA
-            Object.keys(site).forEach(siteDataKey => {
-                if(siteDataKey == expectedDataKey){
-                    delete expectedData[expectedDataKey];
-                    // LOAD DATA FOUND IN LOCAL SITE DATA
-                    setTimeout(()=> {
-                        renderPageData(site[siteDataKey], siteDataKey);
-                    }, 0);
-                }
-            }); 
-        }
-    });
-
-    /**
-     * CHECK FOR NEW SALE EVERY AFTER 0.00 MILLI SECONDS
-     **/
- }, 0);
-
 /**
  * SYSTEM FUNCTIONS A-Z
  **/
@@ -97,7 +79,56 @@ setInterval(()=> {
         })
         return allOptions;
     }
+    const returnBranchInventory = (buttonArray) => {
+        buttonArray.forEach(inlineReturn => inlineReturn.addEventListener('click', (e) => {
+            if(!document.getElementById('warningBox')){
+                document.querySelector(`#BranchInventorys`).before(warningNotification(`Cancel Operation and exit`));
+                let warningBoxBtns = document.querySelectorAll('#warningBox button');
+                warningBoxBtns.forEach(actionBtn => actionBtn.addEventListener('click', () => {
+                    if(actionBtn.childNodes[1].textContent == 'Continue'){
+                        document.getElementById('warningBox').remove();
+                        let tr = inlineReturn.parentElement.parentElement.parentElement;
+                        let id=tr.dataset.id;
+                        let remaining=(Number(tr.dataset.quantity) + Number(tr.dataset.availableQuantity));
+                        data = {
+                            'warehouse_inventory_id' : tr.dataset.warehouse_inventory_id,
+                            'quantity' : tr.dataset.quantity,
+                            'availableQuantity' : tr.dataset.availableQuantity,
+                            'inventory_id' : tr.dataset.id,
+                            'action': 'returnToWareHouse'
+                        };
+                        res = run(data);
+                        res.always(details => {
+                            deliverNotification(details.message, details.response);
+                            getBranchInventory();
+                        });
+                    }else{
+                        document.getElementById('warningBox').remove();
+                    }
+                }));
+            }
+        }));
+    }
 
+    const  warningNotification = (message) => {
+        const warningBox = document.createElement('div');
+        warningBox.classList.add('warning-notification');
+        warningBox.setAttribute('id', 'warningBox');
+        warningBox.innerHTML = `
+            <span>${message}</span>
+            <label>
+                <button>
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    <b>Cancel</b>
+                </button>
+                <button>
+                    <b>Continue</b>
+                    <span class="material-symbols-outlined">done</span>
+                </button>
+            </label>
+        `;
+        return warningBox;
+    }
     // SINGLE ITEM INLINE EDIT
     const tableSingleItemEdit = (buttonArray, identifier) => {
         buttonArray.forEach(inlineEdit => inlineEdit.addEventListener('click', (e) => {
@@ -116,27 +147,14 @@ setInterval(()=> {
         tr.childNodes.forEach((td, index) => {
             if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
                 if((tr.parentElement.id == "branchinventorys_list") && (index == 3)){
-                    // res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
-                    // res.always((warehouseProductList) => {
-                        data = (td.classList.contains('select-data')) ? '<input list="sels'+index+'" readonly name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'"></datalist>':'<input type="text" value="' + td.childNodes[0].textContent.trim() + '" />';  
-                        tr.childNodes[index].childNodes[0].innerHTML = data;
-                        // tr.childNodes[index].childNodes[0].addEventListener('change', () => {
-                            // let productDetails = warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(tr.childNodes[index].childNodes[0].value.trim().toLowerCase()));
-                            // if(productDetails.length > 0){
-                                // tr.childNodes[index].childNodes[0].parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
-                                // document.getElementById('branchinventoryproductCode').value = productDetails[0].code;
-                                // document.getElementById('branchinventoryAvailableQuantity').value = productDetails[0].quantity;
-                            // }else{
-                                // deliverNotification('Invalid Delatils', 'warning');
-                            // }
-                        // });
-                    // });
+                    data = (td.classList.contains('select-data')) ? '<input list="sels'+index+'" readonly name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'"></datalist>':'<input type="text" value="' + td.childNodes[0].textContent.trim() + '" />';  
+                    tr.childNodes[index].childNodes[0].innerHTML = data;
                 }else if((tr.parentElement.id == "warehouseinventorys_list") && (index == 3)){
-                    // res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
-                    // res.always((productList) => {
-                        data = '<input list="sels'+index+'" readonly name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'"></datalist>';  
+                    res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
+                    res.always((productList) => {
+                        data = '<input list="sels'+index+'" name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'">'+generateOptions(productList)+'</datalist>';  
                         tr.childNodes[index].childNodes[0].innerHTML = data;
-                    // });
+                    });
                 }else{
                     data = (td.classList.contains('select-data')) ? '<input list="sels'+index+'" name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'">'+optionDataIsolation(td)+'</datalist>':'<input type="text" value="' + td.childNodes[0].textContent.trim() + '" />';  
                     tr.childNodes[index].childNodes[0].innerHTML = data;
@@ -148,15 +166,14 @@ setInterval(()=> {
 
         // ADD CLOSE BTN
         let closeBtn = `<span class="material-symbols-outlined danger  ${inlineEdit.parentElement.dataset.id}-inline-delete">close</span>`;
-        inlineEdit.parentElement.insertAdjacentHTML('beforeend', closeBtn);
+        inlineEdit.parentElement.children[inlineEdit.parentElement.children.length - 1].parentElement.insertAdjacentHTML('beforeend', closeBtn);
         // CANCLE OPERATION IF CLOSE BTN IS CLICKE
-        closeBtn = inlineEdit.parentElement.children[1];
+        closeBtn = inlineEdit.parentElement.children[inlineEdit.parentElement.children.length - 1];
         closeBtn.addEventListener('click', () => {
             tr.childNodes.forEach((td, index) => {
                 if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
                     let data = (td.childNodes[0].childNodes[0].value)
                     tr.childNodes[index].childNodes[0].textContent = data;  
-                    
                 }
             });
             inlineEdit.classList.remove('inProgress');
@@ -165,7 +182,7 @@ setInterval(()=> {
         })
     }
 
-    // GET TABLE DATA (td) IN THE INPUT FIELD AND ASIGN IT TO THE (td) ELEMENT AS TEXTCONTENT AFTER EDIT
+    // GET TABLE DATA (td) IN THE INPUT FIELD AND ASIGN IT TO THE (td) ELEMENT AS TEXTCONTENT AFTER EDIT warehouseinventorytmp
     const asignDataAfterEdit = (tr, inlineEdit, identifier) => {
         let updateData = {}
         tr.childNodes.forEach((td, index) => {
@@ -176,18 +193,21 @@ setInterval(()=> {
                  * FOR DROP DOWN FIELDS INSTED OF THEIR NAMES/VALUES
                  */
                 let dataReformatArr = [];
-                if(((tr.parentElement.id == "branchinventorys_list") && (index == 3))||((tr.parentElement.id == "warehouseinventorys_list") && (index == 3))){
+                if(((tr.parentElement.id == "branchinventorys_list") && (index == 3))){
                     dataReformatArr = (td.classList.contains('select-data') ? [JSON.parse(td.dataset.details)] : [{'id': data}]);
-                    console.log(dataReformatArr)
+                }else if(((tr.parentElement.id == "warehouseinventorys_list") && (index == 3))){
+                    dataReformatArr = [{'id': data}];
                 }else{
                     dataReformatArr = (td.classList.contains('select-data') ? site[td.classList[2]].filter(info => info.name.trim().toLowerCase() == data.trim().toLowerCase()) : [{'id': data}]);
                 }
+                //console.log(dataReformatArr)
                 // CHECK IF DATA WAS RECEIVED BACK IF NOT THE VALUE ENETERD WAS WRONG
                 if (dataReformatArr.length == 1) {
                     updateData[td.dataset.name] = dataReformatArr[0].id;
                     if(((tr.parentElement.id == "branchinventorys_list") && (index == 3))){
                         updateData['product_id'] = dataReformatArr[0].product_id;
                         updateData['availableQuantity'] = dataReformatArr[0].quantity;
+                        updateData['oldQuantity'] = tr.dataset.oldQuantity;
                     }
                     // REASIGN DATA BACK TO TABLE ELEMENT TD IF THEIR ARE NO ERRORS
                     if(!tr.classList.contains('newrow')){
@@ -218,14 +238,14 @@ setInterval(()=> {
                 }
                 res = run(data);
                 res.always(details => {
-                    console.log(details)
+                    //// console.log(details)
                     let element = document.querySelector(`#${tr.parentElement.id} div.preloader`)
                     removeElement(element);
                     // removeElement('div.preloader');
                     deliverNotification(details.message, details.response);
                     // getUserAccounts(); 
                     if((details.response == "success") && (btn.textContent == 'save_as')){
-                        console.log(details.info)
+                        //// console.log(details.info)
                         let templateString = userTmp(details.info, 'New');
                         renderSingelRow(details.info, templateString, '#users_list .newrow');
 
@@ -242,10 +262,10 @@ setInterval(()=> {
                     data.action = 'addProduct';
                     btn.textContent = 'save_as';
                 }
-                console.log(data);
+                //console.log(data);
                 res = run(data);
                 res.always(details => {
-                    console.log(details)
+                    //// console.log(details)
                     removeElement('div.preloader');
                     // removeElement('div.preloader');
                     deliverNotification(details.message, details.response);
@@ -261,25 +281,30 @@ setInterval(()=> {
             case 'warehouseinventorys_list':
                 res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
                 res.always((productList) => {
+                    //console.log(data)
+                    let productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(data.product_id.toLowerCase()));
+
+                    data.product_id = productDs[0].id;
                     data = {'data': data, 'id': tr.dataset.id, 'action': 'updateWarehouseInventory'};
                     if(tr.classList.contains('newrow')){
                         data.action = 'addWarehouseInventory';
                         btn.textContent = 'save_as';
                     }
-                    console.log(data);
+                    //console.log(data);
                     res = run(data);
                     res.always(details => {
-                        console.log(details)
+                        //console.log(details)
                         removeElement('div.preloader');
                         deliverNotification(details.message, details.response);
                         if((details.response == "success") && (btn.textContent == 'save_as')){
-                            let productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.name.toLowerCase()));
+                            productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.name.toLowerCase()));
                             let templateString = warehouseInventoryTmp(details.info, 'New', productDs);
                             renderSingelRow(details.info, templateString, '#warehouseinventorys_list .newrow');
                         }else if(btn.textContent == 'edit'){
                             removeElement('span.warehouseinventory-inline-delete');
+                            tr.children[4].innerHTML = (Number(details.info.quantity) > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>';
+                            getBranchInventory();
                         }
-                        
                     });
                 });
                 
@@ -288,29 +313,34 @@ setInterval(()=> {
                 let pDetails = [];
                 res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
                 res.always((warehouseProductList) => {
-                    console.log(data)
-                    data.remainingQuantity = (data.availableQuantity >= data.quantity) ? Number(data.availableQuantity) - Number(data.quantity) :  Number(data.availableQuantity) ;
+                    if(data.oldQuantity == data.quantity){
+                        data.remainingQuantity = data.availableQuantity;
+                    }else if(data.oldQuantity < data.quantity){
+                        data.remainingQuantity = Number(data.availableQuantity) - (Number(data.quantity) - Number(data.oldQuantity));
+                    }else if(data.oldQuantity > data.quantity){
+                        data.remainingQuantity = (Number(data.oldQuantity) - Number(data.quantity)) + Number(data.availableQuantity);
+                    }
                     data.date = today;
-                    console.log(data)
                     data = {'reload': true, 'data': data, 'id': tr.dataset.id, 'action': 'updateBranchinventory'};
                     if(tr.classList.contains('newrow')){
                         data.action = 'addBranchinventory';
                         btn.textContent = 'save_as';
                     }
-                    console.log(data);
+                    //console.log(data);
                     res = run(data);
                     res.always(details => {
-                        console.log(details)
-                        // let element = document.querySelector(`#${tr.parentElement.id} div.preloader`);
+                        //console.log(details)
                         removeElement('div.preloader');
                         deliverNotification(details.message, details.response);
                         if((details.response == "success") && (btn.textContent == 'save_as')){
-                            console.log(details.info)
+                            //// console.log(details.info)
                             let productDetails = warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.desc.toLowerCase()));
                             let templateString =  branchinventoryTmp(details.info, 'New', productDetails);
                             renderSingelRow(details.info, templateString, '#branchinventorys_list .newrow');
                         }else if(btn.textContent == 'edit'){
                             removeElement('span.branchinventory-inline-delete');
+                            getBranchInventory();
+                            getWarehouseInventory();
                         }
                         
                     });
@@ -344,30 +374,13 @@ setInterval(()=> {
         let inlineEditBtns = "";
         let user_branch_id =  (site.session.user_type_id == 1) ? 0 : site.session.branch_id;
         switch(identifier){
-            case 'allbranchessaleinvoices':
+            case 'invoice':
                 // CALCULATE TOTAL SALES IN EACH BRACH AND OVERALL TOTAL
-                setTimeout(calculateTotalSales(data, start), 0);
+                objectifiedSalesData = calculateTotalSales(data[0], start);
+                //console.log(objectifiedSalesData)
                 // FOR DATA RESTRUCTURING
-                initualStat = start;
-                start = (start == -1) ? 0 : start;
-                // TRACK IF REQUEST IS FROM PAGINATION
-                // IF T IS ZERO (0) THEN THE REQUEST IS FROM DATABASE
-                // IF NOT ITS FROM PEGINATION
-                let t = start;
-                // CHECK IF DATA IS FROM THE DATABASE
-                // data = site.allbranchessaleinvoices;
-                // console.log(start)
                 // GET INVOICE POPULATION TYPE (EITHER PURCHASE DETAILS OR INVOICE)
                 let listingType = document.querySelector('.listing_type').value;
-                // INVOICE/SALE FILTERS
-                let branch_list_filter = document.querySelector(".branch_list").value;
-                let payment_type_list_filter = document.querySelector('.payment_type_list').value;
-                let currency_list_filter = document.querySelector(".currency_list").value;
-                let salelimit_filter = document.querySelector(".salelimit").value;
-                // console.log(branch_list_filter, payment_type_list_filter, currency_list_filter, salelimit_filter)
-                // POPULATE BRANCH INVOICE TABLE ROWS
-                let branchInvoices = {};
-                dataArrayFormat = [];
                 itemContainer = (listingType == "invoice") ? document.getElementById('invoices_list') : document.getElementById('sales_list');
                 itemContainer.innerHTML =``;
                 if(listingType == "invoice"){
@@ -377,95 +390,51 @@ setInterval(()=> {
                     document.getElementById('invoices_list').parentElement.classList.add("hide")
                     document.getElementById('sales_list').parentElement.classList.remove('hide'); 
                 }
-                removeElement('div.preloader');
-                // ENFORCE DISPLAY LIMIT
+                // INVOICE/SALE FILTERS
+                let branch_list_filter = document.querySelector(".branch_list").value;
+                let payment_type_list_filter = document.querySelector('.payment_type_list').value;
+                let currency_list_filter = document.querySelector(".currency_list").value;
+                let salelimit_filter = document.querySelector(".salelimit").value;
                 limit = Number(salelimit_filter);
-                // console.log(data)
-                if(user_branch_id != 0){
-                    // MAKE BRANCH DROPDOWN UNCLICKABLE BY ATTENDANTS
-                    document.querySelector(".branch_list").setAttribute('readonly',  'readonly');
-                    document.querySelector(".branch_list").style.pointerEvents = 'none';
-                    // GET BRANCH DATA
-                    // IF DATA IS FROM PEGINATION THEIR IS NO NEED TO RESTRUCTURE IT AGAIN
-                    if(initualStat == -1){
-                        branchInvoices = data[user_branch_id];
-                    }else{
-                        branchInvoices = data;
-                    }
-                    if(Object.keys(branchInvoices).length > 0){
-                        // GET BRANCH DATA KEYS GET THE LIMITED DATA 
-                        // ENFORCE DISPLAY LIMIT
-                        if(salelimit_filter != 'All') {
-                            dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
-                        }else{
-                            dataKeys = Object.keys(branchInvoices).slice(start);
-                        }
-                        // LOOP THROUGH THE DATAKEYS TO RENDER DATA ASSOCIATED WITH THEM
-                        dataKeys.forEach((infoKey, index, infoKeys) => {
-                            if(
-                                (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
-                                (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
-                                ){
-                                itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
-                                counter++;
-                            }
-                            start++;
-                        });
-                    }else{
-                        itemContainer.innerHTML = "<tr><td colspan='10'><label class'warning'><center>Nothing found.</center></label></td></tr>";
-                    }
+                //console.log(branch_list_filter)
+                // FILTER BY BRANCH
+                if(!Number(branch_list_filter) ||  (Number(branch_list_filter) == 5)){
+                    data = data[0];
                 }else{
-                    // IF DATA IS FROM PEGINATION THEIR IS NO NEED TO RESTRUCTURE IT AGAIN
-                    if(initualStat == -1){
-                        Object.keys(data).forEach((dataKey, index) =>{
-                            Object.keys(data[dataKey]).forEach((innerDataKey, index) =>{
-                                branchInvoices[innerDataKey] = data[dataKey][innerDataKey];
-                            });
-                        });
-                    }else{
-                        branchInvoices = data;
-                    }
-                    // GET BRANCH DATA KEYS GET THE LIMITED DATA 
-                    // ENFORCE DISPLAY LIMIT
-                    if(salelimit_filter != 'All') {
-                        dataKeys = Object.keys(branchInvoices).slice(start, (limit + start));
-                    }else{
-                        dataKeys = Object.keys(branchInvoices).slice(start);
-                    }
-                    // console.log(dataKeys)
-                    dataKeys.forEach((infoKey, index, infoKeys) => {
-                        setTimeout(generateSaleExportTb(branchInvoices[infoKey]), 0);
-                        if(
-                            (Number(branchInvoices[infoKey].invoiceDetails[0].branch_id) == Number(branch_list_filter)) || 
-                            (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('Branch')) ||
-                            (document.querySelector('.branch_list').options[document.querySelector('.branch_list').selectedIndex].text.includes('All'))  
-                            ){
-                            if(
-                                (Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)) || 
-                                (document.querySelector('.payment_type_list').options[document.querySelector('.payment_type_list').selectedIndex].text.includes('Method'))
-                                ){
-
-                                itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(branchInvoices[infoKey], index, start) : saleTmp(branchInvoices[infoKey], index, start)));
-                                // console.log(start+1, start + Number(branchInvoices[infoKey].totalItems));
-                                counter++;
-                            }
-                        }
-                        // CHECK IF TABLE IS POPULATED IN ACODANCE WITH THE INVOICE
-                        // IF ITS BY INVOICE INCREAMENT START BY ONE EACH REPEATITION
-                        // IF ITS BY SALE/PURCHASE THEN INCREAMENT START BY THE NUMBER OF ITEMS ON THE INVOICE
-                        // console.log(branchInvoices[infoKey].totalItems);
-                        start = (listingType == "invoice") ? start+1 : start + Number(branchInvoices[infoKey].totalItems);
-                    })
+                    data = data[0].filter(info => Number(info.branch_id) == Number(branch_list_filter));
+                }
+                // FILTER BY PAYMENT METHOD
+                if(Number(payment_type_list_filter)){
+                    data = data.filter(info => Number(info.payment_type_id) == Number(payment_type_list_filter));
                 }
 
+                if(start == -1){
+                    start = (start == -1) ? 0 : start;
+                }else{
+                    let displayed = (limit * (start - 1));
+                    start = displayed;
+
+                }
+                // ENFORCE LIMIT
+                if(salelimit_filter != 'All') {
+                    data = data.slice(start, (limit + start));
+                }else{
+                    data = data.slice(start);
+                }
+                //console.log((Number(branch_list_filter.value)))
                 // MAKE INVOICE ACTION BUTTONS CLICKABLE
-                tRowAction();
-                if(t == 0){
-                    generatePegination(branchInvoices, 'invoice', limit);
-                }
+                data.forEach((info, index, infoKeys) => {
+                    setTimeout(generateSaleExportTb(info), 0);
+                    itemContainer.insertAdjacentHTML('beforeend', ((listingType == "invoice") ? invoiceTmp(info, index, start) : saleTmp(info, index, start)));
+                    counter++;
+                    // CHECK IF TABLE IS POPULATED IN ACODANCE WITH THE INVOICE
+                    // IF ITS BY INVOICE INCREAMENT START BY ONE EACH REPEATITION
+                    // IF ITS BY SALE/PURCHASE THEN INCREAMENT START BY THE NUMBER OF ITEMS ON THE INVOICE
+                    start = (listingType == "invoice") ? start+1 : start + Number(info.totalItems);
+                    reveal('invoice');
+                })
 
-                // console.log(branchInvoices);
-                reveal('invoice');
+                tRowAction();
             break;
             
             case 'user':
@@ -488,6 +457,7 @@ setInterval(()=> {
 
                         itemContainer.insertAdjacentHTML('beforeend', templateString);
                         count++;
+                        reveal('user');
                     });
                     inlineEditBtns = document.querySelectorAll('.userrevealer .inline-edit');
                     tableSingleItemEdit(inlineEditBtns, 'edit-data');
@@ -495,14 +465,45 @@ setInterval(()=> {
 
                 }else{
                     templateString = `
-                        <tr class="unrevealed userrevealer">
+                        <tr class="userrevealer">
                             <td colspan='10'><label class="warning">nothing Found</label></td>
                         </tr>
                     `;
                     itemContainer.innerHTML = templateString;
                 }
-                reveal('user');
 
+            break;
+            case "supplier":
+
+                if(data[1] != data[0].length){
+                    pageNo = Number(document.querySelector('.supplier-list_pagination span.active').textContent);
+                    // let total = data[1];
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
+                // count = (pageNo == 1) ? pageNo : (limit + 1);
+                itemContainer = document.getElementById('suppliers_list');
+                itemContainer.innerHTML = "";
+                templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    data.forEach((itemDetails, index) => {
+                        templateString = `<tr class="unrevealed supplierrevealer" data-id="${itemDetails.supplier_id}">`;
+                        templateString += supplierTmp(itemDetails, count);
+                        templateString += `</tr> `;
+
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                        reveal('supplier');
+                    });
+                }else{
+                    templateString = `
+                        <tr class="supplierrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
+                }
             break;
             case 'product':
                 if(data[1] != data[0].length){
@@ -515,25 +516,26 @@ setInterval(()=> {
                 templateString = '';
                 data = data[0];
                 if(data.length > 0){
+                    setTimeout(generateproductExportTb(data), 0);
                     data.forEach((itemDetails, index) => {
                         templateString = `<tr class="unrevealed productrevealer" data-id="${itemDetails.id}">`;
                         templateString += productTmp(itemDetails, count);
                         templateString += '</tr>';
                         itemContainer.insertAdjacentHTML('beforeend', templateString);
                         count++;
+                        reveal('product');
                     });
                     inlineEditBtns = document.querySelectorAll('.productrevealer .inline-edit');
                     tableSingleItemEdit(inlineEditBtns, 'edit-data');
 
                 }else{
                     templateString = `
-                        <tr class="unrevealed productrevealer">
+                        <tr class="productrevealer">
                             <td colspan='10'><label class="warning">nothing Found</label></td>
                         </tr>
                     `;
                     itemContainer.innerHTML = templateString;
                 }
-                reveal('product');
 
             break;
             case 'warehouseinventory':
@@ -550,6 +552,7 @@ setInterval(()=> {
                     templateString = '';
                     data = data[0];
                     if(data.length > 0){
+                        setTimeout(generatewarehouseInventoryExportTb(data), 0);
                         data.forEach((itemDetails, index) => {
                             let productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(itemDetails.name.toLowerCase()));
                             templateString = `<tr class="unrevealed warehouseinventoryrevealer" data-id="${itemDetails.id}">`;
@@ -557,24 +560,24 @@ setInterval(()=> {
                             templateString += '</tr>';
                             itemContainer.insertAdjacentHTML('beforeend', templateString);
                             count++;
+                            reveal('warehouseinventory');
                         });
                         inlineEditBtns = document.querySelectorAll('.warehouseinventoryrevealer .inline-edit');
                         tableSingleItemEdit(inlineEditBtns, 'edit-data');
 
                     }else{
                         templateString = `
-                            <tr class="unrevealed warehouseinventoryrevealer">
+                            <tr class="warehouseinventoryrevealer">
                                 <td colspan='10'><label class="warning">nothing Found</label></td>
                             </tr>
                         `;
                         itemContainer.innerHTML = templateString;
                     }
-                    reveal('warehouseinventory');
                 });
 
             break;
             case 'branchinventory':
-                console.log(data)
+                //console.log(data)
                 if(data[1] != data[0].length){
                     let paginationLink = (!document.querySelector('.branchinventory-list_pagination span.active')) ? document.querySelectorAll('.branchinventory-list_pagination span')[document.querySelectorAll('.branchinventory-list_pagination span').length - 2].textContent : document.querySelector('.branchinventory-list_pagination span.active').textContent;
                     pageNo = Number(paginationLink);
@@ -587,21 +590,23 @@ setInterval(()=> {
                 data = data[0];
                 let total = data.length;
                 if(data.length > 0){
+                    setTimeout(generatebranchinventoryExportTb(data), 0);
                     data.forEach((itemDetails, index) => {
-                        // console.log(itemDetails)
+                        //// console.log(itemDetails)
                         let res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
                         res.always((warehouseProductList) => {
                             let productDetails = warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(itemDetails.desc.toLowerCase()));
-                            templateString = `<tr class="unrevealed branchinventoryrevealer" data-id="${itemDetails.id}">`;
+                            templateString = `<tr class="unrevealed branchinventoryrevealer" data-warehouse_inventory_id="${itemDetails.warehouse_inventory_id}" data-id="${itemDetails.id}" data-old-quantity="${itemDetails.quantity}" data-available-quantity="${itemDetails.availableQuantity}">`;
                             templateString +=  branchinventoryTmp(itemDetails, count, productDetails);
                             templateString += '</tr>';
                             itemContainer.insertAdjacentHTML('beforeend', templateString);
                             count++;
+                            reveal('branchinventory');
                             if(total == 1){
                                 inlineEditBtns = document.querySelectorAll('.branchinventoryrevealer .inline-edit');
-                                console.log(inlineEditBtns)
+                                inlineReturnBtns = document.querySelectorAll('.branchinventoryrevealer .inline-return');
+                                returnBranchInventory(inlineReturnBtns);
                                 tableSingleItemEdit(inlineEditBtns, 'edit-data');
-                                reveal('branchinventory');
                             }
                             total--;
                         });
@@ -609,7 +614,7 @@ setInterval(()=> {
 
                 }else{
                     templateString = `
-                        <tr class="unrevealed branchinventoryrevealer">
+                        <tr class="branchinventoryrevealer">
                             <td colspan='10'><label class="warning">nothing Found</label></td>
                         </tr>
                     `;
@@ -618,6 +623,20 @@ setInterval(()=> {
 
             break;
         }
+    }
+    const supplierTmp = (itemDetails, count) => {
+        let templateString = `
+            <td><label class="counter">${count}</label></td>
+            <td class="edit-data" data-name="first_name"><label class="short-fixed">${itemDetails.first_name}</label></td>
+            <td class="edit-data" data-name="last_name"><label class="short-fixed">${itemDetails.last_name}</label></td>
+            <td class="edit-data" data-name="telephone"><label>${itemDetails.telephone}</label></td>
+            <td class="edit-data select-data"><label class="success counter">active</label></td>
+            <td class="edit-data" data-name="address"><label class="price warning">${itemDetails.date}</label></td>
+            <td class="edit-data" data-name="address"><label>${itemDetails.address}</label></td>
+            <td class="edit-data" data-name="email"><label class="fixed-width">${itemDetails.email}</label></td>
+
+        `;
+        return templateString;
     }
     const userTmp = (itemDetails, count) => {
         let templateString = `
@@ -651,7 +670,7 @@ setInterval(()=> {
         return templateString;
     }
     const branchinventoryTmp = (itemDetails, count, productDetails) => {
-        // console.log(itemDetails)
+        //// console.log(itemDetails)
         let templateString = `
         <td><label class="counter">${count}</label></td>
         <td class="edit-data select-data warehouseProductList" data-name="warehouse_inventory_id" data-details='${JSON.stringify(productDetails[0])}'><label class="desc-fixed-width">${itemDetails.desc}</label></td>
@@ -666,21 +685,40 @@ setInterval(()=> {
         <td class="edit-data" data-old-quantity="${itemDetails.quantity}" data-name="quantity"><label>${itemDetails.quantity}</label></td>
         <td data-name="availableQuantity"><label>${itemDetails.availableQuantity}</label></td>
         <td class="edit-data select-data statusList" data-name="status_id">${(itemDetails.quantity > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>'}</td>
-    `;
-    return templateString;
+        `;
+        return templateString;
+    }
+    const generatebranchinventoryExportTb = (itemData) => {
+        let tmp = ``;
+        if(typeof(itemData) == 'object'){
+            //console.log(typeof(itemData))
+            itemData.forEach((itemDetails, index) => {
+                tmp = `
+                <tr>
+                    <td>${itemDetails.desc}</td>
+                    <td>${itemDetails.branch_name}</td>
+                    <td>${itemDetails.code}</td>
+                    <td>${itemDetails.quantity}</td>
+                    <td>${itemDetails.availableQuantity}</td>
+                </tr>
+                `;
+                document.getElementById('branchInvenrotytbody').insertAdjacentHTML('beforeend', tmp);
+            });
+
+        }
     }
     const warehouseInventoryTmp = (itemDetails, count, productDetails) => {
-        console.log(productDetails)
+        //// console.log(productDetails)
         let templateString = `
             <td><label class="counter">${count}</label></td>
-            <td class="select-data productList" data-name="product_id" data-details='${JSON.stringify(productDetails)}'><label class="fixed-width">${itemDetails.name}</label></td>
+            <td class="edit-data select-data productList" data-name="product_id" data-details='${JSON.stringify(productDetails)}'><label class="fixed-width">${itemDetails.name}</label></td>
             <td>
                 <label class="action" data-id="warehouseinventory">
                     <span class="material-symbols-outlined primary inline-edit">edit</span>
                 </label>
             </td>
             <td class="edit-data" data-name="quantity"><label>${itemDetails.quantity}</label></td>
-            <td>${(itemDetails.quantity > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>'}</td>
+            <td id="available${itemDetails.warehouse_inventory_id}">${(itemDetails.quantity > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>'}</td>
             <td>
                 <div class="image">
                     <img src="./images/${itemDetails.image}" alt="">
@@ -699,6 +737,25 @@ setInterval(()=> {
         return templateString;
     }
 
+    const generatewarehouseInventoryExportTb = (itemData) => {
+        let tmp = ``;
+        if(typeof(itemData) == 'object'){
+            //console.log(typeof(itemData))
+            itemData.forEach((itemDetails, index) => {
+                tmp = `
+                <tr>
+                    <td>${itemDetails.name}</td>
+                    <td>${itemDetails.quantity}</td>
+                    <td>${itemDetails.color}</td>
+                    <td>${itemDetails.size}</td>
+                    <td>${itemDetails.code}</td>
+                    <td>${itemDetails.desc}</td>
+                </tr>
+                `;
+                document.getElementById('warehouserInventoryExpotbody').insertAdjacentHTML('beforeend', tmp);
+            });
+        }
+    }
     const productTmp = (itemDetails, count) => {
 
         let templateString = `
@@ -721,8 +778,30 @@ setInterval(()=> {
         `;
         return templateString;
     }
+    const generateproductExportTb = (itemData) => {
+        let tmp = ``;
+        if(typeof(itemData) == 'object'){
+            //console.log(typeof(itemData))
+            itemData.forEach((itemDetails, index) => {
+                tmp = `
+                <tr>
+                    <td>${itemDetails.name}</td>
+                    <td>${itemDetails.category_name}</td>
+                    <td>${itemDetails.wholesale_price}</td>
+                    <td>${itemDetails.sale_price}</td>
+                    <td>${itemDetails.brand_name}</td>
+                    <td>${itemDetails.scheme_name}</td>
+                    <td>${itemDetails.code_initual}</td>
+                    <td>${itemDetails.supplier}</td>
+                </tr>
+                `;
+                document.getElementById('prodouctExportbody').insertAdjacentHTML('beforeend', tmp);
+            });
+
+        }
+    }
     const generatePegination = (data, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
-        // console.log(data)
+        //// console.log(data)
         let pages = 1;  
         let range = []; 
         let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
@@ -731,7 +810,7 @@ setInterval(()=> {
             let page = Math.ceil(total/limit);
             pages = total & limit === 0 ? page : page + 1;
             range = [...Array(pages).keys()];
-            console.log(total, range, peginationLink)
+            //console.log(total, range, peginationLink)
 
             let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
             let itemLink = '<span><<</span> ';
@@ -767,9 +846,9 @@ setInterval(()=> {
         }
     }
     const paginationManipulation = (dataType, displayLinkNumber, range, data, item, limit) => {
-        console.log(item)
+        //console.log(item)
         let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
-        // console.log(limit)
+        //// console.log(limit)
         itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
             itemLinks.forEach(itemLink => {itemLink.classList.remove('active')});
 
@@ -851,7 +930,7 @@ setInterval(()=> {
                     document.querySelector(`.pagination_link.${item}-list_pagination span.prev`).classList.add('hide');
                 break;
                 default:
-                    console.log(typeof(data))
+                    //console.log(typeof(data))
                     let start = ((Number(paginationLink.textContent) - 1) * limit);
                     document.getElementById(`${item}s_list`).innerHTML = '';
                     let identifier = item;
@@ -869,20 +948,26 @@ setInterval(()=> {
             rate = Number(currencyArray[0].rate);
         }
 
-        // console.log(rate);
-        // console.log(itemData);
-        let tmp = `
+        //// console.log(rate);
+        //// console.log(itemData);
+        let tmp = ``;
+        if(itemData.length == 0){
+            tmp = `
             <tr class="unrevealed invoicerevealer">
+                <td colspan="10">
+                    Nothing Found
+                </td>
+            </tr>`
+        }else{
+            tmp = `
+            <tr class="unrevealed invoicerevealer" data-invoiceNo="${itemData.invoice_no}">
                 <td><label class="counter">${count+1}</label></td>
                 <td class="invoice-data"><label>${itemData.branch}</label></td>
                 <td>
                     <label class="action">
-                        <span class="material-symbols-outlined primary inline-edit" data-id="31" data-tb="invoice" data-index="0">edit</span>
-                        <span class="material-symbols-outlined warning inline-return" data-id="31" data-tb="invoice" data-index="0">sync</span>
-                        <span class="material-symbols-outlined success showinvoicedetails-btn" data-id="31" data-tb="invoice" data-index="0">add</span>
+                        <span class="material-symbols-outlined warning inline-return" data-id="${itemData.invoice_no}" data-tb="invoice" data-index="${index}">sync</span>
                     </label>
                 </td>
-
                 <td class="invoice-data count"><label class="short-fixed">${itemData.invoice_no}</label></td>
                 <td class="invoice-data count"><label class="short-fixed">${itemData.totalItems}</label></td>
                 <td class="invoice-data"><label>${addComma((currency_list_filter == '$') ? convertToDallar(Number(itemData.totalPrice), Number(rate)).toString() : itemData.totalPrice.toString())}</label></td>
@@ -894,6 +979,8 @@ setInterval(()=> {
                 </td>
             </tr>
         `;
+
+        }
         return tmp;
     }
     const saleTmp = (itemData, index, count)=>{
@@ -905,20 +992,18 @@ setInterval(()=> {
             rate = Number(currencyArray[0].rate);
         }
 
-        console.log(rate);
+        //console.log(rate);
 
         let tmp = ``;
         itemData.invoiceDetails.forEach((invoiceProduct, index) => {
             count ++;
             tmp += `
-            <tr class="unrevealed invoicerevealer">
+            <tr class="unrevealed invoicerevealer" data-invoiceNo="${itemData.invoice_no}">
                 <td><label class="counter">${count}</label></td>
                 <td class="invoice-data"><label class="sale-remarks">${invoiceProduct.remarks}</label></td>
                 <td>
                     <label class="action">
-                        <span class="material-symbols-outlined primary inline-edit" data-id="31" data-tb="invoice" data-index="0">edit</span>
-                        <span class="material-symbols-outlined warning inline-return" data-id="31" data-tb="invoice" data-index="0">sync</span>
-                        <span class="material-symbols-outlined success showinvoicedetails-btn" data-id="31" data-tb="invoice" data-index="0">add</span>
+                        <span class="material-symbols-outlined warning inline-return" data-id="${itemData.invoice_no}" data-tb="invoice" data-index="${index}">sync</span>
                     </label>
                 </td>
                 <td class="invoice-data"><label>${invoiceProduct.product_code}</label></td>
@@ -949,7 +1034,7 @@ setInterval(()=> {
             rate = Number(currencyArray[0].rate);
         }
         if(typeof(itemData) == 'object'){
-            console.log(typeof(itemData))
+            //console.log(typeof(itemData))
             itemData.invoiceDetails.forEach((invoiceProduct, index) => {
                 tmp = `
                 <tr>
@@ -975,15 +1060,34 @@ setInterval(()=> {
         return  (((Math.round(((Number(price)/rate) + Number.EPSILON)) * 100) / 100 ));
     }
     const tRowAction =() => {
-        let actionBtnsParent = document.querySelectorAll(".userrevealer td label.action");
-        // console.log(actionBtnsParent);
-        // actionBtnsParent.forEach(actionBtn => {
-        //     for (var i = actionBtn.children.length - 1; i >= 0; i--) {
-        //         // console.log(actionBtn.children[i]);
-        //         let btn = actionBtn.children[i];
-        //         btn.addEventListener('click', (e) => {
-        //             let tr = actionBtn.parentElement.parentElement.parentElement.children;
-        //             let clickedTr = actionBtn.parentElement.parentElement;
+        let actionBtnsParent = document.querySelectorAll(".invoicerevealer td label.action");
+        //// console.log(actionBtnsParent);
+        actionBtnsParent.forEach(actionBtn => {
+            for (var i = actionBtn.children.length - 1; i >= 0; i--) {
+                let btn = actionBtn.children[i];
+                btn.addEventListener('click', (e) => {
+                    if(!document.getElementById('warningBox')){
+                        document.querySelector(`#Sales`).before(warningNotification(`Cancel Operation and exit`));
+                        let warningBoxBtns = document.querySelectorAll('#warningBox button');
+                        warningBoxBtns.forEach(warningactionBtn => warningactionBtn.addEventListener('click', () => {
+                            if(warningactionBtn.childNodes[1].textContent == 'Continue'){
+                                document.getElementById('warningBox').remove();
+                                let clickedTr = actionBtn.parentElement.parentElement;
+                                //// console.log(clickedTr.dataset.invoiceno)
+                                data = {
+                                    'invoice_no' : clickedTr.dataset.invoiceno,
+                                    'action': 'returnSale'
+                                }; 
+                                res = run(data);
+                                res.always(details => {
+                                    deliverNotification(details.message, details.response);
+                                    getInvoiceByDate();
+                                });
+                            }else{
+                                document.getElementById('warningBox').remove();
+                            }
+                        }));
+                    }
         //             // REMOVE ACTIVE CLASS FROM ALL THE TABLE ROWS
         //             for (var x = tr.length - 1; x >= 0; x--) {
         //                 tr[x].classList.remove('active');
@@ -991,7 +1095,7 @@ setInterval(()=> {
         //                 // MOVE THE NEXT/PREVIOUS TABLE ROW BY THE HEIGHT OF THE EXPANDED ROW
         //                if(tr[x] == clickedTr){
         //                     clickedTr.style.top = `-${x * Number(clickedTr.offsetHeight)}px`
-        //                     console.log(clickedTr.offsetHeight);
+        ////                     console.log(clickedTr.offsetHeight);
         //                }else{
         //                     tr[x].children[2].children[0].children[2].textContent = 'add';
         //                }
@@ -1005,10 +1109,10 @@ setInterval(()=> {
         //                 btn.textContent = "add";
         //                 clickedTr.style.top = `0px`
         //             }
-        //         })
-        //     }
+                })
+            }
 
-        // });
+        });
     }
 
     const reveal = (identifier) => {
@@ -1021,64 +1125,65 @@ setInterval(()=> {
         });
     }
     const calculateTotalSales = (data, start) => {
-        // IF DATA IS NEW (-1 START MEANS ITS NEW CHUCK OF DATA WHILE 0 MEANS ITS FROM PAGINATION)
-        if((start == -1)){
-            let payment_type_list_filter = document.querySelector('.payment_type_list').value;
+        let payment_type_list_filter = document.querySelector('.payment_type_list').value;
 
-            let totalSum = 0;
-            // USE BRANCH IDS AS KEYS
-            // OBJECT TO HOLD BRANCH IDS AND THEIR TOTAL SALES
-            let branchTotal = {};
-            let branchInvoices = {};
-            // console.log(data)
-            // data = (start == -1) ? data : site.allbranchessaleinvoices;
-            site.branchList.forEach(branch => {
-                // IF BRANCH DOESN'T EQUAL TO ALL
-                if(branch.id != 5){
-                    branchTotal[branch.id] = 0; // EXAMPLE OF EXPECTED OUT PUT{'1' : 0,'2' : 0,'3':0}
-                    branchInvoices = data[branch.id];
-                    if(Object.keys(data[branch.id]).length > 0){
-                        Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
-                            if(!payment_type_list_filter.includes('Method')){
-                                if(Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)){
-                                    let totalPrice = Number(branchInvoices[infoKey].totalPrice);
-                                    totalSum += totalPrice;
-                                    // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
-                                    branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
-                                        branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
-                                    })
-                                }
-                            }else{
+        let totalSum = 0;
+        // USE BRANCH IDS AS KEYS
+        // OBJECT TO HOLD BRANCH IDS AND THEIR TOTAL SALES
+        let branchTotal = {};
+        let branchInvoices = {};
+        site.branchList.forEach(branch => {
+            objectifiedSalesData[branch.id] = convertToObject(data.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
+
+            // IF BRANCH DOESN'T EQUAL TO ALL
+            if(branch.id != 5){
+                branchTotal[branch.id] = 0; // EXAMPLE OF EXPECTED OUT PUT{'1' : 0,'2' : 0,'3':0}
+                branchInvoices = objectifiedSalesData[branch.id];
+                if(Object.keys(objectifiedSalesData[branch.id]).length > 0){
+                    Object.keys(branchInvoices).forEach((infoKey, index, infoKeys) => {
+                        if(!payment_type_list_filter.includes('Method')){
+                            if(Number(branchInvoices[infoKey].invoiceDetails[0].payment_type_id) == Number(payment_type_list_filter)){
                                 let totalPrice = Number(branchInvoices[infoKey].totalPrice);
                                 totalSum += totalPrice;
                                 // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
                                 branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
                                     branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
-                                });
+                                })
                             }
-                        });
-                    }
+                        }else{
+                            let totalPrice = Number(branchInvoices[infoKey].totalPrice);
+                            totalSum += totalPrice;
+                            // totalSum = totalSum + ((Number(branchInvoices[infoKey].invoiceDetails[0].sale_price) * Number(branchInvoices[infoKey].invoiceDetails[0].purchase_quantity)));
+                            branchInvoices[infoKey].invoiceDetails.forEach(invoiceD => {
+                                branchTotal[invoiceD.branch_id] = Number(branchTotal[invoiceD.branch_id]) + ((Number(invoiceD.sale_price) * Number(invoiceD.purchase_quantity)));
+                            });
+                        }
+                    });
                 }
-            });
-            // GET CURRENCY RATE(DOLAR)
-            let currency_list_filter = document.querySelector(".currency_list").value;
-            let rate = 1;
-            let currencyArray = []; 
-            if(currency_list_filter == '$'){
-                currencyArray = site.currencyList.filter(currency => currency.symbol == currency_list_filter);
-                rate = Number(currencyArray[0].rate);
             }
-            // SET TOTALS TO ELEMENT DISPLAYS
-            document.querySelector('#Sales .cards').innerHTML = "";
-            let cards = "";
-            let branchInfo = [];
-            let branch_id = 0;
-            for (var i = Object.keys(branchTotal).length - 1; i >= 0; i--) {
-                branch_id = (i+1);
+        });
+        // GET CURRENCY RATE(DOLAR)
+        let currency_list_filter = document.querySelector(".currency_list").value;
+        let rate = 1;
+        let currencyArray = []; 
+        if(currency_list_filter == '$'){
+            currencyArray = site.currencyList.filter(currency => currency.symbol == currency_list_filter);
+            rate = Number(currencyArray[0].rate);
+        }
+        // SET TOTALS TO ELEMENT DISPLAYS
+        document.querySelector('#Sales .cards').innerHTML = "";
+        let cards = "";
+        let branchInfo = [];
+        let branch_id = 0;
+        let bgs = ['primary-color', 'blue-color', 'orange-color']
+        for (var i = Object.keys(branchTotal).length - 1; i >= 0; i--) {
+            branch_id = (i+1);
+            // GET THE FIRST THREE BRANCHES
+            if(branch_id < 4){
                 branchInfo = site.branchList.filter(branch => Number(branch.id) == branch_id);
                 if(branchInfo.length > 0){
                     cards +=`
-                    <div class="card ${branch_id == site.session.branch_id ? 'active' : ''} ">
+                    <div class="card ${branch_id == site.session.branch_id ? 'active' : ''} ${bgs[i]}">
                         <span class="material-symbols-outlined">shopping_bag</span>
                         <div class="stat-details branch_income">
                             <h2>${(currency_list_filter == '$') ? addComma(convertToDallar(Number(branchTotal[branch_id]), Number(rate)).toString()) + "$" : addComma(branchTotal[branch_id].toString()) + '/='}</h2>
@@ -1087,20 +1192,21 @@ setInterval(()=> {
                     </div>
                     `;
                 }
-            }
-            // ADD ALL BRANCH TOTAL SUM SALE CARD
-            cards +=`
-                    <div class="card">
-                        <span class="material-symbols-outlined">attach_money</span>
-                        <div class="stat-details">
-                            <h2 id="totalIncome">${(currency_list_filter == '$') ? addComma(convertToDallar(Number(totalSum), Number(rate)).toString()) + "$" : addComma(totalSum.toString())+'/='} <small></small></h2>
-                            <label>Total Income</label>
-                        </div>
-                    </div>
-                    `;
-            document.querySelector('#Sales .cards').innerHTML = cards;
-        }
 
+            }
+        }
+        // ADD ALL BRANCH TOTAL SUM SALE CARD
+        cards +=`
+                <div class="card green-color">
+                    <span class="material-symbols-outlined">attach_money</span>
+                    <div class="stat-details">
+                        <h2 id="totalIncome">${(currency_list_filter == '$') ? addComma(convertToDallar(Number(totalSum), Number(rate)).toString()) + "$" : addComma(totalSum.toString())+'/='} <small></small></h2>
+                        <label>Total Income</label>
+                    </div>
+                </div>
+                `;
+        document.querySelector('#Sales .cards').innerHTML = cards;
+        return objectifiedSalesData;
     }
     const addComma = (num) => {
         let numArr = num.split('');
@@ -1187,67 +1293,47 @@ setInterval(()=> {
         }
     }
 
-    const getTodayInvoice = () => {
-        document.getElementById(`invoices_list`).after(preloader());
-        let identifier = 'invoice';
-        let limitShow = document.querySelector('#Sales .salelimit').value;            
+    const getTodayInvoice = () => {         
         let data ={'reload': true, 'sdate': today, 'edate': today, 'action':'getBranchesInvoices', 'name': 'allbranchessaleinvoices'};
-        // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
-        if(site.session.user_type_id == 2){
-            data.branch_id = site.session.branch_id;
-        }
-        // console.log(data) calculate
+        let totalSales = 0;   
+        let saleNumber = 0     
         res = run(data);
         res.always(details => {
-            // console.log(details)
-            if(!site.allbranchessaleinvoices){
-                site.allbranchessaleinvoices = {};
-            }
-            // removeElement('div.preloader');
-            if(site.session.user_type_id == 2){
-                // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
-                site.allbranchessaleinvoices[site.session.branch_id] = convertToObject(details);
-            }else{
-                console.log(details)
-                site.branchList.forEach(branch => {
-                    site.allbranchessaleinvoices[branch.id] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
-                });
-            }
-            updateSiteData(site);
-            // UPDATE DATA CHECKER VARIABLE
-            expectedData.allbranchessaleinvoices = 'invoice';
+            details[0].forEach(info => {
+                saleNumber += info.invoiceDetails.length;
+                info.invoiceDetails.forEach(sale => {
+                    totalSales+=(Number(sale.sale_price) * Number(sale.purchase_quantity))
+                })
+            });
+            document.querySelector('.sale .branch-sales h1').textContent = (saleNumber.toString().split('').length < 2) ? '0'+saleNumber:addComma(saleNumber.toString());
+            document.querySelector('.total-sale__price h1').textContent = addComma(totalSales.toString()) +"/=";
         });
     }
-    const getInvoiceByDate = () => {
+    const getInvoiceByDate = (page=1) => {
         document.getElementById(`invoices_list`).after(preloader());
         let startdate = document.getElementById('startdate').value;
         let enddate = document.getElementById('enddate').value;
         let identifier = 'invoice';
         let limitShow = document.querySelector('#Sales .salelimit').value;            
         let data ={'reload': true, 'sdate': startdate, 'edate': enddate, 'action':'getBranchesInvoices', 'name': 'allbranchessaleinvoices'};
+        data.page = page;
         // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
         if(site.session.user_type_id == 2){
             data.branch_id = site.session.branch_id;
         }
-        // console.log(data) calculate
+        if(limitShow != 'All'){
+            data.limit = limitShow;
+        }
+        //// console.log(data) warehouse
         res = run(data);
         res.always(details => {
-            // console.log(details)
-            if(!site.searchResult){
-                site.searchResult = {};
+            //// console.log(details);
+            if(page == 1){
+                formPagination(details[1], 'invoice', Number(limitShow), 'arr');
             }
-            // removeElement('div.preloader');
-            if(site.session.user_type_id == 2){
-                // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
-                site.searchResult[site.session.branch_id] = convertToObject(details);
-            }else{
-                // console.log(details)
-                site.branchList.forEach(branch => {
-                    site.searchResult[branch.id] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
-                });
-            }
-            renderPageData(site.searchResult, 'allbranchessaleinvoices');
-
+            renderPageData(details, 'invoice', (page == 1) ? -1 : page);
+            removeElement('div.preloader');
+            
         });
     }
     const getWarehouseInventory = (page = 1) =>{
@@ -1255,10 +1341,10 @@ setInterval(()=> {
         let limitShow = document.querySelector('#WarehouseInventorys .warehouselimit').value;
         let data = {'limit': limitShow,'action':'getLimitedWarehouseInventory', 'page': page};
         data.action = (document.querySelector('#WarehouseInventorys .warehouselimit').value != "All") ? 'getLimitedWarehouseInventory': 'getAllWarehouseInventorys';
-        // console.log(limitShow)
+        //// console.log(limitShow)
         res = run(data);
         res.always(details => {
-            console.log(details)
+            //console.log(details)
             if(page == 1){
                 formPagination(details[1], 'warehouseinventory', Number(limitShow), 'arr');
             }
@@ -1271,10 +1357,13 @@ setInterval(()=> {
         let limitShow = document.querySelector('#BranchInventorys .branchlimit').value;
         let data = {'limit': limitShow,'action':'getLimitedBranchInventory', 'page': page};
         data.action = (document.querySelector('#BranchInventorys .branchlimit').value != "All") ? 'getLimitedBranchInventory': 'getAllBranchInventorys';
-        // console.log(limitShow)
+        if(Number(document.querySelector('.dash_branch_list').value) && (Number(document.querySelector('.dash_branch_list').value != 5))){
+            data.branch_id = document.querySelector('.dash_branch_list').value
+        } 
+        //console.log(data)
         res = run(data);
         res.always(details => {
-            console.log(details)
+            //console.log(details)
             if(page == 1){
                 formPagination(details[1], 'branchinventory', Number(limitShow), 'arr');
             }
@@ -1287,10 +1376,10 @@ setInterval(()=> {
         let limitShow = document.querySelector('#Products .productslimit').value;
         let data = {'limit': limitShow,'action':'getLimitedProducts', 'page': page};
         data.action = (document.querySelector('#Products .productslimit').value != "All") ? 'getLimitedProducts': 'getAllProducts';
-        // console.log(limitShow)
+        //// console.log(limitShow)
         res = run(data);
         res.always(details => {
-            console.log(details)
+            //console.log(details)
             removeElement('div.preloader');
             if(page == 1){
                 formPagination(details[1], 'product', Number(limitShow), 'arr');
@@ -1304,10 +1393,10 @@ setInterval(()=> {
         // : 15;
         let data = {'limit': limitShow,'action':'getLimitedUsers', 'page': page};
         data.action = (document.querySelector('#Accounts .userlimit').value != "All") ? 'getLimitedUsers': 'getAllUsers';
-        // console.log(limitShow)
+        //// console.log(limitShow)
         res = run(data);
         res.always(details => {
-            // console.log(details)
+            //// console.log(details)
             removeElement('div.preloader');
              if(page == 1){
                 formPagination(details[1], 'user', Number(limitShow), 'arr');
@@ -1315,10 +1404,28 @@ setInterval(()=> {
             renderPageData(details, 'user');
         });
     }
+    const getSuppliers = (page=1) =>{
+        document.getElementById(`suppliers_list`).after(preloader());
+        // let limitShow = document.querySelector('#Suppliers .userlimit').value//(document.querySelector('#Suppliers .userlimit').value != "All") ? 
+        // : 15;
+        let data = {'action':'getAllSuppliers', 'page': page};
+        // data.action = (document.querySelector('#Suppliers .userlimit').value != "All") ? 'getLimitedUsers': 'getAllUsers';
+        //// console.log(limitShow)
+        res = run(data);
+        res.always(info => {
+            let details = [info, info.length];
+            //// console.log(details)
+            removeElement('div.preloader');
+             if(page == 1){
+                formPagination(details[1], 'supplier', Number(info.length), 'arr');
+            }
+            renderPageData(details, 'supplier');
+        });
+    }
     const passwordUpdate = (psdTds) => {
         psdTds.forEach(td => td.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            // console.log(td);
+            //// console.log(td);
             let tdData = td.children[0];
             let form = `
                 <form id="updatePassword">
@@ -1331,7 +1438,7 @@ setInterval(()=> {
             document.querySelector('#updatePassword span').addEventListener('click', () => {
                 td.innerHTML ="";
                 td.append(tdData);
-                // console.log(tdData)
+                //// console.log(tdData)
             });
             // UPDATE PASSWORD
             document.querySelector('#updatePassword').addEventListener('submit', (e) => {
@@ -1340,7 +1447,7 @@ setInterval(()=> {
                 let data = {'id': td.parentElement.dataset.id,'action':'updateUserPassword', 'password': newPass};
                 res = run(data);
                 res.always((details) => {
-                    console.log(details)
+                    //console.log(details)
                     deliverNotification(details.message, details.response);
                     td.innerHTML = "";
                     td.append(tdData);
@@ -1351,7 +1458,7 @@ setInterval(()=> {
 
     }
     const formPagination = (total, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
-        // console.log(data)
+        //// console.log(data)
         let pages = 1;  
         let range = []; 
         // let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
@@ -1360,7 +1467,7 @@ setInterval(()=> {
             let page = Math.ceil(total/limit);
             pages = total & limit === 0 ? page : page + 1;
             range = [...Array(pages).keys()];
-            // console.log(total, range, peginationLink)
+            //// console.log(total, range, peginationLink)
 
             let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
             let itemLink = '<span><<</span> ';
@@ -1397,9 +1504,9 @@ setInterval(()=> {
     }
 
     const paginationNavigation = (dataType, displayLinkNumber, range, item, limit) => {
-        // console.log(item)
+        //// console.log(item)
         let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
-        // console.log(limit)
+        //// console.log(limit)
         itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
             itemLinks.forEach(itemLink => {itemLink.classList.remove('active')});
 
@@ -1496,6 +1603,9 @@ setInterval(()=> {
                         case 'branchinventory':
                             getBranchInventory(rqtPage); 
                         break;
+                        case 'invoice':
+                            getInvoiceByDate(rqtPage); 
+                        break;
                     }
             }
         }));
@@ -1506,7 +1616,7 @@ setInterval(()=> {
             // USE INVENTORY ID AS KEY FOR EACH PRODUCT ID
             obj[info.id] = info;
         })
-        // console.log(obj);
+        //// console.log(obj);
         return obj;
     }
     // UPDATE SITE DATA
@@ -1543,7 +1653,7 @@ setInterval(()=> {
                 dataType  : 'json',
                 data: data,
                 success: function(details){
-                    // console.log(details)
+                    //// console.log(details)
                 }
             });
             return ajaxRequest;
@@ -1558,7 +1668,7 @@ setInterval(()=> {
         }else{
             options += `<option>Nothing Found</option>`;
         }
-        // console.log(options)
+        //// console.log(options)
         return options;
     }
     const generateDataList =(data, key) =>{
@@ -1591,8 +1701,164 @@ setInterval(()=> {
         });
         return collection;
     }
+    
+    const loadProfile =()=>{
+        document.getElementById('profile-user-image').innerHTML = `<img src="./images/${site.session.image}">`;
+        document.getElementById('profile-username').textContent = `@${site.session.username}`;
+        document.getElementById('profile-name').textContent = `Name: ${site.session.last_name} ${site.session.first_name}`;
+        document.getElementById('profile-email').textContent = `Email: ${site.session.email}`;
+        document.getElementById('profile-telephone').textContent = `telephone: ${site.session.telephone}`;
+        document.getElementById('profile-branch').textContent = `${site.session.branch} Outlet `;
+
+        document.getElementById('update_user_fname').value = site.session.first_name;
+        document.getElementById('update_user_1name').value = site.session.last_name;
+        document.getElementById('update_user_email').value = site.session.email;
+        document.getElementById('update_user_telephone').value = site.session.telephone;
+        document.getElementById('update_user_username').value = site.session.username;
+        document.getElementById('update_user_type').value = site.session.user_type;
+
+    }
+    const removeNewRowElement = () => {
+        document.querySelectorAll('tr.newrow').forEach(element => removeElement(`tr.newrow`));
+    }
+    const settingsInfo =() => {
+        const category = document.getElementById('categoryList');
+        category.innerHTML = "";
+        const brand = document.getElementById('brandList');
+        brand.innerHTML = "";
+        const branch = "";
+        const size = document.getElementById('sizeLIst')
+        size.innerHTML = "";
+        const color =  document.getElementById('colorLIst')
+        color.innerHTML = "";
+        const paymentType = document.getElementById('paymentType');
+        paymentType.innerHTML = "";
+        setTimeout(() =>{
+            site.paymentTypeList.forEach((data, index) => {
+                let tmp = `
+                <tr id="${data.id}">
+                    <td><label class="counter">${index + 1}</label></td>
+                    <td><label id="paymentMethod${data.id}">${data.name}</label></td>
+                    <td>
+                        <label class="action">
+                            <span class="material-symbols-outlined payment-type-edit">edit</span>
+                            <span class="material-symbols-outlined payment-type-delete">close</span>
+                        </label>
+                    </td>
+                </tr>
+                    `;
+                    paymentType.insertAdjacentHTML('beforeend', tmp);
+            });
+            document.querySelectorAll('.payment-type-edit').forEach(btn => btn.addEventListener('click', (e) => {
+                let payment_type_id = Number(btn.parentElement.parentElement.parentElement.id);
+                let td = document.getElementById(`paymentMethod${payment_type_id}`);
+                if(btn.textContent == 'edit'){
+                    tdData = document.getElementById(`paymentMethod${payment_type_id}`).textContent;
+                    td.innerHTML = `<input type="text" placeholder="Payment Method" value="${tdData}" id="payment_type_name">`;
+                    btn.textContent = "save_as";
+                }else{
+                    //console.log(td);
+
+                    let data = {'id': payment_type_id, 'paymentMethod': td.children[0].value, 'action': 'updatePaymentType'}
+                    res = run(data);
+                    res.always(details => {
+                        //console.log(details);
+                        deliverNotification(details.message, details.response);
+                        btn.textContent = "edit";
+                        td.innerHTML = td.children[0].value;
+                        autorun({'reload': true, 'action':'getPaymentTypes', 'name': 'paymentTypeList'});
+                    });
+                }
+            }))
+        }, 0);
+        setTimeout(() =>{
+            site.brandList.slice(0, 6).forEach((data, index) => {
+                let tmp = `
+                <tr>
+                    <td><label class="counter">${index + 1}</label></td>
+                    <td><label>${data.name}</label></td>
+                    <td>
+                        <label class="action">
+                            <span class="material-symbols-outlined brand-edit">edit</span>
+                            <span class="material-symbols-outlined brand-delete">close</span>
+                        </label>
+                    </td>
+                </tr>
+                    `;
+                    brand.insertAdjacentHTML('beforeend', tmp);
+            })
+        }, 0);
+        setTimeout(() =>{
+            site.colorList.slice(0, 30).forEach((data, index) => {
+                    // <td><label>${data.innitual}</label></td>
+                let tmp = `
+                <tr>
+                    <td><label class="counter">${index + 1}</label></td>
+                    <td><label>${data.name}</label></td>
+                    <td>
+                        <label class="action">
+                            <span class="material-symbols-outlined color-edit">edit</span>
+                            <span class="material-symbols-outlined color-delete">close</span>
+                        </label>
+                    </td>
+                </tr>
+                    `;
+                    color.insertAdjacentHTML('beforeend', tmp);
+            })
+        }, 0);
+        setTimeout(() =>{
+            site.categoryList.slice(0, 20).forEach((data, index) => {
+                let tmp = `
+                <tr>
+                    <td><label class="counter">${index + 1}</label></td>
+                    <td><label>${data.name}</label></td>
+                    <td><label>${data.desc}</label></td>
+                    <td>
+                        <label class="action">
+                            <span class="material-symbols-outlined category-edit">edit</span>
+                            <span class="material-symbols-outlined category-delete">close</span>
+                        </label>
+                    </td>
+                </tr>
+                    `;
+                    category.insertAdjacentHTML('beforeend', tmp);
+            })
+        }, 0);
+        setTimeout(() =>{
+            site.sizeList.slice(0, 30).forEach((data, index) => {
+                    // <td><label>${data.innitual}</label></td>
+                let tmp = `
+                <tr>
+                    <td><label class="counter">${index + 1}</label></td>
+                    <td><label>${data.name}</label></td>
+                    <td>
+                        <label class="action">
+                            <span class="material-symbols-outlined size-edit">edit</span>
+                            <span class="material-symbols-outlined size-delete">close</span>
+                        </label>
+                    </td>
+                </tr>
+                    `;
+                    size.insertAdjacentHTML('beforeend', tmp);
+            })
+        }, 0);
+    }
+    const autorun = (data) => {
+        if((data.reload == true) || (!site[data.name])){
+            let ajaxRequest = $.ajax({
+                url: "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php",
+                type: "POST",
+                dataType  : 'json',
+                data: data,
+                success: function(details){
+                    site[data.name] = details;
+                    updateSiteData(site)
+                }
+            });
+        }
+    }
 document.addEventListener('DOMContentLoaded', () => {
-    // console.log(localStorageSize())
+    //// console.log(localStorageSize())
     document.getElementById('startdate').value = today;  
     document.getElementById('enddate').value = today;  
     setTimeout(getProducts(), 0);
@@ -1600,6 +1866,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(getWarehouseInventory(), 0);
     setTimeout(getInvoiceByDate(), 0) 
     setTimeout(getUserAccounts(), 0);
+    setTimeout(getSuppliers(), 0);
+    setTimeout(getDollarRate(), 0);
+    setTimeout(getTodayInvoice(), 0);
+    setTimeout(loadProfile(), 0);
+    setTimeout(settingsInfo(), 0);
 
     // SET ACCOUNT PROFILE IMAGE AND USERNAME
     let accountInfo = document.getElementById('user-account-information');
@@ -1711,6 +1982,11 @@ document.addEventListener('DOMContentLoaded', () => {
             themeC.childNodes[1].classList.add('active');
         })
     });
+    // const setTheme = document.getElementById('setTheme');
+    // setTheme.addEventListener('click', (e) => {
+    //     e.preventDefault();
+    //     themeMenu.classList.toggle('active');
+    // })
 
 
     /* 
@@ -1725,48 +2001,58 @@ document.addEventListener('DOMContentLoaded', () => {
         getInvoiceByDate();
     });   
     // SALE SPECIFICATION DROPDOWNS
-    document.querySelector('.listing_type').addEventListener('change', () => {
-        document.getElementById(`sales_list`).parentElement.after(preloader());
-        let data = (Object.keys(site.searchResult).length > 0) ? site.searchResult : site.allbranchessaleinvoices; 
-        renderPageData(data, document.querySelector(`.pagination_link.invoice-list_pagination`).dataset.id);
-    });
     document.querySelector(".branch_list").innerHTML = generateDropdown(site.branchList, 'name', 'id', 'Branch  ');
     document.querySelector('.payment_type_list').innerHTML = generateDropdown(site.paymentTypeList, 'name', 'id', 'Method  ');
     document.querySelector(".currency_list").innerHTML = generateDropdown(site.currencyList, 'name', 'symbol', 'Currency  ');
+
+    document.querySelector('.listing_type').addEventListener('change', ()=>{
+        getInvoiceByDate();
+    });
     document.querySelector(".branch_list").addEventListener('change', ()=>{
-        document.getElementById(`sales_list`).parentElement.after(preloader());
-        let data = (Object.keys(site.searchResult).length > 0) ? site.searchResult : site.allbranchessaleinvoices; 
-        renderPageData(data, document.querySelector(`.pagination_link.invoice-list_pagination`).dataset.id);
+        getInvoiceByDate();
     });
     document.querySelector('.payment_type_list').addEventListener('change', ()=>{
-        document.getElementById(`sales_list`).parentElement.after(preloader());
-        let data = (Object.keys(site.searchResult).length > 0) ? site.searchResult : site.allbranchessaleinvoices; 
-        renderPageData(data, document.querySelector(`.pagination_link.invoice-list_pagination`).dataset.id);
+        getInvoiceByDate();
     });
     document.querySelector(".currency_list").addEventListener('change', ()=>{
-        document.getElementById(`sales_list`).parentElement.after(preloader());
-        let data = (Object.keys(site.searchResult).length > 0) ? site.searchResult : site.allbranchessaleinvoices; 
-        renderPageData(data, document.querySelector(`.pagination_link.invoice-list_pagination`).dataset.id);
+        getInvoiceByDate();
     });
     document.querySelector(".salelimit").addEventListener('change', () => {
-        document.getElementById(`sales_list`).parentElement.after(preloader());
-        let data = (Object.keys(site.searchResult).length > 0) ? site.searchResult : site.allbranchessaleinvoices; 
-        renderPageData(data, document.querySelector(`.pagination_link.invoice-list_pagination`).dataset.id);
+        getInvoiceByDate();
     });
 
     // EXPORT SELD PRODUCT LIST OT EXCEL FILE generateC
     if(site.session.user_type_id == 1){
         document.getElementById('export_sales').addEventListener('click', (e) => {
-            console.log('we here')
             let table = document.getElementById('sale_export_tb');
             let csv_name = "lifestyle Sales as of " + today;
             let download_link = document.getElementById('export_sales');
+            export_table_to_csv (table, csv_name, download_link);
+        });
+        document.getElementById('export_product').addEventListener('click', (e) => {
+            let table = document.getElementById('Products_export_tb');
+            let csv_name = "lifestyle products as of " + today;
+            let download_link = document.getElementById('export_product');
+            export_table_to_csv (table, csv_name, download_link);
+        });
+        document.getElementById('export_warehouse_inventory').addEventListener('click', (e) => {
+            let table = document.getElementById('WarehouseInventorys_export_tb');
+            let csv_name = "lifestyle warehouseinventory as of " + today;
+            let download_link = document.getElementById('export_warehouse_inventory');
+            export_table_to_csv (table, csv_name, download_link);
+        });
+        document.getElementById('export_branch_inventory').addEventListener('click', (e) => {
+            let table = document.getElementById('BranchInventorys_export_tb');
+            let csv_name = "lifestyle branchinventory as of " + today;
+            let download_link = document.getElementById('export_branch_inventory');
             export_table_to_csv (table, csv_name, download_link);
         });
     }   
 
     // _______________________________USER________________________________
     document.getElementById('newUser').addEventListener('click', () => {
+        removeNewRowElement();
+
         if(document.getElementById('newUser').children[0].textContent == 'add'){
             let newTr = `
                  <tr class="newrow userrevealer" data-id="0">
@@ -1822,6 +2108,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * -------------------------------- PRODUCT SECTION -------------------------------
      **/
     document.getElementById('newProduct').addEventListener('click', () => {
+        removeNewRowElement();
+
         if(document.getElementById('newProduct').children[0].textContent == 'add'){
             let newTr = `
 
@@ -1848,7 +2136,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // removeElement('tr.newrow');
                 let tr = document.querySelector('#products_list tr.newrow');
                 let inlineEdit = document.querySelector('#products_list tr.newrow .new-product-inline-edit');
-                console.log(tr, inlineEdit);
+                //console.log(tr, inlineEdit);
                 asignDataAfterEdit(tr, inlineEdit, "edit-data");
             });
             document.getElementById('newProduct').children[0].textContent = 'close';
@@ -1868,8 +2156,11 @@ document.addEventListener('DOMContentLoaded', () => {
      **/
     document.getElementById('newWarehouseInventoryProduct').addEventListener('click', () => {
         if(document.getElementById('newWarehouseInventoryProduct').children[0].textContent == 'add'){
+            removeNewRowElement();
+
             let res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
             res.always((data) => {
+                //console.log(data)
                 let productList = data;
                 let newTr = `
                     <tr class="newrow warehouseinventoryproductrevealer" data-id="200">
@@ -1906,14 +2197,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 let productNameInput = document.getElementById('warehouseEntryProduct');
                 // GENERATE DESCRIPTION AND PRODUCT CODE FROM FIELDS
                 productNameInput.addEventListener('change', () => {
-                    // console.log(productList)
+                    //// console.log(productList)
                     let productDetails = productList.filter(info => info.name.trim().toLowerCase() == productNameInput.value.trim().toLowerCase());
-                        // console.log(productDetails);
+                        //// console.log(productDetails);
                     if(productDetails.length > 0){
                         document.getElementById('warehouseEntryProduct').parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
 
-                        codeInput.value = `${codeInput.value}${productDetails[0].code_initual}`;
-                        descInput.value = `${productDetails[0].brand_name} ${productDetails[0].name}`;
+                        codeInput.value = `${codeInput.value.trim()}${productDetails[0].code_initual.trim()}`;
+                        descInput.value = `${productDetails[0].brand_name.trim()} ${productDetails[0].name.trim()}`;
                         productNameInput.style.borderColor = "lime";
                     }else{
                         productNameInput.style.borderColor = "red";
@@ -1923,9 +2214,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 colorInput.addEventListener('change', () => {
                     let colorDetails = site.colorList.filter(info => info.name.toLowerCase() == colorInput.value.trim().toLowerCase());
                     if(colorDetails.length == 1){
-                        // console.log(colorDetails[0]);
-                        codeInput.value = `${codeInput.value}${colorDetails[0].innitual}`;
-                        descInput.value = `${descInput.value}`;
+                        //// console.log(colorDetails[0]);
+                        codeInput.value = `${codeInput.value.trim()}${colorDetails[0].innitual.trim()}`;
+                        descInput.value = `${descInput.value.trim()}`;
                         colorInput.style.borderColor = "lime";
                         sizeInput.removeAttribute('disabled');
                     }else{
@@ -1936,9 +2227,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 sizeInput.addEventListener('change', () => {
                     let sizeDetails = site.sizeList.filter(info => info.name.toLowerCase() == sizeInput.value.trim().toLowerCase());
                     if(sizeDetails.length == 1){
-                        // console.log(sizeDetails[0]);
-                        codeInput.value = `${sizeDetails[0].innitual}${codeInput.value}`;
-                        descInput.value = `${descInput.value} size ${sizeDetails[0].name} color ${colorInput.value}`;
+                        //// console.log(sizeDetails[0]);
+                        codeInput.value = `${sizeDetails[0].innitual.trim()}${codeInput.value.trim()}`;
+                        descInput.value = `${descInput.value.trim()} size ${sizeDetails[0].name.trim()} color ${colorInput.value.trim()}`;
                         sizeInput.style.borderColor = "lime";
                         sizeInput.removeAttribute('disabled');
                     }else{
@@ -1951,7 +2242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // removeElement('tr.newrow');
                     let tr = document.querySelector('#warehouseinventorys_list tr.newrow');
                     let inlineEdit = document.querySelector('#warehouseinventorys_list tr.newrow .new-warehouse-inventory-product-inline-edit');
-                    console.log(tr, inlineEdit);
+                    //console.log(tr, inlineEdit);
                     asignDataAfterEdit(tr, inlineEdit, "edit-data");
                 });
                 document.getElementById('newWarehouseInventoryProduct').children[0].textContent = 'close';
@@ -1972,10 +2263,11 @@ document.addEventListener('DOMContentLoaded', () => {
      **/
     document.getElementById('newBranchInventoryProduct').addEventListener('click', () => {
         if(document.getElementById('newBranchInventoryProduct').children[0].textContent == 'add'){
+            removeNewRowElement();
             let res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
             res.always((warehouseProductList) => {
                 let newTr = `
-                    <tr class="newrow branchinventoryproductrevealer" data-id="200">
+                    <tr class="newrow branchinventoryproductrevealer" data-id="200" data-old-quantity="0">
                         <td><label class="counter">0</label></td>
                         <td class="edit-data select-data warehouseProductList" data-name="warehouse_inventory_id"><label class="fixed-fixed"><input list="sels1120013" name="product_desc" placeholder="Product Info" id="product_desc"><datalist id="sels1120013">${generateOptions(warehouseProductList)}</datalist></label></td>
                         <td>
@@ -1995,8 +2287,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     let productDetails = warehouseProductList.filter(info => info.name.toLowerCase() == document.getElementById('product_desc').value.trim().toLowerCase());
                     if(productDetails.length > 0){
                         document.getElementById('product_desc').parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
-                        document.getElementById('branchinventoryproductCode').value = productDetails[0].code;
-                        document.getElementById('branchinventoryAvailableQuantity').value = productDetails[0].quantity;
+                        document.getElementById('branchinventoryproductCode').value = productDetails[0].code.trim();
+                        document.getElementById('branchinventoryAvailableQuantity').value = productDetails[0].quantity.trim();
                     }else{
                         deliverNotification('Invalid Delatils', 'warning');
                     }
@@ -2010,12 +2302,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         deliverNotification('Branch Quantity ca\'t be above available quantity', 'warning');
                     }
 
-                })
+                });
                 document.querySelector('.newrow .new-branch-inventory-product-inline-edit').addEventListener('click', () => {
                     // removeElement('tr.newrow');
                     let tr = document.querySelector('#branchinventorys_list tr.newrow');
                     let inlineEdit = document.querySelector('#branchinventorys_list tr.newrow .new-branch-inventory-product-inline-edit');
-                    console.log(tr, inlineEdit);
+                    //console.log(tr, inlineEdit);
                     asignDataAfterEdit(tr, inlineEdit, "edit-data");
                 });
                 document.getElementById('newBranchInventoryProduct').children[0].textContent = 'close';
@@ -2030,32 +2322,93 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector("#BranchInventorys .branchlimit").addEventListener('change', (e) => {
         getBranchInventory();
     });
+    document.querySelector(".dash_branch_list").innerHTML = generateDropdown(site.branchList, 'name', 'id', 'Branch  ');
+    document.querySelector(".dash_branch_list").addEventListener('change', ()=>{
+        getBranchInventory();
+    });
     // _________________________________GENERAL SEARCH_______________________________
     document.querySelector('.search-field').addEventListener('change', () => {
+        // let searchValue = document.querySelector('.search-field').value;
+        // search(searchValue);
+        //// console.log(document.querySelector('.search-field').value);
+    });
+    document.querySelector('.search-bar').addEventListener('submit', (e) => {
+        e.preventDefault()
         let searchValue = document.querySelector('.search-field').value;
         search(searchValue);
-        // console.log(document.querySelector('.search-field').value);
-    });
+    })
     document.querySelector('.backup-btn').addEventListener('click', () => {
-        console.log('we hear')
+        //console.log('we hear')
         res = run({'action': 'backUp'});
         res.always((data) => {
-            console.log(data)
+            //console.log(data)
         })
-    })
+    });
+    document.getElementById('dollarRate').addEventListener('change', () => {
+        data = {'rate': document.getElementById('dollarRate').value, 'action':'updateDollarRate'};
+        //console.log(data)
+        res = run(data);
+        res.always(details => {
+            //console.log(details)
+            getDollarRate();
+        });
+    });
+    document.getElementById('newpaymentType').addEventListener('click', () => {
+        let newTr = `
+                <tr class="newrow" data-id="200">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data" data-name="payment_type_name"><label><input type="text" placeholder="Payment Method" id="payment_type_name"></label></td>
+                    <td>
+                        <label class="action" data-id="payment-name">
+                            <span class="material-symbols-outlined primary new-payment-name-inline-edit">save_as</span>
+                            <span class="material-symbols-outlined danger new-payment-name-inline-remove">close</span>
+                        </label>
+                    </td>
+                </tr> 
+
+            `;
+        document.querySelector('#paymentType').insertAdjacentHTML('afterBegin', newTr);
+        document.querySelector('.new-payment-name-inline-remove').addEventListener('click', () => {
+            removeElement('tr.newrow');
+        });
+
+        document.querySelector('.new-payment-name-inline-edit').addEventListener('click', () => {
+            // removeElement('tr.newrow');
+            let tr = document.querySelector('#paymentType tr.newrow');
+            let inlineEdit = document.querySelector('#paymentType tr.new-payment-name-inline-edit');
+            // asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            data = {'paymentMethod': document.getElementById('payment_type_name').value, 'id': tr.dataset.id, 'action': 'addPaymentType'};
+            res = run(data);
+            res.always(details => {
+                //console.log(details);
+                deliverNotification(details.message, details.response);
+                autorun({'reload': true, 'action':'getPaymentTypes', 'name': 'paymentTypeList'});
+                settingsInfo();
+            });
+                
+        });
+    });
 });
+const getDollarRate =() => {
+    data = {'action':'getDollarRate'};
+    res = run(data);
+    res.always(details => {
+        //// console.log(details)
+        document.getElementById('dollarRate').value = details.rate;
+    });
+}
 const search = (searchValue) => {
     page = document.querySelector('.page.active');
-    console.log(page)
+    //console.log(page)
     let data = [];
     switch(page.id){
         case 'Dashboard':
-            console.log(searchValue);
+            //console.log(searchValue);
             document.getElementById(`branchinventorys_list`).after(preloader());
             data = {'search': searchValue, 'action':'searchBranchInventory'};
             res = run(data);
             res.always(details => {
-                console.log(details)
+                //console.log(details)
                 formPagination(details[1], 'branchinventory', details[1], 'arr');
                 renderPageData(details, 'branchinventory');
                 removeElement('div.preloader');
@@ -2066,7 +2419,7 @@ const search = (searchValue) => {
             data = {'search': searchValue, 'action':'searchProducts'};
             res = run(data);
             res.always(details => {
-                console.log(details)
+                //console.log(details)
                 formPagination(details[1], 'product', details[1], 'arr');
                 renderPageData(details, 'product');
                 removeElement('div.preloader');
@@ -2077,39 +2430,21 @@ const search = (searchValue) => {
             data = {'search': searchValue, 'action':'searchWarehouseInventory'};
             res = run(data);
             res.always(details => {
-                console.log(details)
+                //console.log(details)
                 formPagination(details[1], 'warehouseinventory', details[1], 'arr');
                 renderPageData(details, 'warehouseinventory');
                 removeElement('div.preloader');
             });
         break;
         case 'Sales':
-            document.getElementById(`warehouseinventorys_list`).after(preloader());
+            document.getElementById(`Sales`).after(preloader());
             data = {'search': searchValue, 'action':'getBranchesInvoices'};
-            res = run(data);
-            // IF USERTYPE IS ATTENDANT ASSIGN ATTENDANT BRACH ID
-            if(site.session.user_type_id == 2){
-                data.branch_id = site.session.branch_id;
-            }
-            // console.log(data) calculate
+            //// console.log(data) calculate
             res = run(data);
             res.always(details => {
-                console.log(details)
-                if(!site.searchResult){
-                    site.searchResult = {};
-                }
-                // removeElement('div.preloader');
-                if(site.session.user_type_id == 2){
-                    // UPDATE BRANCH SITE DATA WITH THE RECEIVED DATA
-                    site.searchResult[site.session.branch_id] = convertToObject(details);
-                }else{
-                    // console.log(details)
-                    site.branchList.forEach(branch => {
-                        site.searchResult[branch.id] = convertToObject(details.filter(branchInvoicesList  => Number(branchInvoicesList.branch_id) ==  Number(branch.id)));
-                    });
-                }
-                renderPageData(site.searchResult, 'allbranchessaleinvoices');
-
+                renderPageData(details, 'invoice');
+                removeElement('div.preloader');
+                
             });
         break;
     }

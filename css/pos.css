@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
-/* ****************************** VARIABLES .section-title ********************** */
+/* ****************************** VARIABLES .card ********************** */
 :root{
     --grey: #eee;
     --dark-grey: #aaaaaa;
@@ -336,7 +336,7 @@ nav{
 }
 nav .container{
     display: grid;
-    grid-template-columns: 20% 50% 30%;
+    grid-template-columns: 50% 50%;
     align-items: center;
 }
 nav .container .logo{
@@ -460,6 +460,16 @@ nav .container .navigation{
     display: flex;
     align-items: center;
     height: inherit;
+
+    height: 8rem;
+    top: 50%;
+    left: 0;
+    width: 50px;
+    background: var(--blue);
+    overflow: hidden;
+    transform: translateY(-50%);
+    flex-direction: column;
+    position: fixed;
 }
 nav .container .navigation a.menu-item{
     display: flex;
@@ -469,6 +479,12 @@ nav .container .navigation a.menu-item{
     justify-content: center;
     color: var(--black);
 }
+
+nav .container .profile-area  .theme-btn,
+.handle{
+    display: none;
+}
+
 nav .container .navigation a.menu-item span{
     font-size: 1.5rem;
     padding: .5rem;
@@ -476,6 +492,8 @@ nav .container .navigation a.menu-item span{
 nav .container a.menu-item h3{
     font-size: 1.1rem;
     font-weight: 300;
+
+    display: none;
 }
 nav .container form{
     display: flex;
@@ -1091,7 +1109,7 @@ main .page.show{
 }
 .cart_item b,
 .cart_item span{
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     color: var(--gray-dark);
 }
 .cart_quantity_adjuster {
@@ -1243,7 +1261,7 @@ span.remove_from_cart{
     padding: .5rem;
     background: var(--primary);
     color: var(--white);
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 .cart_processing_title button{
     display: flex;
@@ -1252,7 +1270,7 @@ span.remove_from_cart{
     border-radius: .5rem;
     border: 2px solid var(--white);
     background: transparent;
-    padding: .5rem;
+    padding: .2rem .5rem;
     text-decoration: none;
     text-transform: uppercase;
 }
@@ -1281,13 +1299,13 @@ span.remove_from_cart{
 }
 .seachable_dropdown_two b,
 .seachable_dropdown b{
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 300;
 }
 #admin_sale_at_specific_branch,
 .seachable_dropdown_two input,
 .seachable_dropdown input{
-    padding: var(--padding-1);
+    padding: .7rem .6rem;
     background: var(--light);
     border: 1px solid var(--light);
 }
@@ -1295,7 +1313,7 @@ span.remove_from_cart{
     width: 100%;
 }
 .prechecked_print_receipt {
-    font-size: 1rem;
+    font-size: .9rem;
     font-weight: bold;
     color: var(--dark);
     display: flex;
@@ -1303,7 +1321,7 @@ span.remove_from_cart{
     align-items: center;
     border: 1px solid var(--light);
     background: var(--light);
-    padding: .85rem var(--padding-1);
+    padding: .5rem var(--padding-1);
 }
 input[type="checkbox"] {
     background-color: initial;
@@ -1324,7 +1342,7 @@ input[type="checkbox"] {
     border: 1px solid var(--light);
     display: flex;
     flex-direction: column;
-    font-size: 1.2rem;
+    font-size: 1rem;
     padding: var(--padding-1);
 }
 .billing_info span,
@@ -1353,7 +1371,7 @@ input[type="checkbox"] {
     filter: brightness(120%);
 }
 
-/* 
+/* receipt
 ------------------------------------------------------------------------------------
 ------------------------------------- PROFILE -----------------------------------
 ------------------------------------------------------------------------------------
@@ -1711,11 +1729,13 @@ input[type="checkbox"] {
     transform: scale(0);
     transition: transform .8s ease 0s;
 }
+.cards .card.active .stat-details label,
+.cards .card.active .stat-details h2,
 .cards .card.active span{
-    color: var(--white);
+    color: var(--white) !important;
 }
 .cards .card.active::before{
-    transform: scale(1);
+    transform: scale(3);
     background: var(--warning);
 }
 .cards .card:hover::before{
@@ -2192,6 +2212,8 @@ table.receipt_table tbody tr:hover{
 .receipting{
     display: flex;
     justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 .receipt{
     position: relative;
@@ -2199,12 +2221,13 @@ table.receipt_table tbody tr:hover{
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 100%;
+    width: 280px !important;
     height: 0rem;
     min-height: 0;
     overflow: hidden;
     font-size: .9rem;
-    width: 280px !important;
+    /*padding: 0 !important;*/
+    /*margin: 0 !important;*/
 }
 .receipt.show{
     height: auto;
@@ -2227,12 +2250,12 @@ label.printReceipt{
     margin-bottom: 1rem;
     color: #000000;
     padding: 0 .5rem;
-    width: 280px !important;
+    width: inherit !important;
 }
 .receipt_header .logo{
     display: flex;
     justify-content: center;
-    width: 100%;
+    width: inherit !important;
     border-bottom: 1px solid #ccc;
 }
 .receipt_header .logo img{
@@ -2240,26 +2263,31 @@ label.printReceipt{
     object-fit: contain;
 }
 .receipt_header .contact{
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    padding: .5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*grid-template-columns: repeat(2, 1fr);*/
+    padding: .5rem 0;
     font-size: .7rem !important;
+    justify-content: center;
 }
 .receipt_header .contact span{
     display: flex;
-    width: 12.5rem;
+    /*width: 12.5rem;*/
     padding: .2rem 0;
 }
 .receipt_header .contact span b{
     padding-right: .5rem;
+    font-size: .9rem;
 }
 .receipt_header .contact span.full_width{
     grid-column: 1/-1;
     display: flex;
-    width: 87%;
+    width: inherit;
+    text-align: center;
     justify-content: center;
-    font-weight: 600;
-    font-weight: 300;
+    font-weight: 400;
+    font-size: .85rem;
 
 }
 .receipt_header .contact span:last-child{
@@ -2274,17 +2302,18 @@ label.printReceipt{
 .receipt_body{
     display: flex;
     flex-direction: column;
+    align-items: center;
     font-size: .8rem;
     /*font-size: 1.2rem;*/
     position: relative;
-    width: 280px !important;
     overflow: hidden;
+    width: inherit !important;
 }
 .receipt_table{
     position: relative;
     border-collapse: collapse;
     margin: 0 .2rem;
-    font-size: .7rem !important;
+    font-size: .8rem !important;
     /*width: 350px !important;*/
     /*max-width: 350px !important;*/
 }
@@ -2294,13 +2323,13 @@ label.printReceipt{
     border-color: #ccc transparent #ccc transparent;
     padding: .3rem;
     color: #000000;
-    font-size: .5rem !important;
+    font-size: .8rem !important;
 }
 .receipt_table tbody tr td{
     text-align: left;
     padding-left: .2rem;
     color: #000000;
-    font-size: .7rem !important;
+    font-size: .8rem !important;
 }
 .receipt_table thead tr th .item_quantity,
 .receipt_table tbody tr td .item_quantity{
@@ -2308,7 +2337,9 @@ label.printReceipt{
     width: 1.5rem;
     overflow: hidden;
     background: transparent;
-    font-size: .7rem !important;
+}
+.receipt_table thead tr th span{
+    font-size: .8rem;
 }
 .receipt_footer{
     display: grid;
@@ -2330,15 +2361,21 @@ label.printReceipt{
     display: flex;
     display: flex;
     align-items: center;
+    font-size: .9rem;
+}
+.payType b{
+    font-size: .9rem;
 }
 .rTotal b{
     padding-right: .2rem;
+    font-size: .9rem;
 }
 .receipt_footer .attendant{
     padding-top: 1rem;
     grid-column: 1/-1;
     text-align: center;
     width: 100%;
+    font-size: .9rem;
 
 }
 .receipt_footer .remarks{
@@ -2346,6 +2383,7 @@ label.printReceipt{
     grid-column: 1/-1;
     text-align: center;
     width: 100%;
+    font-size: .9rem;
 }
 .receipt_footer .close{
     font-style: italic;
@@ -2355,8 +2393,14 @@ label.printReceipt{
     width: 100%;
     text-transform: uppercase;
 }
- 
-/* ************************************ PAGINATION ************************** */
+.receipt .item_name,
+.receipt .item_code,
+.receipt .item_quantity,
+.receipt .item_price,
+.receipt .item_total{
+    font-size: .8rem !important;
+ }
+/* ************************************ cart_details PAGINATION ************************** */
 .pagination_link{
     background: var(--white);
     width: 100%;
@@ -2472,5 +2516,62 @@ label.printReceipt{
         font-weight: 300;
     }
     html,body{overflow: hidden;}
+
+    /*nav .container .profile-area .theme-btn,*/
+    .handle{
+        display: flex;
+    }
+
+    nav .container .navigation{
+        display: flex;
+        align-items: center;
+        height: inherit;
+        top: unset;
+        left: unset;
+        width: unset;
+        background: transparent;
+        overflow: unset;
+        transform: unset;
+        flex-direction: row;
+        position: relative;
+    }
+    nav .container .profile-area .search-btn{
+        display: none;
+    }
+    nav .container a.menu-item h3{
+        display: unset;
+    }
+    nav .container{
+        display: grid;
+        grid-template-columns: 20% 50% 30%;
+        align-items: center;
+    }
 }
-filtration
+
+/* override styles when printing */
+@media print {
+
+  body {
+    margin: 0;
+    color: #000;
+    background-color: #fff;
+  }
+  table.receipt_table{
+    width: 100%;
+    display: table;
+  }
+
+  table.receipt_table tbody{
+    width: 100%;
+    font-size: .9;
+  }
+
+    .receipt .item_name,
+    .receipt .item_code,
+    .receipt .item_quantity,
+    .receipt .item_price,
+    .receipt .item_total{
+        font-size: 8rem !important;
+        transform: scale(.5);
+     }
+}
