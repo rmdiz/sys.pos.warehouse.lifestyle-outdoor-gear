@@ -16,6 +16,8 @@ class Supplier{
 			$start = 0;
 		}
 		$sql = "SELECT * FROM `supplier_tb`";
+		$result = $this->p_instance->getDetails($sql, array());
+		$total = $result->rowCount();
 
 		$filter_query = $sql . ' LIMIT ' . $start . ', ' . $limit;
 		$result = $this->p_instance->getDetails($filter_query, array());
@@ -33,15 +35,15 @@ class Supplier{
 				'date'			=>	$created_at
 			);
 		}
-		// CONVERT OT JSON home_sea
-		echo json_encode($dataArr);
+		// CONVERT OT JSON 
+		echo json_encode([$dataArr, $total]);
 	}
 	public function getAllSuppliers($post){
 		$dataArr = array();
 		$sql = "SELECT * FROM `supplier_tb`";
 
 		$result = $this->p_instance->getDetails($sql, array());
-
+		$total = $result->rowCount();
 		
 		while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
 			extract($row);

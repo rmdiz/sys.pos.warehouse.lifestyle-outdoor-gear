@@ -6,6 +6,7 @@ let limit = 15;
 let page = 1;
 let start = true;
 let objectifiedSalesData = {}
+let data ={};
 
 var today = new Date();
 var dd = String(today.getDate()).padStart(2, '0');
@@ -14,14 +15,15 @@ var yyyy = today.getFullYear();
 
 today = yyyy + '-' + mm + '-' + dd;
 
+// GENERAL API REQUEST URL
+let url= "http://localhost/sys.pos.warehouse.lifestyle-outdoor-gear/api/route.php";
+// SYSTEM REQUIRED DATA
+let sysData = {}
+
 setInterval( () => {
     if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
         window.location.href = './signin.html';
     }
-    /**
-     * CHECK FOR NEW SALE EVERY AFTER FIVE SECONDS
-     **/
-    getTodayInvoice();
 }, 5000); 
 
 if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
@@ -34,18 +36,39 @@ if(!localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear')){
 
 site = JSON.parse(localStorage.getItem('sys.pos.warehouse.lifestyle-outdoor-gear'));
 
-// VALIABLE TO KEEP TRACK OF LOCAL DATA AVAILABILITY
-// IT CONTAINTS SITE DATA KEYS 
-// EACH KEY WILL BE COMPARED WITH SITE DATA KEYS
-let expectedData = {
-    'allbranchesinventoryproducts': 'branchinventoryproduct',
-    'allbranchessaleinvoices': 'invoice',
-
-};
-/**
- * CHECK IF DATA IS AVAILABLE EVERY AFTER 1 SECONDS
- * IF AVAILABLE LOAD IT
- **/
+// GET SYSTEM DATA
+const getWarehouseProducts = () =>{
+    data = {'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'};
+    $.ajax({
+        url: url,
+        type: "POST",
+        dataType  : 'json',
+        data: data,
+        success: (response) =>{
+            // ADD DATA TO SYSTEM DATA
+            sysData.warehouseProductList = response;
+        },
+        complete:() =>{
+            //// //console.log(sysData);rend
+        }
+    });
+}
+const getAllProducts = () =>{
+    data = {'reload': true, 'action':'getAllProducts', 'name': 'productList'};
+    $.ajax({
+        url: url,
+        type: "POST",
+        dataType  : 'json',
+        data: data,
+        success: (response) =>{
+            // ADD DATA TO SYSTEM DATA
+            sysData.productList = response;
+        },
+        complete:() =>{
+            //// //console.log(sysData);
+        }
+    });
+}
 /**
  * SYSTEM FUNCTIONS A-Z
  **/
@@ -148,17 +171,14 @@ let expectedData = {
             if((index != 0) && (index % 2 != 0) && td.classList.contains(identifier)){  
                 if((tr.parentElement.id == "branchinventorys_list") && (index == 3)){
                     data = (td.classList.contains('select-data')) ? '<input list="sels'+index+'" readonly name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'"></datalist>':'<input type="text" value="' + td.childNodes[0].textContent.trim() + '" />';  
-                    tr.childNodes[index].childNodes[0].innerHTML = data;
                 }else if((tr.parentElement.id == "warehouseinventorys_list") && (index == 3)){
-                    res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
-                    res.always((productList) => {
-                        data = '<input list="sels'+index+'" name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'">'+generateOptions(productList)+'</datalist>';  
-                        tr.childNodes[index].childNodes[0].innerHTML = data;
-                    });
+                    data = '<input list="sels'+index+'" name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'">'+generateOptions(sysData.productList)+'</datalist>';  
+                    // tr.childNodes[index].childNodes[0].innerHTML = data;
                 }else{
                     data = (td.classList.contains('select-data')) ? '<input list="sels'+index+'" name="sel'+index+'"  value="'+ td.childNodes[0].textContent.trim()+'" id="sel'+index+'"><datalist id="sels'+index+'">'+optionDataIsolation(td)+'</datalist>':'<input type="text" value="' + td.childNodes[0].textContent.trim() + '" />';  
-                    tr.childNodes[index].childNodes[0].innerHTML = data;
+                    // tr.childNodes[index].childNodes[0].innerHTML = data;
                 }
+                tr.childNodes[index].childNodes[0].innerHTML = data;
             }
         });
         inlineEdit.classList.add('inProgress');
@@ -200,7 +220,7 @@ let expectedData = {
                 }else{
                     dataReformatArr = (td.classList.contains('select-data') ? site[td.classList[2]].filter(info => info.name.trim().toLowerCase() == data.trim().toLowerCase()) : [{'id': data}]);
                 }
-                //console.log(dataReformatArr)
+                //////console.log(dataReformatArr)
                 // CHECK IF DATA WAS RECEIVED BACK IF NOT THE VALUE ENETERD WAS WRONG
                 if (dataReformatArr.length == 1) {
                     updateData[td.dataset.name] = dataReformatArr[0].id;
@@ -238,14 +258,11 @@ let expectedData = {
                 }
                 res = run(data);
                 res.always(details => {
-                    //// console.log(details)
-                    let element = document.querySelector(`#${tr.parentElement.id} div.preloader`)
-                    removeElement(element);
-                    // removeElement('div.preloader');
+                    removeElement('div.preloader');
                     deliverNotification(details.message, details.response);
                     // getUserAccounts(); 
                     if((details.response == "success") && (btn.textContent == 'save_as')){
-                        //// console.log(details.info)
+                        ////// //console.log(details.info)
                         let templateString = userTmp(details.info, 'New');
                         renderSingelRow(details.info, templateString, '#users_list .newrow');
 
@@ -262,10 +279,10 @@ let expectedData = {
                     data.action = 'addProduct';
                     btn.textContent = 'save_as';
                 }
-                //console.log(data);
+                //////console.log(data);
                 res = run(data);
                 res.always(details => {
-                    //// console.log(details)
+                    ////// //console.log(details)
                     removeElement('div.preloader');
                     // removeElement('div.preloader');
                     deliverNotification(details.message, details.response);
@@ -275,75 +292,73 @@ let expectedData = {
                     }else if(btn.textContent == 'edit'){
                         removeElement('span.product-inline-delete');
                     }
+                    setTimeout(getAllProducts(), 0);
+                    setTimeout(getBranchInventory(), 0);
+                    setTimeout(getWarehouseProducts(), 0);
                 });
                 
             break;
             case 'warehouseinventorys_list':
-                res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
-                res.always((productList) => {
-                    //console.log(data)
-                    let productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(data.product_id.toLowerCase()));
+                let productDs = sysData.productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(data.product_id.toLowerCase()));
 
-                    data.product_id = productDs[0].id;
-                    data = {'data': data, 'id': tr.dataset.id, 'action': 'updateWarehouseInventory'};
-                    if(tr.classList.contains('newrow')){
-                        data.action = 'addWarehouseInventory';
-                        btn.textContent = 'save_as';
+                data.product_id = productDs[0].id;
+                data = {'data': data, 'id': tr.dataset.id, 'action': 'updateWarehouseInventory'};
+                if(tr.classList.contains('newrow')){
+                    data.action = 'addWarehouseInventory';
+                    btn.textContent = 'save_as';
+                }
+                //////console.log(data);
+                res = run(data);
+                res.always(details => {
+                    //////console.log(details)
+                    removeElement('div.preloader');
+                    deliverNotification(details.message, details.response);
+                    if((details.response == "success") && (btn.textContent == 'save_as')){
+                        productDs = sysData.productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.name.toLowerCase()));
+                        let templateString = warehouseInventoryTmp(details.info, 'New', productDs);
+                        renderSingelRow(details.info, templateString, '#warehouseinventorys_list .newrow');
+                    }else if(btn.textContent == 'edit'){
+                        removeElement('span.warehouseinventory-inline-delete');
+                        tr.children[4].innerHTML = (Number(details.info.quantity) > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>';
                     }
-                    //console.log(data);
-                    res = run(data);
-                    res.always(details => {
-                        //console.log(details)
-                        removeElement('div.preloader');
-                        deliverNotification(details.message, details.response);
-                        if((details.response == "success") && (btn.textContent == 'save_as')){
-                            productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.name.toLowerCase()));
-                            let templateString = warehouseInventoryTmp(details.info, 'New', productDs);
-                            renderSingelRow(details.info, templateString, '#warehouseinventorys_list .newrow');
-                        }else if(btn.textContent == 'edit'){
-                            removeElement('span.warehouseinventory-inline-delete');
-                            tr.children[4].innerHTML = (Number(details.info.quantity) > 0) ? '<label class="success">Available</label>': '<label class="warning">Out of Stork</label>';
-                            getBranchInventory();
-                        }
-                    });
+                    setTimeout(getBranchInventory(), 0);
+                    setTimeout(getWarehouseProducts(), 0);
                 });
                 
             break;
             case 'branchinventorys_list':
                 let pDetails = [];
-                res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
-                res.always((warehouseProductList) => {
-                    if(data.oldQuantity == data.quantity){
-                        data.remainingQuantity = data.availableQuantity;
-                    }else if(data.oldQuantity < data.quantity){
-                        data.remainingQuantity = Number(data.availableQuantity) - (Number(data.quantity) - Number(data.oldQuantity));
-                    }else if(data.oldQuantity > data.quantity){
-                        data.remainingQuantity = (Number(data.oldQuantity) - Number(data.quantity)) + Number(data.availableQuantity);
+                if(data.oldQuantity == data.quantity){
+                    data.remainingQuantity = data.availableQuantity;
+                }else if(data.oldQuantity < data.quantity){
+                    data.remainingQuantity = Number(data.availableQuantity) - (Number(data.quantity) - Number(data.oldQuantity));
+                }else if(data.oldQuantity > data.quantity){
+                    data.remainingQuantity = (Number(data.oldQuantity) - Number(data.quantity)) + Number(data.availableQuantity);
+                }
+                data.date = today;
+                data = {'reload': true, 'data': data, 'id': tr.dataset.id, 'action': 'updateBranchinventory'};
+                if(tr.classList.contains('newrow')){
+                    data.action = 'addBranchinventory';
+                    btn.textContent = 'save_as';
+                }
+                //////console.log(data);
+                res = run(data);
+                res.always(details => {
+                    //////console.log(details)
+                    removeElement('div.preloader');
+                    deliverNotification(details.message, details.response);
+                    if((details.response == "success") && (btn.textContent == 'save_as')){
+                        ////// //console.log(details.info)
+                        let productDetails = sysData.warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.desc.toLowerCase()));
+                        let templateString =  branchinventoryTmp(details.info, 'New', productDetails);
+                        renderSingelRow(details.info, templateString, '#branchinventorys_list .newrow');
+                    }else if(btn.textContent == 'edit'){
+                        removeElement('span.branchinventory-inline-delete');
+                        tr.children[6].children[0].textContent =data.data.remainingQuantity;
                     }
-                    data.date = today;
-                    data = {'reload': true, 'data': data, 'id': tr.dataset.id, 'action': 'updateBranchinventory'};
-                    if(tr.classList.contains('newrow')){
-                        data.action = 'addBranchinventory';
-                        btn.textContent = 'save_as';
-                    }
-                    //console.log(data);
-                    res = run(data);
-                    res.always(details => {
-                        //console.log(details)
-                        removeElement('div.preloader');
-                        deliverNotification(details.message, details.response);
-                        if((details.response == "success") && (btn.textContent == 'save_as')){
-                            //// console.log(details.info)
-                            let productDetails = warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(details.info.desc.toLowerCase()));
-                            let templateString =  branchinventoryTmp(details.info, 'New', productDetails);
-                            renderSingelRow(details.info, templateString, '#branchinventorys_list .newrow');
-                        }else if(btn.textContent == 'edit'){
-                            removeElement('span.branchinventory-inline-delete');
-                            getBranchInventory();
-                            getWarehouseInventory();
-                        }
-                        
-                    });
+                    // setTimeout(getBranchInventory(), 0);
+                    setTimeout(getWarehouseInventory(), 0);
+                    
                 });
                 
             break;
@@ -377,7 +392,7 @@ let expectedData = {
             case 'invoice':
                 // CALCULATE TOTAL SALES IN EACH BRACH AND OVERALL TOTAL
                 objectifiedSalesData = calculateTotalSales(data[0], start);
-                //console.log(objectifiedSalesData)
+                //////console.log(objectifiedSalesData)
                 // FOR DATA RESTRUCTURING
                 // GET INVOICE POPULATION TYPE (EITHER PURCHASE DETAILS OR INVOICE)
                 let listingType = document.querySelector('.listing_type').value;
@@ -396,7 +411,7 @@ let expectedData = {
                 let currency_list_filter = document.querySelector(".currency_list").value;
                 let salelimit_filter = document.querySelector(".salelimit").value;
                 limit = Number(salelimit_filter);
-                //console.log(branch_list_filter)
+                //////console.log(branch_list_filter)
                 // FILTER BY BRANCH
                 if(!Number(branch_list_filter) ||  (Number(branch_list_filter) == 5)){
                     data = data[0];
@@ -421,7 +436,7 @@ let expectedData = {
                 }else{
                     data = data.slice(start);
                 }
-                //console.log((Number(branch_list_filter.value)))
+                //////console.log((Number(branch_list_filter.value)))
                 // MAKE INVOICE ACTION BUTTONS CLICKABLE
                 data.forEach((info, index, infoKeys) => {
                     setTimeout(generateSaleExportTb(info), 0);
@@ -539,45 +554,41 @@ let expectedData = {
 
             break;
             case 'warehouseinventory':
-                res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
-                res.always((productList) => {
-                    if(data[1] != data[0].length){
-                        let paginationLink = (!document.querySelector('.warehouseinventory-list_pagination span.active')) ? document.querySelectorAll('.warehouseinventory-list_pagination span')[document.querySelectorAll('.warehouseinventory-list_pagination span').length - 2].textContent : document.querySelector('.warehouseinventory-list_pagination span.active').textContent;
-                        pageNo = Number(paginationLink);
-                        let displayed = (limit * (pageNo - 1));
-                        count = displayed + 1;
-                    }
-                    itemContainer = document.getElementById('warehouseinventorys_list');
-                    itemContainer.innerHTML = "";
-                    templateString = '';
-                    data = data[0];
-                    if(data.length > 0){
-                        setTimeout(generatewarehouseInventoryExportTb(data), 0);
-                        data.forEach((itemDetails, index) => {
-                            let productDs = productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(itemDetails.name.toLowerCase()));
-                            templateString = `<tr class="unrevealed warehouseinventoryrevealer" data-id="${itemDetails.id}">`;
-                            templateString += warehouseInventoryTmp(itemDetails, count, productDs);
-                            templateString += '</tr>';
-                            itemContainer.insertAdjacentHTML('beforeend', templateString);
-                            count++;
-                            reveal('warehouseinventory');
-                        });
-                        inlineEditBtns = document.querySelectorAll('.warehouseinventoryrevealer .inline-edit');
-                        tableSingleItemEdit(inlineEditBtns, 'edit-data');
+                if(data[1] != data[0].length){
+                    let paginationLink = (!document.querySelector('.warehouseinventory-list_pagination span.active')) ? document.querySelectorAll('.warehouseinventory-list_pagination span')[document.querySelectorAll('.warehouseinventory-list_pagination span').length - 2].textContent : document.querySelector('.warehouseinventory-list_pagination span.active').textContent;
+                    pageNo = Number(paginationLink);
+                    let displayed = (limit * (pageNo - 1));
+                    count = displayed + 1;
+                }
+                itemContainer = document.getElementById('warehouseinventorys_list');
+                itemContainer.innerHTML = "";
+                templateString = '';
+                data = data[0];
+                if(data.length > 0){
+                    setTimeout(generatewarehouseInventoryExportTb(data), 0);
+                    data.forEach((itemDetails, index) => {
+                        let productDs = sysData.productList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(itemDetails.name.toLowerCase()));
+                        templateString = `<tr class="unrevealed warehouseinventoryrevealer" data-id="${itemDetails.id}">`;
+                        templateString += warehouseInventoryTmp(itemDetails, count, productDs);
+                        templateString += '</tr>';
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                        reveal('warehouseinventory');
+                    });
+                    inlineEditBtns = document.querySelectorAll('.warehouseinventoryrevealer .inline-edit');
+                    tableSingleItemEdit(inlineEditBtns, 'edit-data');
 
-                    }else{
-                        templateString = `
-                            <tr class="warehouseinventoryrevealer">
-                                <td colspan='10'><label class="warning">nothing Found</label></td>
-                            </tr>
-                        `;
-                        itemContainer.innerHTML = templateString;
-                    }
-                });
+                }else{
+                    templateString = `
+                        <tr class="warehouseinventoryrevealer">
+                            <td colspan='10'><label class="warning">nothing Found</label></td>
+                        </tr>
+                    `;
+                    itemContainer.innerHTML = templateString;
+                }
 
             break;
             case 'branchinventory':
-                //console.log(data)
                 if(data[1] != data[0].length){
                     let paginationLink = (!document.querySelector('.branchinventory-list_pagination span.active')) ? document.querySelectorAll('.branchinventory-list_pagination span')[document.querySelectorAll('.branchinventory-list_pagination span').length - 2].textContent : document.querySelector('.branchinventory-list_pagination span.active').textContent;
                     pageNo = Number(paginationLink);
@@ -592,24 +603,20 @@ let expectedData = {
                 if(data.length > 0){
                     setTimeout(generatebranchinventoryExportTb(data), 0);
                     data.forEach((itemDetails, index) => {
-                        //// console.log(itemDetails)
-                        let res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
-                        res.always((warehouseProductList) => {
-                            let productDetails = warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(itemDetails.desc.toLowerCase()));
-                            templateString = `<tr class="unrevealed branchinventoryrevealer" data-warehouse_inventory_id="${itemDetails.warehouse_inventory_id}" data-id="${itemDetails.id}" data-old-quantity="${itemDetails.quantity}" data-available-quantity="${itemDetails.availableQuantity}">`;
-                            templateString +=  branchinventoryTmp(itemDetails, count, productDetails);
-                            templateString += '</tr>';
-                            itemContainer.insertAdjacentHTML('beforeend', templateString);
-                            count++;
-                            reveal('branchinventory');
-                            if(total == 1){
-                                inlineEditBtns = document.querySelectorAll('.branchinventoryrevealer .inline-edit');
-                                inlineReturnBtns = document.querySelectorAll('.branchinventoryrevealer .inline-return');
-                                returnBranchInventory(inlineReturnBtns);
-                                tableSingleItemEdit(inlineEditBtns, 'edit-data');
-                            }
-                            total--;
-                        });
+                        let productDetails = sysData.warehouseProductList.filter(info => removeSpaces(info.name.toLowerCase()) == removeSpaces(itemDetails.desc.toLowerCase()));
+                        templateString = `<tr class="unrevealed branchinventoryrevealer" data-warehouse_inventory_id="${itemDetails.warehouse_inventory_id}" data-id="${itemDetails.id}" data-old-quantity="${itemDetails.quantity}" data-available-quantity="${itemDetails.availableQuantity}">`;
+                        templateString +=  branchinventoryTmp(itemDetails, count, productDetails);
+                        templateString += '</tr>';
+                        itemContainer.insertAdjacentHTML('beforeend', templateString);
+                        count++;
+                        reveal('branchinventory');
+                        if(total == 1){
+                            inlineEditBtns = document.querySelectorAll('.branchinventoryrevealer .inline-edit');
+                            inlineReturnBtns = document.querySelectorAll('.branchinventoryrevealer .inline-return');
+                            returnBranchInventory(inlineReturnBtns);
+                            tableSingleItemEdit(inlineEditBtns, 'edit-data');
+                        }
+                        total--;
                     });
 
                 }else{
@@ -670,7 +677,7 @@ let expectedData = {
         return templateString;
     }
     const branchinventoryTmp = (itemDetails, count, productDetails) => {
-        //// console.log(itemDetails)
+        ////// //console.log(itemDetails)
         let templateString = `
         <td><label class="counter">${count}</label></td>
         <td class="edit-data select-data warehouseProductList" data-name="warehouse_inventory_id" data-details='${JSON.stringify(productDetails[0])}'><label class="desc-fixed-width">${itemDetails.desc}</label></td>
@@ -691,7 +698,7 @@ let expectedData = {
     const generatebranchinventoryExportTb = (itemData) => {
         let tmp = ``;
         if(typeof(itemData) == 'object'){
-            //console.log(typeof(itemData))
+            //////console.log(typeof(itemData))
             itemData.forEach((itemDetails, index) => {
                 tmp = `
                 <tr>
@@ -708,7 +715,7 @@ let expectedData = {
         }
     }
     const warehouseInventoryTmp = (itemDetails, count, productDetails) => {
-        //// console.log(productDetails)
+        ////// //console.log(productDetails)
         let templateString = `
             <td><label class="counter">${count}</label></td>
             <td class="edit-data select-data productList" data-name="product_id" data-details='${JSON.stringify(productDetails)}'><label class="fixed-width">${itemDetails.name}</label></td>
@@ -740,7 +747,7 @@ let expectedData = {
     const generatewarehouseInventoryExportTb = (itemData) => {
         let tmp = ``;
         if(typeof(itemData) == 'object'){
-            //console.log(typeof(itemData))
+            //////console.log(typeof(itemData))
             itemData.forEach((itemDetails, index) => {
                 tmp = `
                 <tr>
@@ -781,7 +788,7 @@ let expectedData = {
     const generateproductExportTb = (itemData) => {
         let tmp = ``;
         if(typeof(itemData) == 'object'){
-            //console.log(typeof(itemData))
+            //////console.log(typeof(itemData))
             itemData.forEach((itemDetails, index) => {
                 tmp = `
                 <tr>
@@ -801,7 +808,7 @@ let expectedData = {
         }
     }
     const generatePegination = (data, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
-        //// console.log(data)
+        ////// //console.log(data)
         let pages = 1;  
         let range = []; 
         let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
@@ -810,7 +817,7 @@ let expectedData = {
             let page = Math.ceil(total/limit);
             pages = total & limit === 0 ? page : page + 1;
             range = [...Array(pages).keys()];
-            //console.log(total, range, peginationLink)
+            //////console.log(total, range, peginationLink)
 
             let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
             let itemLink = '<span><<</span> ';
@@ -846,9 +853,9 @@ let expectedData = {
         }
     }
     const paginationManipulation = (dataType, displayLinkNumber, range, data, item, limit) => {
-        //console.log(item)
+        //////console.log(item)
         let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
-        //// console.log(limit)
+        ////// //console.log(limit)
         itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
             itemLinks.forEach(itemLink => {itemLink.classList.remove('active')});
 
@@ -930,7 +937,7 @@ let expectedData = {
                     document.querySelector(`.pagination_link.${item}-list_pagination span.prev`).classList.add('hide');
                 break;
                 default:
-                    //console.log(typeof(data))
+                    //////console.log(typeof(data))
                     let start = ((Number(paginationLink.textContent) - 1) * limit);
                     document.getElementById(`${item}s_list`).innerHTML = '';
                     let identifier = item;
@@ -948,8 +955,8 @@ let expectedData = {
             rate = Number(currencyArray[0].rate);
         }
 
-        //// console.log(rate);
-        //// console.log(itemData);
+        ////// //console.log(rate);
+        ////// //console.log(itemData);
         let tmp = ``;
         if(itemData.length == 0){
             tmp = `
@@ -992,7 +999,7 @@ let expectedData = {
             rate = Number(currencyArray[0].rate);
         }
 
-        //console.log(rate);
+        //////console.log(rate);
 
         let tmp = ``;
         itemData.invoiceDetails.forEach((invoiceProduct, index) => {
@@ -1034,7 +1041,7 @@ let expectedData = {
             rate = Number(currencyArray[0].rate);
         }
         if(typeof(itemData) == 'object'){
-            //console.log(typeof(itemData))
+            //////console.log(typeof(itemData))
             itemData.invoiceDetails.forEach((invoiceProduct, index) => {
                 tmp = `
                 <tr>
@@ -1061,7 +1068,7 @@ let expectedData = {
     }
     const tRowAction =() => {
         let actionBtnsParent = document.querySelectorAll(".invoicerevealer td label.action");
-        //// console.log(actionBtnsParent);
+        ////// //console.log(actionBtnsParent);
         actionBtnsParent.forEach(actionBtn => {
             for (var i = actionBtn.children.length - 1; i >= 0; i--) {
                 let btn = actionBtn.children[i];
@@ -1073,7 +1080,7 @@ let expectedData = {
                             if(warningactionBtn.childNodes[1].textContent == 'Continue'){
                                 document.getElementById('warningBox').remove();
                                 let clickedTr = actionBtn.parentElement.parentElement;
-                                //// console.log(clickedTr.dataset.invoiceno)
+                                ////// //console.log(clickedTr.dataset.invoiceno)
                                 data = {
                                     'invoice_no' : clickedTr.dataset.invoiceno,
                                     'action': 'returnSale'
@@ -1095,7 +1102,7 @@ let expectedData = {
         //                 // MOVE THE NEXT/PREVIOUS TABLE ROW BY THE HEIGHT OF THE EXPANDED ROW
         //                if(tr[x] == clickedTr){
         //                     clickedTr.style.top = `-${x * Number(clickedTr.offsetHeight)}px`
-        ////                     console.log(clickedTr.offsetHeight);
+        ////                   //  //console.log(clickedTr.offsetHeight);
         //                }else{
         //                     tr[x].children[2].children[0].children[2].textContent = 'add';
         //                }
@@ -1292,23 +1299,38 @@ let expectedData = {
             document.querySelector(element).remove();
         }
     }
-
-    const getTodayInvoice = () => {         
-        let data ={'reload': true, 'sdate': today, 'edate': today, 'action':'getBranchesInvoices', 'name': 'allbranchessaleinvoices'};
+    // GET SYSTEM DATA
+    const getTodayInvoices = () =>{
+        data ={'reload': true, 'sdate': today, 'edate': today, 'action':'getBranchesInvoices', 'name': 'allbranchessaleinvoices'};
         let totalSales = 0;   
         let saleNumber = 0     
-        res = run(data);
-        res.always(details => {
-            details[0].forEach(info => {
-                saleNumber += info.invoiceDetails.length;
-                info.invoiceDetails.forEach(sale => {
-                    totalSales+=(Number(sale.sale_price) * Number(sale.purchase_quantity))
-                })
-            });
-            document.querySelector('.sale .branch-sales h1').textContent = (saleNumber.toString().split('').length < 2) ? '0'+saleNumber:addComma(saleNumber.toString());
-            document.querySelector('.total-sale__price h1').textContent = addComma(totalSales.toString()) +"/=";
+        $.ajax({
+            url: url,
+            type: "POST",
+            dataType  : 'json',
+            data: data,
+            success: (response) =>{
+                // ADD DATA TO SYSTEM DATA
+                sysData.todayInvoices = response;
+            },
+            complete:() =>{
+                sysData.todayInvoices[0].forEach(info => {
+                    saleNumber += info.invoiceDetails.length;
+                    info.invoiceDetails.forEach(sale => {
+                        totalSales+=(Number(sale.sale_price) * Number(sale.purchase_quantity))
+                    })
+                });
+                document.querySelector('.sale .branch-sales h1').textContent = (saleNumber.toString().split('').length < 2) ? '0'+saleNumber:addComma(saleNumber.toString());
+                document.querySelector('.total-sale__price h1').textContent = addComma(totalSales.toString()) +"/=";
+
+                /**
+                 * CHECK FOR NEW SALE EVERY TIME THE REQUEST IS COMMPLETED
+                 **/
+                getTodayInvoices();
+            }
         });
     }
+
     const getInvoiceByDate = (page=1) => {
         document.getElementById(`invoices_list`).after(preloader());
         let startdate = document.getElementById('startdate').value;
@@ -1324,16 +1346,74 @@ let expectedData = {
         if(limitShow != 'All'){
             data.limit = limitShow;
         }
-        //// console.log(data) warehouse
-        res = run(data);
-        res.always(details => {
-            //// console.log(details);
-            if(page == 1){
-                formPagination(details[1], 'invoice', Number(limitShow), 'arr');
+        handleData('invoice', data);
+    }
+    const handleData = (name, data) => {
+        let details = [];
+        $.ajax({
+            url: url,
+            type: "POST",
+            dataType  : 'json',
+            data: data,
+            success: (response) =>{
+                // ADD DATA TO SYSTEM DATA
+                sysData[name] = response;
+            },
+            complete:() =>{
+                //console.log(name)
+                switch(name){
+                    case 'invoice':
+                        details = sysData[name];
+                        if(data.page == 1){
+                            formPagination(details[1], 'warehouseinventory', Number(data.limit), 'arr');
+                        }
+                        renderPageData(details, 'invoice', (data.page == 1) ? -1 : data.page);
+                        removeElement('div.preloader');
+
+                    break;
+                    case 'branchinventory':
+                        details = sysData['branchinventory'];
+                        const trials = setInterval(()=>{
+                            //console.log(sysData)
+                            if(sysData.warehouseProductList){
+                                clearInterval(trials);
+                                if(data.page == 1){
+                                    formPagination(details[1], 'branchinventory', Number(data.limit), 'arr');
+                                }
+                                renderPageData(details, 'branchinventory');
+                                removeElement('div.preloader');
+                            }
+
+                        }, 1000);
+                    break;
+                    case 'warehouseinventory':
+                        details = sysData['warehouseinventory'];
+                        const trials1 = setInterval(()=>{
+                            //console.log(sysData)
+                            if(sysData.warehouseProductList){
+                                clearInterval(trials1);
+                                if(data.page == 1){
+                                    formPagination(details[1], 'warehouseinventory', Number(data.limit), 'arr');
+                                }
+                                renderPageData(details, 'warehouseinventory');
+                                removeElement('div.preloader');
+                            }
+
+                        }, 1000);
+                    break;
+
+                    default:
+                        details = sysData[name];
+                      //  //console.log(data)
+                      //  //console.log(details)
+                        if(sysData.warehouseProductList){}
+                        if(data.page == 1){
+                            formPagination(details[1], name, Number(data.limit), 'arr');
+                        }
+                        renderPageData(details, name);
+                        removeElement('div.preloader');
+                }
             }
-            renderPageData(details, 'invoice', (page == 1) ? -1 : page);
-            removeElement('div.preloader');
-            
         });
     }
     const getWarehouseInventory = (page = 1) =>{
@@ -1341,16 +1421,7 @@ let expectedData = {
         let limitShow = document.querySelector('#WarehouseInventorys .warehouselimit').value;
         let data = {'limit': limitShow,'action':'getLimitedWarehouseInventory', 'page': page};
         data.action = (document.querySelector('#WarehouseInventorys .warehouselimit').value != "All") ? 'getLimitedWarehouseInventory': 'getAllWarehouseInventorys';
-        //// console.log(limitShow)
-        res = run(data);
-        res.always(details => {
-            //console.log(details)
-            if(page == 1){
-                formPagination(details[1], 'warehouseinventory', Number(limitShow), 'arr');
-            }
-            renderPageData(details, 'warehouseinventory');
-            removeElement('div.preloader');
-        });
+        handleData('warehouseinventory', data);
     }
     const getBranchInventory = (page = 1) =>{
         document.getElementById(`branchinventorys_list`).after(preloader());
@@ -1360,32 +1431,15 @@ let expectedData = {
         if(Number(document.querySelector('.dash_branch_list').value) && (Number(document.querySelector('.dash_branch_list').value != 5))){
             data.branch_id = document.querySelector('.dash_branch_list').value
         } 
-        //console.log(data)
-        res = run(data);
-        res.always(details => {
-            //console.log(details)
-            if(page == 1){
-                formPagination(details[1], 'branchinventory', Number(limitShow), 'arr');
-            }
-            renderPageData(details, 'branchinventory');
-            removeElement('div.preloader');
-        });
+        handleData('branchinventory', data);
     }
     const getProducts = (page = 1) => {
         document.getElementById(`products_list`).after(preloader());
         let limitShow = document.querySelector('#Products .productslimit').value;
         let data = {'limit': limitShow,'action':'getLimitedProducts', 'page': page};
         data.action = (document.querySelector('#Products .productslimit').value != "All") ? 'getLimitedProducts': 'getAllProducts';
-        //// console.log(limitShow)
-        res = run(data);
-        res.always(details => {
-            //console.log(details)
-            removeElement('div.preloader');
-            if(page == 1){
-                formPagination(details[1], 'product', Number(limitShow), 'arr');
-            }
-            renderPageData(details, 'product');
-        });
+        handleData('product', data);
+
     }
     const getUserAccounts = (page = 1) => {
         document.getElementById(`users_list`).after(preloader());
@@ -1393,39 +1447,19 @@ let expectedData = {
         // : 15;
         let data = {'limit': limitShow,'action':'getLimitedUsers', 'page': page};
         data.action = (document.querySelector('#Accounts .userlimit').value != "All") ? 'getLimitedUsers': 'getAllUsers';
-        //// console.log(limitShow)
-        res = run(data);
-        res.always(details => {
-            //// console.log(details)
-            removeElement('div.preloader');
-             if(page == 1){
-                formPagination(details[1], 'user', Number(limitShow), 'arr');
-            }
-            renderPageData(details, 'user');
-        });
+        handleData('user', data);
     }
     const getSuppliers = (page=1) =>{
         document.getElementById(`suppliers_list`).after(preloader());
         // let limitShow = document.querySelector('#Suppliers .userlimit').value//(document.querySelector('#Suppliers .userlimit').value != "All") ? 
         // : 15;
-        let data = {'action':'getAllSuppliers', 'page': page};
-        // data.action = (document.querySelector('#Suppliers .userlimit').value != "All") ? 'getLimitedUsers': 'getAllUsers';
-        //// console.log(limitShow)
-        res = run(data);
-        res.always(info => {
-            let details = [info, info.length];
-            //// console.log(details)
-            removeElement('div.preloader');
-             if(page == 1){
-                formPagination(details[1], 'supplier', Number(info.length), 'arr');
-            }
-            renderPageData(details, 'supplier');
-        });
+        let data = {'action':'getLimitedSuppliers', 'limit':'15', 'page': page};
+        handleData('supplier', data);
     }
     const passwordUpdate = (psdTds) => {
         psdTds.forEach(td => td.addEventListener('contextmenu', (e) => {
             e.preventDefault();
-            //// console.log(td);
+            ////// //console.log(td);
             let tdData = td.children[0];
             let form = `
                 <form id="updatePassword">
@@ -1438,7 +1472,7 @@ let expectedData = {
             document.querySelector('#updatePassword span').addEventListener('click', () => {
                 td.innerHTML ="";
                 td.append(tdData);
-                //// console.log(tdData)
+                ////// //console.log(tdData)
             });
             // UPDATE PASSWORD
             document.querySelector('#updatePassword').addEventListener('submit', (e) => {
@@ -1447,7 +1481,7 @@ let expectedData = {
                 let data = {'id': td.parentElement.dataset.id,'action':'updateUserPassword', 'password': newPass};
                 res = run(data);
                 res.always((details) => {
-                    //console.log(details)
+                    //////console.log(details)
                     deliverNotification(details.message, details.response);
                     td.innerHTML = "";
                     td.append(tdData);
@@ -1458,7 +1492,7 @@ let expectedData = {
 
     }
     const formPagination = (total, item, limit = 15, dataType="obj", displayLinkNumber = 10) => {
-        //// console.log(data)
+      //  //console.log(total, limit)
         let pages = 1;  
         let range = []; 
         // let total = (dataType == 'obj') ? Object.keys(data).length : data.length;
@@ -1467,7 +1501,7 @@ let expectedData = {
             let page = Math.ceil(total/limit);
             pages = total & limit === 0 ? page : page + 1;
             range = [...Array(pages).keys()];
-            //// console.log(total, range, peginationLink)
+            ////// //console.log(total, range, peginationLink)
 
             let activePeginationLink = document.querySelector(`.pagination_link.${item}-list_pagination span.active`);
             let itemLink = '<span><<</span> ';
@@ -1504,9 +1538,9 @@ let expectedData = {
     }
 
     const paginationNavigation = (dataType, displayLinkNumber, range, item, limit) => {
-        //// console.log(item)
+      //  //console.log(item)
         let itemLinks = document.querySelectorAll(`.pagination_link.${item}-list_pagination span`);
-        //// console.log(limit)
+        ////// //console.log(limit)
         itemLinks.forEach(paginationLink => paginationLink.addEventListener('click', () => {
             itemLinks.forEach(itemLink => {itemLink.classList.remove('active')});
 
@@ -1616,7 +1650,7 @@ let expectedData = {
             // USE INVENTORY ID AS KEY FOR EACH PRODUCT ID
             obj[info.id] = info;
         })
-        //// console.log(obj);
+        ////// //console.log(obj);
         return obj;
     }
     // UPDATE SITE DATA
@@ -1653,7 +1687,7 @@ let expectedData = {
                 dataType  : 'json',
                 data: data,
                 success: function(details){
-                    //// console.log(details)
+                    ////// //console.log(details)
                 }
             });
             return ajaxRequest;
@@ -1668,7 +1702,7 @@ let expectedData = {
         }else{
             options += `<option>Nothing Found</option>`;
         }
-        //// console.log(options)
+        ////// //console.log(options)
         return options;
     }
     const generateDataList =(data, key) =>{
@@ -1757,12 +1791,12 @@ let expectedData = {
                     td.innerHTML = `<input type="text" placeholder="Payment Method" value="${tdData}" id="payment_type_name">`;
                     btn.textContent = "save_as";
                 }else{
-                    //console.log(td);
+                    //////console.log(td);
 
                     let data = {'id': payment_type_id, 'paymentMethod': td.children[0].value, 'action': 'updatePaymentType'}
                     res = run(data);
                     res.always(details => {
-                        //console.log(details);
+                        //////console.log(details);
                         deliverNotification(details.message, details.response);
                         btn.textContent = "edit";
                         td.innerHTML = td.children[0].value;
@@ -1858,9 +1892,11 @@ let expectedData = {
         }
     }
 document.addEventListener('DOMContentLoaded', () => {
-    //// console.log(localStorageSize())
+    ////// //console.log(localStorageSize())
     document.getElementById('startdate').value = today;  
     document.getElementById('enddate').value = today;  
+    getWarehouseProducts();
+    getAllProducts();
     setTimeout(getProducts(), 0);
     setTimeout(getBranchInventory(), 0);
     setTimeout(getWarehouseInventory(), 0);
@@ -1868,7 +1904,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(getUserAccounts(), 0);
     setTimeout(getSuppliers(), 0);
     setTimeout(getDollarRate(), 0);
-    setTimeout(getTodayInvoice(), 0);
+    setTimeout(getTodayInvoices(), 0);
     setTimeout(loadProfile(), 0);
     setTimeout(settingsInfo(), 0);
 
@@ -2136,7 +2172,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // removeElement('tr.newrow');
                 let tr = document.querySelector('#products_list tr.newrow');
                 let inlineEdit = document.querySelector('#products_list tr.newrow .new-product-inline-edit');
-                //console.log(tr, inlineEdit);
+                //////console.log(tr, inlineEdit);
                 asignDataAfterEdit(tr, inlineEdit, "edit-data");
             });
             document.getElementById('newProduct').children[0].textContent = 'close';
@@ -2157,96 +2193,91 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('newWarehouseInventoryProduct').addEventListener('click', () => {
         if(document.getElementById('newWarehouseInventoryProduct').children[0].textContent == 'add'){
             removeNewRowElement();
-
-            let res = run({'reload': true, 'action':'getAllProducts', 'name': 'productList'});
-            res.always((data) => {
-                //console.log(data)
-                let productList = data;
-                let newTr = `
-                    <tr class="newrow warehouseinventoryproductrevealer" data-id="200">
-                        <td><label class="counter">0</label></td>
-                        <td class="edit-data select-data productList" data-name="product_id"><label class="fixed-fixed"><input list="sels1120013" name="warehouseEntryProduct" placeholder="Product" id="warehouseEntryProduct"><datalist id="sels1120013">${generateOptions(productList)}</datalist></label></td>
-                        <td>
-                            <label class="action" data-id="warehouse-inventory-product">
-                                <span class="material-symbols-outlined primary new-warehouse-inventory-product-inline-edit">save_as</span>
+            let productList = sysData.productList;
+            let newTr = `
+                <tr class="newrow warehouseinventoryproductrevealer" data-id="200">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data select-data productList" data-name="product_id"><label class="fixed-fixed"><input list="sels1120013" name="warehouseEntryProduct" placeholder="Product" id="warehouseEntryProduct"><datalist id="sels1120013">${generateOptions(productList)}</datalist></label></td>
+                    <td>
+                        <label class="action" data-id="warehouse-inventory-product">
+                            <span class="material-symbols-outlined primary new-warehouse-inventory-product-inline-edit">save_as</span>
+                        </label>
+                    </td>
+                    <td class="edit-data" data-name="quantity"><label class="short-fixed"><input type="text" placeholder="quantity"></label></td>
+                    <td class="edit-data select-data statusList" data-name="status_id"><label class="short-fixed"><input list="sels11200013" name="sel11200013" placeholder="Status" id="sel11200013"><datalist id="sels11200013">${generateOptions(site.statusList)}</datalist></label></td>
+                    <td>
+                        <div class="image">
+                            <img src="./images/default.png" alt="">
+                            <label for="upload-product-image" title="Click to choose new image to upload">
+                                <span class="material-symbols-outlined">cloud_sync</span>
+                                <input type="file" id="upload-product-image" value='default.png'>
                             </label>
-                        </td>
-                        <td class="edit-data" data-name="quantity"><label class="short-fixed"><input type="text" placeholder="quantity"></label></td>
-                        <td class="edit-data select-data statusList" data-name="status_id"><label class="short-fixed"><input list="sels11200013" name="sel11200013" placeholder="Status" id="sel11200013"><datalist id="sels11200013">${generateOptions(site.statusList)}</datalist></label></td>
-                        <td>
-                            <div class="image">
-                                <img src="./images/default.png" alt="">
-                                <label for="upload-product-image" title="Click to choose new image to upload">
-                                    <span class="material-symbols-outlined">cloud_sync</span>
-                                    <input type="file" id="upload-product-image" value='default.png'>
-                                </label>
-                            </div>
-                            <img src="./images/default.png" class="preview-image">
-                        </td>
-                        <td class="edit-data select-data colorList" data-name="colour_id"><label class="short-fixed"><input list="sels120013" name="warehouseEntryColor" placeholder="Colour" id="warehouseEntryColor"><datalist id="sels120013">${generateOptions(site.colorList)}</datalist></label></td>
-                        <td class="edit-data select-data sizeList" data-name="size_id"><label class="short-fixed"><input list="sels001300" name="warehouseEntrySize" disabled placeholder="Size" id="warehouseEntrySize"><datalist id="sels001300">${generateOptions(site.sizeList)}</datalist></label></td>
-                        <td class="edit-data" data-name="code"><label class="primary"><input type="text" id="warehouseEntryCode" placeholder="Code"></label></td>
-                        <td class="edit-data" data-name="description"><label class="desc-fixed-width"><input type="text" id="WarehouseEntryDesc" placeholder="description"></label></td>
-                    </tr> 
-                `;
-                document.querySelector('#warehouseinventorys_list').insertAdjacentHTML('afterBegin', newTr);
-                let codeInput = document.getElementById('warehouseEntryCode');
-                let descInput = document.getElementById('WarehouseEntryDesc');
-                let colorInput = document.getElementById('warehouseEntryColor');
-                let sizeInput = document.getElementById('warehouseEntrySize');
-                let productNameInput = document.getElementById('warehouseEntryProduct');
-                // GENERATE DESCRIPTION AND PRODUCT CODE FROM FIELDS
-                productNameInput.addEventListener('change', () => {
-                    //// console.log(productList)
-                    let productDetails = productList.filter(info => info.name.trim().toLowerCase() == productNameInput.value.trim().toLowerCase());
-                        //// console.log(productDetails);
-                    if(productDetails.length > 0){
-                        document.getElementById('warehouseEntryProduct').parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
+                        </div>
+                        <img src="./images/default.png" class="preview-image">
+                    </td>
+                    <td class="edit-data select-data colorList" data-name="colour_id"><label class="short-fixed"><input list="sels120013" name="warehouseEntryColor" placeholder="Colour" id="warehouseEntryColor"><datalist id="sels120013">${generateOptions(site.colorList)}</datalist></label></td>
+                    <td class="edit-data select-data sizeList" data-name="size_id"><label class="short-fixed"><input list="sels001300" name="warehouseEntrySize" disabled placeholder="Size" id="warehouseEntrySize"><datalist id="sels001300">${generateOptions(site.sizeList)}</datalist></label></td>
+                    <td class="edit-data" data-name="code"><label class="primary"><input type="text" id="warehouseEntryCode" placeholder="Code"></label></td>
+                    <td class="edit-data" data-name="description"><label class="desc-fixed-width"><input type="text" id="WarehouseEntryDesc" placeholder="description"></label></td>
+                </tr> 
+            `;
+            document.querySelector('#warehouseinventorys_list').insertAdjacentHTML('afterBegin', newTr);
+            let codeInput = document.getElementById('warehouseEntryCode');
+            let descInput = document.getElementById('WarehouseEntryDesc');
+            let colorInput = document.getElementById('warehouseEntryColor');
+            let sizeInput = document.getElementById('warehouseEntrySize');
+            let productNameInput = document.getElementById('warehouseEntryProduct');
+            // GENERATE DESCRIPTION AND PRODUCT CODE FROM FIELDS
+            productNameInput.addEventListener('change', () => {
+                ////// //console.log(productList)
+                let productDetails = productList.filter(info => info.name.trim().toLowerCase() == productNameInput.value.trim().toLowerCase());
+                    ////// //console.log(productDetails);
+                if(productDetails.length > 0){
+                    document.getElementById('warehouseEntryProduct').parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
 
-                        codeInput.value = `${codeInput.value.trim()}${productDetails[0].code_initual.trim()}`;
-                        descInput.value = `${productDetails[0].brand_name.trim()} ${productDetails[0].name.trim()}`;
-                        productNameInput.style.borderColor = "lime";
-                    }else{
-                        productNameInput.style.borderColor = "red";
-                        deliverNotification('Invalid product name', 'warning')
-                    }
-                });
-                colorInput.addEventListener('change', () => {
-                    let colorDetails = site.colorList.filter(info => info.name.toLowerCase() == colorInput.value.trim().toLowerCase());
-                    if(colorDetails.length == 1){
-                        //// console.log(colorDetails[0]);
-                        codeInput.value = `${codeInput.value.trim()}${colorDetails[0].innitual.trim()}`;
-                        descInput.value = `${descInput.value.trim()}`;
-                        colorInput.style.borderColor = "lime";
-                        sizeInput.removeAttribute('disabled');
-                    }else{
-                        colorInput.style.borderColor = "red";
-                        deliverNotification('Invalid input', 'warning')
-                    }
-                });
-                sizeInput.addEventListener('change', () => {
-                    let sizeDetails = site.sizeList.filter(info => info.name.toLowerCase() == sizeInput.value.trim().toLowerCase());
-                    if(sizeDetails.length == 1){
-                        //// console.log(sizeDetails[0]);
-                        codeInput.value = `${sizeDetails[0].innitual.trim()}${codeInput.value.trim()}`;
-                        descInput.value = `${descInput.value.trim()} size ${sizeDetails[0].name.trim()} color ${colorInput.value.trim()}`;
-                        sizeInput.style.borderColor = "lime";
-                        sizeInput.removeAttribute('disabled');
-                    }else{
-                        sizeInput.style.borderColor = "red";
-                        deliverNotification('Invalid input', 'warning')
-                    }
+                    codeInput.value = `${codeInput.value.trim()}${productDetails[0].code_initual.trim()}`;
+                    descInput.value = `${productDetails[0].brand_name.trim()} ${productDetails[0].name.trim()}`;
+                    productNameInput.style.borderColor = "lime";
+                }else{
+                    productNameInput.style.borderColor = "red";
+                    deliverNotification('Invalid product name', 'warning')
+                }
+            });
+            colorInput.addEventListener('change', () => {
+                let colorDetails = site.colorList.filter(info => info.name.toLowerCase() == colorInput.value.trim().toLowerCase());
+                if(colorDetails.length == 1){
+                    ////// //console.log(colorDetails[0]);
+                    codeInput.value = `${codeInput.value.trim()}${colorDetails[0].innitual.trim()}`;
+                    descInput.value = `${descInput.value.trim()}`;
+                    colorInput.style.borderColor = "lime";
+                    sizeInput.removeAttribute('disabled');
+                }else{
+                    colorInput.style.borderColor = "red";
+                    deliverNotification('Invalid input', 'warning')
+                }
+            });
+            sizeInput.addEventListener('change', () => {
+                let sizeDetails = site.sizeList.filter(info => info.name.toLowerCase() == sizeInput.value.trim().toLowerCase());
+                if(sizeDetails.length == 1){
+                    ////// //console.log(sizeDetails[0]);
+                    codeInput.value = `${sizeDetails[0].innitual.trim()}${codeInput.value.trim()}`;
+                    descInput.value = `${descInput.value.trim()} size ${sizeDetails[0].name.trim()} color ${colorInput.value.trim()}`;
+                    sizeInput.style.borderColor = "lime";
+                    sizeInput.removeAttribute('disabled');
+                }else{
+                    sizeInput.style.borderColor = "red";
+                    deliverNotification('Invalid input', 'warning')
+                }
 
-                });
-                document.querySelector('.newrow .new-warehouse-inventory-product-inline-edit').addEventListener('click', () => {
-                    // removeElement('tr.newrow');
-                    let tr = document.querySelector('#warehouseinventorys_list tr.newrow');
-                    let inlineEdit = document.querySelector('#warehouseinventorys_list tr.newrow .new-warehouse-inventory-product-inline-edit');
-                    //console.log(tr, inlineEdit);
-                    asignDataAfterEdit(tr, inlineEdit, "edit-data");
-                });
-                document.getElementById('newWarehouseInventoryProduct').children[0].textContent = 'close';
-            })
+            });
+            document.querySelector('.newrow .new-warehouse-inventory-product-inline-edit').addEventListener('click', () => {
+                // removeElement('tr.newrow');
+                let tr = document.querySelector('#warehouseinventorys_list tr.newrow');
+                let inlineEdit = document.querySelector('#warehouseinventorys_list tr.newrow .new-warehouse-inventory-product-inline-edit');
+                //////console.log(tr, inlineEdit);
+                asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            });
+            document.getElementById('newWarehouseInventoryProduct').children[0].textContent = 'close';
         }else{
             removeElement('tr.newrow');
             document.getElementById('newWarehouseInventoryProduct').children[0].textContent = 'add';
@@ -2264,54 +2295,51 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('newBranchInventoryProduct').addEventListener('click', () => {
         if(document.getElementById('newBranchInventoryProduct').children[0].textContent == 'add'){
             removeNewRowElement();
-            let res = run({'reload': true, 'action':'getAllWarehouseProducts', 'name': 'warehouseProductList'});
-            res.always((warehouseProductList) => {
-                let newTr = `
-                    <tr class="newrow branchinventoryproductrevealer" data-id="200" data-old-quantity="0">
-                        <td><label class="counter">0</label></td>
-                        <td class="edit-data select-data warehouseProductList" data-name="warehouse_inventory_id"><label class="fixed-fixed"><input list="sels1120013" name="product_desc" placeholder="Product Info" id="product_desc"><datalist id="sels1120013">${generateOptions(warehouseProductList)}</datalist></label></td>
-                        <td>
-                            <label class="action" data-id="branch-inventory-product">
-                                <span class="material-symbols-outlined primary new-branch-inventory-product-inline-edit">save_as</span>
-                            </label>
-                        </td>
-                        <td class="edit-data select-data branchList" data-name="branch_id"><label><input list="sels0013" name="sel0013" placeholder="branch" id="sel0013"><datalist id="sels0013">${generateOptions(site.branchList)}</datalist></label></td>
-                        <td class="edit-data" data-name="code"><label class="primary"><input type="text" id="branchinventoryproductCode" disabled="disabled" placeholder="Code"></label></td>
-                        <td class="edit-data" data-name="quantity"><label class="short-fixed"><input type="text" id="branchQuantity" placeholder="quantity"></label></td>
-                        <td class="edit-data" data-name="availableQuantity"><label><input type="text" id="branchinventoryAvailableQuantity" disabled="disabled" placeholder="Available"></label></td>
-                        <td class="edit-data select-data statusList" data-name="status_id"><label class="short-fixed"><input list="sels11200013" name="sel11200013" placeholder="Status" value="available" id="sel11200013"><datalist id="sels11200013">${generateOptions(site.statusList)}</datalist></label></td>
-                    </tr> 
-                `;
-                document.querySelector('#branchinventorys_list').insertAdjacentHTML('afterBegin', newTr);
-                document.getElementById('product_desc').addEventListener('change', () => {
-                    let productDetails = warehouseProductList.filter(info => info.name.toLowerCase() == document.getElementById('product_desc').value.trim().toLowerCase());
-                    if(productDetails.length > 0){
-                        document.getElementById('product_desc').parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
-                        document.getElementById('branchinventoryproductCode').value = productDetails[0].code.trim();
-                        document.getElementById('branchinventoryAvailableQuantity').value = productDetails[0].quantity.trim();
-                    }else{
-                        deliverNotification('Invalid Delatils', 'warning');
-                    }
-                });
-                document.getElementById('branchQuantity').addEventListener('input', () => {
-                    let available = Number(document.getElementById('branchinventoryAvailableQuantity').value);
-                    let inputQuantity = Number(document.getElementById('branchQuantity').value);
-                    if((available - inputQuantity) >= 0){
-                        // document.getElementById('branchinventoryAvailableQuantity').value = (available - inputQuantity);
-                    }else{
-                        deliverNotification('Branch Quantity ca\'t be above available quantity', 'warning');
-                    }
-
-                });
-                document.querySelector('.newrow .new-branch-inventory-product-inline-edit').addEventListener('click', () => {
-                    // removeElement('tr.newrow');
-                    let tr = document.querySelector('#branchinventorys_list tr.newrow');
-                    let inlineEdit = document.querySelector('#branchinventorys_list tr.newrow .new-branch-inventory-product-inline-edit');
-                    //console.log(tr, inlineEdit);
-                    asignDataAfterEdit(tr, inlineEdit, "edit-data");
-                });
-                document.getElementById('newBranchInventoryProduct').children[0].textContent = 'close';
+            let newTr = `
+                <tr class="newrow branchinventoryproductrevealer" data-id="200" data-old-quantity="0">
+                    <td><label class="counter">0</label></td>
+                    <td class="edit-data select-data warehouseProductList" data-name="warehouse_inventory_id"><label class="fixed-fixed"><input list="sels1120013" name="product_desc" placeholder="Product Info" id="product_desc"><datalist id="sels1120013">${generateOptions(sysData.warehouseProductList)}</datalist></label></td>
+                    <td>
+                        <label class="action" data-id="branch-inventory-product">
+                            <span class="material-symbols-outlined primary new-branch-inventory-product-inline-edit">save_as</span>
+                        </label>
+                    </td>
+                    <td class="edit-data select-data branchList" data-name="branch_id"><label><input list="sels0013" name="sel0013" placeholder="branch" id="sel0013"><datalist id="sels0013">${generateOptions(site.branchList)}</datalist></label></td>
+                    <td class="edit-data" data-name="code"><label class="primary"><input type="text" id="branchinventoryproductCode" disabled="disabled" placeholder="Code"></label></td>
+                    <td class="edit-data" data-name="quantity"><label class="short-fixed"><input type="text" id="branchQuantity" placeholder="quantity"></label></td>
+                    <td class="edit-data" data-name="availableQuantity"><label><input type="text" id="branchinventoryAvailableQuantity" disabled="disabled" placeholder="Available"></label></td>
+                    <td class="edit-data select-data statusList" data-name="status_id"><label class="short-fixed"><input list="sels11200013" name="sel11200013" placeholder="Status" value="available" id="sel11200013"><datalist id="sels11200013">${generateOptions(site.statusList)}</datalist></label></td>
+                </tr> 
+            `;
+            document.querySelector('#branchinventorys_list').insertAdjacentHTML('afterBegin', newTr);
+            document.getElementById('product_desc').addEventListener('change', () => {
+                let productDetails = sysData.warehouseProductList.filter(info => info.name.toLowerCase() == document.getElementById('product_desc').value.trim().toLowerCase());
+                if(productDetails.length > 0){
+                    document.getElementById('product_desc').parentElement.parentElement.dataset.details = JSON.stringify(productDetails[0])
+                    document.getElementById('branchinventoryproductCode').value = productDetails[0].code.trim();
+                    document.getElementById('branchinventoryAvailableQuantity').value = productDetails[0].quantity.trim();
+                }else{
+                    deliverNotification('Invalid Delatils', 'warning');
+                }
             });
+            document.getElementById('branchQuantity').addEventListener('input', () => {
+                let available = Number(document.getElementById('branchinventoryAvailableQuantity').value);
+                let inputQuantity = Number(document.getElementById('branchQuantity').value);
+                if((available - inputQuantity) >= 0){
+                    // document.getElementById('branchinventoryAvailableQuantity').value = (available - inputQuantity);
+                }else{
+                    deliverNotification('Branch Quantity ca\'t be above available quantity', 'warning');
+                }
+
+            });
+            document.querySelector('.newrow .new-branch-inventory-product-inline-edit').addEventListener('click', () => {
+                // removeElement('tr.newrow');
+                let tr = document.querySelector('#branchinventorys_list tr.newrow');
+                let inlineEdit = document.querySelector('#branchinventorys_list tr.newrow .new-branch-inventory-product-inline-edit');
+                //////console.log(tr, inlineEdit);
+                asignDataAfterEdit(tr, inlineEdit, "edit-data");
+            });
+            document.getElementById('newBranchInventoryProduct').children[0].textContent = 'close';
         }else{
             removeElement('tr.newrow');
             document.getElementById('newBranchInventoryProduct').children[0].textContent = 'add';
@@ -2330,7 +2358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.search-field').addEventListener('change', () => {
         // let searchValue = document.querySelector('.search-field').value;
         // search(searchValue);
-        //// console.log(document.querySelector('.search-field').value);
+        ////// //console.log(document.querySelector('.search-field').value);
     });
     document.querySelector('.search-bar').addEventListener('submit', (e) => {
         e.preventDefault()
@@ -2338,18 +2366,18 @@ document.addEventListener('DOMContentLoaded', () => {
         search(searchValue);
     })
     document.querySelector('.backup-btn').addEventListener('click', () => {
-        //console.log('we hear')
+        //////console.log('we hear')
         res = run({'action': 'backUp'});
         res.always((data) => {
-            //console.log(data)
+            //////console.log(data)
         })
     });
     document.getElementById('dollarRate').addEventListener('change', () => {
         data = {'rate': document.getElementById('dollarRate').value, 'action':'updateDollarRate'};
-        //console.log(data)
+        //////console.log(data)
         res = run(data);
         res.always(details => {
-            //console.log(details)
+            //////console.log(details)
             getDollarRate();
         });
     });
@@ -2380,7 +2408,7 @@ document.addEventListener('DOMContentLoaded', () => {
             data = {'paymentMethod': document.getElementById('payment_type_name').value, 'id': tr.dataset.id, 'action': 'addPaymentType'};
             res = run(data);
             res.always(details => {
-                //console.log(details);
+                //////console.log(details);
                 deliverNotification(details.message, details.response);
                 autorun({'reload': true, 'action':'getPaymentTypes', 'name': 'paymentTypeList'});
                 settingsInfo();
@@ -2393,22 +2421,22 @@ const getDollarRate =() => {
     data = {'action':'getDollarRate'};
     res = run(data);
     res.always(details => {
-        //// console.log(details)
+        ////// //console.log(details)
         document.getElementById('dollarRate').value = details.rate;
     });
 }
 const search = (searchValue) => {
     page = document.querySelector('.page.active');
-    //console.log(page)
+    //////console.log(page)
     let data = [];
     switch(page.id){
         case 'Dashboard':
-            //console.log(searchValue);
+            //////console.log(searchValue);
             document.getElementById(`branchinventorys_list`).after(preloader());
             data = {'search': searchValue, 'action':'searchBranchInventory'};
             res = run(data);
             res.always(details => {
-                //console.log(details)
+                //////console.log(details)
                 formPagination(details[1], 'branchinventory', details[1], 'arr');
                 renderPageData(details, 'branchinventory');
                 removeElement('div.preloader');
@@ -2419,7 +2447,7 @@ const search = (searchValue) => {
             data = {'search': searchValue, 'action':'searchProducts'};
             res = run(data);
             res.always(details => {
-                //console.log(details)
+                //////console.log(details)
                 formPagination(details[1], 'product', details[1], 'arr');
                 renderPageData(details, 'product');
                 removeElement('div.preloader');
@@ -2430,7 +2458,7 @@ const search = (searchValue) => {
             data = {'search': searchValue, 'action':'searchWarehouseInventory'};
             res = run(data);
             res.always(details => {
-                //console.log(details)
+                //////console.log(details)
                 formPagination(details[1], 'warehouseinventory', details[1], 'arr');
                 renderPageData(details, 'warehouseinventory');
                 removeElement('div.preloader');
@@ -2439,7 +2467,7 @@ const search = (searchValue) => {
         case 'Sales':
             document.getElementById(`Sales`).after(preloader());
             data = {'search': searchValue, 'action':'getBranchesInvoices'};
-            //// console.log(data) calculate
+            ////// //console.log(data) calculate
             res = run(data);
             res.always(details => {
                 renderPageData(details, 'invoice');

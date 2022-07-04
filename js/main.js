@@ -519,6 +519,7 @@ let expectedData = {
         document.getElementById('receipt_items').innerHTML = allItems; 
         document.getElementById("outlet").innerHTML = "Outlet: " + data.invoiceDetails[0].branch_location;
         document.getElementById('invoice_date').innerHTML = "<b>Date</b>: " + data.invoiceDetails[0].date;
+        document.getElementById('invoice_no').innerHTML = "<b>No.</b>: " + data.invoiceDetails[0].invoice_no;
         document.getElementById('totalPrice').textContent = addComma(totalPrice.toString());
         document.getElementById('currencySymbol').textContent = data.invoiceDetails[0].currency;
         document.getElementById('receipt_attendant').textContent = data.invoiceDetails[0].first_name;
@@ -1029,10 +1030,10 @@ let expectedData = {
                 //console.log(cartItem)
                 let saleCurrencyInput = document.getElementById('sale_curency');
                 let dollarC = site.currencyList.filter(currency => currency.symbol == '$');
-                let dollarRate = dollarC[0].rate;
+                let dollarRate = (dollarC.length > 0) ? dollarC[0].rate: 0;
 
                 let selectedCurrency = site.currencyList.filter(currency => currency.name == saleCurrencyInput.value);
-                let rate = selectedCurrency[0].rate;
+                let rate = (selectedCurrency.length > 0) ? selectedCurrency[0].rate: 0;
                 let convertedPrice = 0;
                 if(saleCurrencyInput.value == 'Dollars'){
                     convertedPrice =  (cart.currency != '$') ? (Math.round((((Number(cartItem.sale_price)) + Number.EPSILON)) * 100) / 100 ) : (((Math.round(((Number(cartItem.sale_price)/rate) + Number.EPSILON)) * 100) / 100 ));
@@ -1397,7 +1398,7 @@ let expectedData = {
         if(limitShow != 'All'){
             data.limit = limitShow;
         }
-        // //console.log(data) calculate
+        // //console.log(data) reprint
         res = run(data);
         res.always(details => {
             // //console.log(details);
@@ -1712,10 +1713,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalPriceSting = document.getElementById('totalPrice_identifier').textContent.split(' ')[0];
         const totalPriceDiscountedSting = document.getElementById('DiscountPrice_identifier').textContent.split(' ')[0];
         let dollarC = site.currencyList.filter(currency => currency.symbol == '$');
-        let dollarRate = dollarC[0].rate;
+        let dollarRate = (dollarC.length > 0) ? dollarC[0].rate : 1;
 
         let selectedCurrency = site.currencyList.filter(currency => currency.name == saleCurrencyInput.value);
-        let rate = selectedCurrency[0].rate;
+        let rate = (selectedCurrency.length > 0) ? selectedCurrency[0].rate : 1;
         document.getElementById('totalPrice_identifier').textContent =  (saleCurrencyInput.value == 'Shillings') ? addComma(totalPriceSting) + ' /=': addComma(totalPriceSting) + ' $';
         document.getElementById('DiscountPrice_identifier').textContent = (saleCurrencyInput.value == 'Shillings') ? addComma(totalPriceDiscountedSting)   + ' /=': totalPriceDiscountedSting + ' $';
 
